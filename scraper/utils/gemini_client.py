@@ -51,25 +51,24 @@ SYSTEM_PROMPT = """Ты — парсер расписания занятий р�
 Если ячейка содержит занятия для разных подгрупп — создавай два объекта с subgroup: 1 и subgroup: 2.
 Верни ТОЛЬКО валидный JSON без пояснений."""
 
-# Global sliding-window rate limiter: max 12 calls per 60 s (free tier = 15 RPM)
-_rate_lock = threading.Lock()
-_call_times: collections.deque = collections.deque()
-_MAX_RPM = 12
+# Fixed-interval rate limiter: at most 1 generate_content call every 5 seconds (≈12 RPM).
+# Prevents burst: even if many threads upload files in parallel, they queue here
+# before firing generate_content.
+_slot_lock = threading.Lock()
+_next_call_at: float = 0.0
+_CALL_INTERVAL = 5.0  # seconds; 60/5 = 12 RPM < 15 RPM free-tier limit
 
 
 def _acquire_gemini_slot() -> None:
-    """Block the calling thread until a rate slot is available."""
+    global _next_call_at
     while True:
-        with _rate_lock:
+        with _slot_lock:
             now = time.monotonic()
-            while _call_times and now - _call_times[0] >= 60:
-                _call_times.popleft()
-            if len(_call_times) < _MAX_RPM:
-                _call_times.append(now)
+            if now >= _next_call_at:
+                _next_call_at = now + _CALL_INTERVAL
                 return
-            oldest = _call_times[0]
-        wait = 60 - (time.monotonic() - oldest) + 1.0
-        time.sleep(max(1.0, wait))
+            wait_for = _next_call_at - now
+        time.sleep(wait_for)
 
 
 class GeminiClient:
@@ -79,10 +78,8 @@ class GeminiClient:
             raise ValueError("GEMINI_API_KEY не задан")
         self.client = genai.Client(api_key=api_key)
 
-    @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=2, min=10, max=60))
     def parse_pdf(self, pdf_path: str) -> dict:
-        _acquire_gemini_slot()
-
+        # Upload first (no RPM cost; can happen in parallel with other threads)
         uploaded = self.client.files.upload(
             file=pdf_path,
             config=types.UploadFileConfig(mime_type="application/pdf"),
@@ -97,20 +94,25 @@ class GeminiClient:
             if uploaded.state.name != "ACTIVE":
                 raise RuntimeError(f"File upload failed: {uploaded.state.name}")
 
-            response = self.client.models.generate_content(
-                model="gemini-2.0-flash",
-                contents=[
-                    SYSTEM_PROMPT,
-                    "\n\nРаспарси расписание из этого PDF.",
-                    uploaded,
-                ],
-            )
+            # Rate-limit here, right before the costly generate_content call
+            return self._generate(uploaded)
         finally:
             try:
                 self.client.files.delete(name=uploaded.name)
             except Exception:
                 pass
 
+    @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=2, min=10, max=60))
+    def _generate(self, uploaded) -> dict:
+        _acquire_gemini_slot()
+        response = self.client.models.generate_content(
+            model="gemini-2.0-flash",
+            contents=[
+                SYSTEM_PROMPT,
+                "\n\nРаспарси расписание из этого PDF.",
+                uploaded,
+            ],
+        )
         text = response.text.strip()
         if text.startswith("```"):
             text = text.split("```")[1]
