@@ -61,9 +61,14 @@ jobs:
 
       - name: Commit and push
         run: |
+          echo "=== Workspace ===" && ls -la ${{ github.workspace }}/
+          echo "=== git branch ===" && git branch
+          echo "=== git status ===" && git status
           git config user.name "MPGU Schedule Bot"
           git config user.email "bot@github-actions"
           git add -A
-          git diff --staged --quiet && echo "Нет изменений" && exit 0
+          echo "=== after git add ===" && git status
+          git diff --staged --quiet && echo "НЕТ ИЗМЕНЕНИЙ" && exit 0
           git commit -m "Update $(date -u '+%Y-%m-%d %H:%M UTC')"
-          git push origin data
+          git push origin data -v || (echo "PUSH FAILED: $?" && exit 1)
+          echo "PUSH OK"
