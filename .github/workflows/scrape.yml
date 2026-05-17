@@ -10,6 +10,9 @@ on:
         required: false
         default: ""
 
+permissions:
+  contents: write
+
 jobs:
   scrape:
     runs-on: ubuntu-latest
@@ -28,17 +31,17 @@ jobs:
           ref: data
           path: data-branch
           fetch-depth: 1
-        continue-on-error: true  # ветки data может не быть при первом запуске
+        continue-on-error: true
 
       - name: Create data branch if missing
-        working-directory: data-branch
         run: |
-          if [ ! -d ".git" ]; then
+          if [ ! -d "data-branch/.git" ]; then
+            mkdir -p data-branch
+            cd data-branch
             git init
-            git remote add origin https://github.com/${{ github.repository }}.git
+            git remote add origin https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git
             git checkout -b data
           fi
-        continue-on-error: true
 
       - name: Setup Python
         uses: actions/setup-python@v5
