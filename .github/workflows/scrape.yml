@@ -72,16 +72,23 @@ jobs:
 
       - name: Commit and push data
         working-directory: data-branch
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
         run: |
+          echo "=== Содержимое data-branch ==="
+          find . -not -path './.git/*' -type f | head -30 || echo "(пусто)"
+
           git config user.name "MPGU Schedule Bot"
           git config user.email "bot@github-actions"
+          git remote set-url origin https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git
           git add -A
           git diff --staged --quiet && echo "Нет изменений" && exit 0
 
           git commit -m "Update $(date -u '+%Y-%m-%d %H:%M UTC')"
 
           for i in 1 2 3 4; do
-            git push -u origin data && break
+            git push -u origin data && exit 0
             echo "Push неудача #$i, ждём $((i*2))с..."
             sleep $((i*2))
           done
+          echo "Push провалился после 4 попыток" && exit 1
