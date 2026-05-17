@@ -109,15 +109,23 @@ async def process_institute(
         file_hashes[link_key] = md5
 
         # сохраняем во временный файл и парсим
-        ext = f".{actual_type}" if actual_type in {"pdf", "excel", "docx"} else ".csv"
-        ext = ".xlsx" if actual_type == "excel" else ext
+        if actual_type == "pdf":
+            ext = ".pdf"
+        elif actual_type in {"excel"}:
+            ext = ".xlsx"
+        elif actual_type == "docx":
+            ext = ".docx"
+        else:
+            ext = ".bin"  # nextcloud/gsheets — расширение определяется по содержимому
         tmp_path = save_to_temp(content, ext)
 
         try:
             parser = get_parser(actual_type, institute)
             result = parser.parse(tmp_path)
 
-            if not result.groups and fallback_type:
+            # fallback только когда используем тот же парсер что и основной
+            # (не пытаемся читать PDF через gsheets-парсер и т.п.)
+            if not result.groups and fallback_type and actual_type == parser_type:
                 print(f"  ⚠ Fallback на {fallback_type}: {url[-60:]}")
                 parser = get_parser(fallback_type, institute)
                 result = parser.parse(tmp_path)
