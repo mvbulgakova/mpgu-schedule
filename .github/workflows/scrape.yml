@@ -25,23 +25,17 @@ jobs:
           ref: main
           path: main-branch
 
-      - name: Checkout data branch
-        uses: actions/checkout@v4
-        with:
-          ref: data
-          path: data-branch
-          fetch-depth: 1
-        continue-on-error: true
-
-      - name: Create data branch if missing
+      - name: Prepare data branch
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
         run: |
-          if [ ! -d "data-branch/.git" ]; then
-            mkdir -p data-branch
-            cd data-branch
-            git init
-            git remote add origin https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git
-            git checkout -b data
-          fi
+          rm -rf data-branch
+          mkdir data-branch
+          cd data-branch
+          git init
+          git checkout -b data
+          git remote add origin https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git
+          git fetch origin data --depth=1 2>/dev/null && git reset --hard origin/data || echo "data branch не существует, начинаем с нуля"
 
       - name: Setup Python
         uses: actions/setup-python@v5
