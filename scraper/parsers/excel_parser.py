@@ -44,66 +44,84 @@ def _parse_sheet(sheet) -> list[dict]:
 # ── MPGU columnar format ──────────────────────────────────────────────────────
 
 def _try_mpgu_format(rows: list[list[str]], sheet_title: str = "") -> list[dict]:
-    """Handle MPGU format: day+time in cols B+C, groups as columns D+."""
-    header_idx = None
-    for i, row in enumerate(rows[:20]):
-        if len(row) >= 4 and "день" in row[1].lower() and any(row[j] for j in range(3, min(len(row), 15))):
-            header_idx = i
-            break
-    if header_idx is None:
+    """Detect and parse MPGU columnar schedule (day+time as rows, groups as columns)."""
+    header = _find_mpgu_header(rows)
+    if header is None:
         return []
 
-    header = rows[header_idx]
+    header_idx, day_col, time_col, data_col = header
+    header_row = rows[header_idx]
+
     group_cols: dict[int, str] = {}
-    for col_i in range(3, len(header)):
-        name = header[col_i].strip()
+    for col_i in range(data_col, len(header_row)):
+        name = header_row[col_i].strip()
         if name:
             group_cols[col_i] = name
     if not group_cols:
         return []
 
-    # Detect format by checking if first data rows have day names or date strings
+    # Detect ZFO (date strings in day_col) vs full-time (day names)
     is_fulltime = True
     for row in rows[header_idx + 1: header_idx + 6]:
-        if len(row) > 1 and row[1]:
-            if normalize_day(row[1]):
+        if len(row) > day_col and row[day_col]:
+            if normalize_day(row[day_col].rstrip()):
                 is_fulltime = True
                 break
-            if re.search(r"\d{1,2}\.\d{2}\.\d{4}", row[1]):
+            if re.search(r"\d{1,2}\.\d{2}\.\d{4}", row[day_col]):
                 is_fulltime = False
                 break
+
+    # Detect multi-line cells (history) vs multi-row data (sport/ZFO)
+    has_multiline = any(
+        "\n" in (row[col_i] or "")
+        for row in rows[header_idx + 1: header_idx + 20]
+        for col_i in group_cols
+        if col_i < len(row)
+    )
 
     title_lower = sheet_title.lower()
     degree = "master" if any(k in title_lower for k in ("(м)", "магистр")) else "bachelor"
     form = "full_time" if is_fulltime else "correspondence"
 
-    if is_fulltime:
-        return _parse_mpgu_fulltime(rows, header_idx, group_cols, form, degree)
+    if has_multiline and is_fulltime:
+        return _parse_mpgu_fulltime(rows, header_idx, day_col, time_col, group_cols, form, degree)
     else:
-        return _parse_mpgu_zfo(rows, header_idx, group_cols)
+        return _parse_mpgu_multirow(rows, header_idx, day_col, time_col, group_cols, form, degree)
+
+
+def _find_mpgu_header(rows: list[list[str]]) -> tuple | None:
+    """Find header row; returns (idx, day_col, time_col, data_col) or None."""
+    for i, row in enumerate(rows[:25]):
+        b = row[1].lower() if len(row) > 1 else ""
+        c = row[2].lower() if len(row) > 2 else ""
+
+        # Standard: день/группы in col B (idx 1), groups from col D (idx 3)
+        if ("день" in b or "группы" in b) and any(row[j] for j in range(3, min(len(row), 15))):
+            return i, 1, 2, 3
+
+        # Shifted: день/группы in col C (idx 2), groups from col E (idx 4)
+        if ("день" in c or "группы" in c) and any(row[j] for j in range(4, min(len(row), 15))):
+            return i, 2, 3, 4
+
+    return None
 
 
 def _parse_mpgu_fulltime(
-    rows: list[list[str]],
-    header_idx: int,
-    group_cols: dict[int, str],
-    form: str,
-    degree: str,
+    rows, header_idx, day_col, time_col, group_cols, form, degree
 ) -> list[dict]:
-    """Full-time format: 4-row blocks, day names in col B, multi-line lesson cells."""
+    """Full-time format: multi-line cells, 4-row blocks per time slot."""
     groups_sched = {name: make_schedule_skeleton() for name in group_cols.values()}
-
     blocks: list[tuple] = []
     current_day = current_time = None
     block_rows: list[list[str]] = []
 
     for row in rows[header_idx + 1:]:
-        if len(row) > 1 and row[1]:
-            d = normalize_day(row[1])
+        if len(row) > day_col and row[day_col]:
+            d = normalize_day(row[day_col].rstrip())
             if d:
                 current_day = d
-        if len(row) > 2 and row[2]:
-            t = normalize_time(row[2])
+        if len(row) > time_col and row[time_col]:
+            t = normalize_time(row[time_col])
             if t:
                 if current_time is not None and current_day is not None:
                     blocks.append((current_day, current_time, block_rows))
@@ -144,12 +162,10 @@ def _parse_mpgu_fulltime(
     return _build_result(groups_sched, form, degree)
 
 
-def _parse_mpgu_zfo(
-    rows: list[list[str]],
-    header_idx: int,
-    group_cols: dict[int, str],
+def _parse_mpgu_multirow(
+    rows, header_idx, day_col, time_col, group_cols, form, degree
 ) -> list[dict]:
-    """ZFO format: date strings in col B, lesson data spread across 3-4 rows per slot."""
+    """Multi-row format: lesson data spread across rows (sport + ZFO)."""
     groups_sched = {name: make_schedule_skeleton() for name in group_cols.values()}
     current_day: str | None = None
     current_time: tuple | None = None
@@ -162,18 +178,18 @@ def _parse_mpgu_zfo(
             name = group_cols.get(col_i)
             if not name or not lines:
                 continue
-            lesson = _parse_zfo_lines(lines, current_time[0], current_time[1])
+            lesson = _parse_multirow_lines(lines, current_time[0], current_time[1])
             if lesson:
                 groups_sched[name]["odd_week"][current_day].append(lesson)
                 groups_sched[name]["even_week"][current_day].append({**lesson})
 
     for row in rows[header_idx + 1:]:
-        if len(row) > 1 and row[1]:
-            d = _day_from_date_str(row[1]) or normalize_day(row[1])
+        if len(row) > day_col and row[day_col]:
+            d = _day_from_date_str(row[day_col]) or normalize_day(row[day_col].rstrip())
             if d:
                 current_day = d
-        if len(row) > 2 and row[2]:
-            t = normalize_time(row[2])
+        if len(row) > time_col and row[time_col]:
+            t = normalize_time(row[time_col])
             if t:
                 flush()
                 pending.clear()
@@ -188,11 +204,11 @@ def _parse_mpgu_zfo(
                     pending.setdefault(col_i, []).append(row[col_i])
 
     flush()
-    return _build_result(groups_sched, "correspondence", "bachelor")
+    return _build_result(groups_sched, form, degree)
 
 
 def _parse_lesson_cell(cell: str, t_start: str, t_end: str) -> dict | None:
-    """Parse multi-line cell (full-time format): subject\\nteacher\\nroom."""
+    """Parse multi-line cell (full-time): subject\\nteacher\\nroom."""
     if not cell or cell.strip() in {"-", "–", "—", ".", ""}:
         return None
     lines = [l.strip() for l in cell.split("\n") if l.strip()]
@@ -214,8 +230,8 @@ def _parse_lesson_cell(cell: str, t_start: str, t_end: str) -> dict | None:
     return lesson_obj(None, t_start, t_end, subject, lesson_type, teacher, room) if subject else None
 
 
-def _parse_zfo_lines(lines: list[str], t_start: str, t_end: str) -> dict | None:
-    """Combine ZFO multi-row entries (subject across rows, then teacher, then room)."""
+def _parse_multirow_lines(lines: list[str], t_start: str, t_end: str) -> dict | None:
+    """Combine multi-row lesson data (sport/ZFO): subject → teacher → room across rows."""
     subject_parts: list[str] = []
     teacher = room = None
 
@@ -223,11 +239,14 @@ def _parse_zfo_lines(lines: list[str], t_start: str, t_end: str) -> dict | None:
         line = line.strip()
         if not line:
             continue
-        if re.match(r"ауд\.?\s*[\d\w]", line, re.I):
+        # Dates-only lines: treat as notes, skip
+        if re.match(r"^\d{1,2}\.\d{2}[.,]", line):
+            continue
+        if re.match(r"ауд\.?\s*[\d\w]", line, re.I) or re.match(r"с/з", line, re.I):
             if room is None:
                 room = re.sub(r"^ауд\.?\s*", "", line, flags=re.I).strip()
             continue
-        if re.search(r"\b(проф|доц|асс|ст\. пр|преп)\b", line, re.I):
+        if re.search(r"\b(проф|доц|асс|ст\. преп|ст\.преп|преп)\b", line, re.I):
             if teacher is None:
                 teacher = re.sub(r"\(ауд\.?[^)]*\)", "", line).strip().rstrip(",. ")
             room_m = re.search(r"\(ауд\.?\s*([^)]+)\)", line, re.I)
@@ -236,7 +255,7 @@ def _parse_zfo_lines(lines: list[str], t_start: str, t_end: str) -> dict | None:
             continue
         subject_parts.append(line)
 
-    subject = " ".join(subject_parts).strip()
+    subject = " ".join(dict.fromkeys(subject_parts)).strip()  # deduplicate consecutive repeats
     if not subject:
         return None
 
@@ -253,11 +272,7 @@ def _day_from_date_str(s: str) -> str | None:
     return None
 
 
-def _build_result(
-    groups_sched: dict[str, dict],
-    form: str,
-    degree: str,
-) -> list[dict]:
+def _build_result(groups_sched, form, degree) -> list[dict]:
     result = []
     for name, sched in groups_sched.items():
         total = sum(len(v) for v in sched["odd_week"].values())
@@ -275,18 +290,15 @@ def _build_result(
 # ── traditional formats (fallback) ───────────────────────────────────────────
 
 def _find_day_column_header(rows: list[list[str]]) -> int | None:
-    """Find a header row where day names appear as column headers."""
     day_kw = {"понедельник", "вторник", "среда", "четверг", "пятница", "суббота",
                "пн", "вт", "ср", "чт", "пт", "сб"}
     for i, row in enumerate(rows[:10]):
-        matches = sum(1 for c in row if c.lower() in day_kw)
-        if matches >= 3:
+        if sum(1 for c in row if c.lower() in day_kw) >= 3:
             return i
     return None
 
 
 def _parse_with_day_columns(rows: list[list[str]], header_idx: int) -> list[dict]:
-    """Format: first column = time, other columns = days."""
     header = rows[header_idx]
     day_cols: dict[int, str] = {}
     for i, h in enumerate(header):
@@ -323,7 +335,6 @@ def _parse_with_day_columns(rows: list[list[str]], header_idx: int) -> list[dict
 
 
 def _parse_flat(rows: list[list[str]]) -> list[dict]:
-    """Format: rows with day/time/subject columns."""
     if not rows:
         return []
     header = rows[0]
@@ -376,16 +387,11 @@ def _parse_simple_cell(cell: str, time_start: str, time_end: str):
 # ── helpers ───────────────────────────────────────────────────────────────────
 
 def _cell_str(v) -> str:
-    if v is None:
-        return ""
-    return str(v).strip()
+    return str(v).strip() if v is not None else ""
 
 
 def _first_nonempty(cells: list[str]) -> str:
-    for c in cells:
-        if c:
-            return c
-    return ""
+    return next((c for c in cells if c), "")
 
 
 def _find_col(header: list[str], keywords: list[str]) -> int | None:
@@ -404,8 +410,7 @@ def _get(row: list[str], col: int | None) -> str | None:
 def _compute_confidence(groups: list[dict]) -> float:
     if not groups:
         return 0.0
-    total = sum(len(v) for g in groups
-                for v in g["schedule"]["odd_week"].values())
+    total = sum(len(v) for g in groups for v in g["schedule"]["odd_week"].values())
     return min(1.0, round(total / 20, 2)) if total else 0.1
 
 

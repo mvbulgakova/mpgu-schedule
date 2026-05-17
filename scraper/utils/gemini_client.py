@@ -1,5 +1,6 @@
 import json
 import os
+import time
 
 import google.generativeai as genai
 from tenacity import retry, stop_after_attempt, wait_exponential
@@ -54,18 +55,33 @@ class GeminiClient:
         if not api_key:
             raise ValueError("GEMINI_API_KEY не задан")
         genai.configure(api_key=api_key)
-        self.model = genai.GenerativeModel("gemini-1.5-flash")
+        self.model = genai.GenerativeModel("gemini-2.0-flash")
 
     @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=4, max=30))
     def parse_pdf(self, pdf_path: str) -> dict:
-        with open(pdf_path, "rb") as f:
-            pdf_bytes = f.read()
+        # Upload via Files API for reliable PDF handling
+        uploaded = genai.upload_file(pdf_path, mime_type="application/pdf")
+        try:
+            # Wait until file is active (usually instant, but can take a few seconds)
+            for _ in range(15):
+                if uploaded.state.name != "PROCESSING":
+                    break
+                time.sleep(2)
+                uploaded = genai.get_file(uploaded.name)
 
-        response = self.model.generate_content([
-            SYSTEM_PROMPT,
-            "\n\nРаспарси расписание из этого PDF.",
-            {"mime_type": "application/pdf", "data": pdf_bytes},
-        ])
+            if uploaded.state.name != "ACTIVE":
+                raise RuntimeError(f"File upload failed: {uploaded.state.name}")
+
+            response = self.model.generate_content([
+                SYSTEM_PROMPT,
+                "\n\nРаспарси расписание из этого PDF.",
+                uploaded,
+            ])
+        finally:
+            try:
+                genai.delete_file(uploaded.name)
+            except Exception:
+                pass
 
         text = response.text.strip()
         if text.startswith("```"):
