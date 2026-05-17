@@ -26,6 +26,10 @@ class PDFParser(BaseParser):
         if result.confidence >= CONFIDENCE_THRESHOLD:
             return result
 
+        result = self._try_gemini(path)
+        if result.confidence >= CONFIDENCE_THRESHOLD:
+            return result
+
         return self._try_claude(path)
 
     # ── уровень 1: pdfplumber ─────────────────────────────────────────────────
@@ -70,7 +74,22 @@ class PDFParser(BaseParser):
             return ParseResult(groups=[], parser_used="camelot", confidence=0.0,
                                warnings=[str(e)])
 
-    # ── уровень 3: Claude vision ──────────────────────────────────────────────
+    # ── уровень 3: Gemini vision ──────────────────────────────────────────────
+
+    def _try_gemini(self, path: str) -> ParseResult:
+        try:
+            from scraper.utils.gemini_client import GeminiClient
+            client = GeminiClient()
+            raw = client.parse_pdf(path)
+            groups = raw.get("groups", [])
+            confidence = 0.85 if groups else 0.0
+            return ParseResult(groups=groups, parser_used="gemini", confidence=confidence,
+                               warnings=["Использован Gemini fallback"])
+        except Exception as e:
+            return ParseResult(groups=[], parser_used="gemini", confidence=0.0,
+                               warnings=[f"Gemini fallback провалился: {e}"])
+
+    # ── уровень 4: Claude vision ──────────────────────────────────────────────
 
     def _try_claude(self, path: str) -> ParseResult:
         try:
