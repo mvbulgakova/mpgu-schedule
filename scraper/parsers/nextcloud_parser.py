@@ -46,9 +46,11 @@ class NextcloudParser(BaseParser):
                                confidence=0.0, warnings=[f"Неизвестное расширение: {ext}"])
 
 
+_GENERIC_EXTS = {"bin", "tmp", ""}
+
 def _detect_extension(path: str) -> str:
     suffix = os.path.splitext(path)[1].lower().lstrip(".")
-    if suffix:
+    if suffix and suffix not in _GENERIC_EXTS:
         return suffix
     # пытаемся угадать по сигнатуре файла
     try:
