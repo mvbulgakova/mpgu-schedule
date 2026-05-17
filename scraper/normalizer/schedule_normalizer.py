@@ -12,8 +12,8 @@ DAY_NAMES = {
 }
 
 LESSON_TYPES = {
-    "лекция": "lecture", "лек": "lecture", "лек.": "lecture",
-    "практика": "practice", "пр": "practice", "пр.": "practice", "практ": "practice",
+    "лекция": "lecture", "лек": "lecture", "лек.": "lecture", "лк": "lecture",
+    "практика": "practice", "пр": "practice", "пр.": "practice", "практ": "practice", "пз": "practice",
     "лабораторная": "lab", "лаб": "lab", "лаб.": "lab",
     "семинар": "seminar", "сем": "seminar", "сем.": "seminar",
 }

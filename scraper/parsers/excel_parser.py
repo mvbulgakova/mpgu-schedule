@@ -1,13 +1,12 @@
-"""Парсер Excel (.xlsx/.xls) расписаний."""
+"""Парсер Excel (.xlsx/.xls) расписаний МПГУ."""
 import re
 
 import openpyxl
-from openpyxl.utils import get_column_letter
 
 from scraper.parsers.base import BaseParser, ParseResult
 from scraper.normalizer.schedule_normalizer import (
     normalize_day, normalize_lesson_type, normalize_time,
-    normalize_week_type, make_schedule_skeleton, lesson_obj,
+    make_schedule_skeleton, lesson_obj,
 )
 
 
@@ -27,23 +26,256 @@ class ExcelParser(BaseParser):
 
 
 def _parse_sheet(sheet) -> list[dict]:
-    rows = []
-    for row in sheet.iter_rows(values_only=True):
-        rows.append([_cell_str(c) for c in row])
-
+    rows = [[_cell_str(c) for c in row] for row in sheet.iter_rows(values_only=True)]
     if not rows:
         return []
 
-    # ищем строку заголовка с днями недели
-    header_row_idx = _find_header_row(rows)
+    result = _try_mpgu_format(rows, sheet.title)
+    if result:
+        return result
+
+    # Fallback: traditional format with day columns
+    header_row_idx = _find_day_column_header(rows)
     if header_row_idx is None:
         return _parse_flat(rows)
-
-    header = rows[header_row_idx]
-    return _parse_with_header(rows, header_row_idx, header)
+    return _parse_with_day_columns(rows, header_row_idx)
 
 
-def _find_header_row(rows: list[list[str]]) -> int | None:
+# ── MPGU columnar format ──────────────────────────────────────────────────────
+
+def _try_mpgu_format(rows: list[list[str]], sheet_title: str = "") -> list[dict]:
+    """Handle MPGU format: day+time in cols B+C, groups as columns D+."""
+    header_idx = None
+    for i, row in enumerate(rows[:20]):
+        if len(row) >= 4 and "день" in row[1].lower() and any(row[j] for j in range(3, min(len(row), 15))):
+            header_idx = i
+            break
+    if header_idx is None:
+        return []
+
+    header = rows[header_idx]
+    group_cols: dict[int, str] = {}
+    for col_i in range(3, len(header)):
+        name = header[col_i].strip()
+        if name:
+            group_cols[col_i] = name
+    if not group_cols:
+        return []
+
+    # Detect format by checking if first data rows have day names or date strings
+    is_fulltime = True
+    for row in rows[header_idx + 1: header_idx + 6]:
+        if len(row) > 1 and row[1]:
+            if normalize_day(row[1]):
+                is_fulltime = True
+                break
+            if re.search(r"\d{1,2}\.\d{2}\.\d{4}", row[1]):
+                is_fulltime = False
+                break
+
+    title_lower = sheet_title.lower()
+    degree = "master" if any(k in title_lower for k in ("(м)", "магистр")) else "bachelor"
+    form = "full_time" if is_fulltime else "correspondence"
+
+    if is_fulltime:
+        return _parse_mpgu_fulltime(rows, header_idx, group_cols, form, degree)
+    else:
+        return _parse_mpgu_zfo(rows, header_idx, group_cols)
+
+
+def _parse_mpgu_fulltime(
+    rows: list[list[str]],
+    header_idx: int,
+    group_cols: dict[int, str],
+    form: str,
+    degree: str,
+) -> list[dict]:
+    """Full-time format: 4-row blocks, day names in col B, multi-line lesson cells."""
+    groups_sched = {name: make_schedule_skeleton() for name in group_cols.values()}
+
+    blocks: list[tuple] = []
+    current_day = current_time = None
+    block_rows: list[list[str]] = []
+
+    for row in rows[header_idx + 1:]:
+        if len(row) > 1 and row[1]:
+            d = normalize_day(row[1])
+            if d:
+                current_day = d
+        if len(row) > 2 and row[2]:
+            t = normalize_time(row[2])
+            if t:
+                if current_time is not None and current_day is not None:
+                    blocks.append((current_day, current_time, block_rows))
+                current_time = t
+                block_rows = [row]
+                continue
+        if current_time is not None:
+            block_rows.append(row)
+
+    if current_time and current_day:
+        blocks.append((current_day, current_time, block_rows))
+
+    for day, times, brows in blocks:
+        row0 = brows[0] if brows else []
+        row2 = brows[2] if len(brows) > 2 else []
+
+        for col_i, name in group_cols.items():
+            c0 = row0[col_i] if col_i < len(row0) else ""
+            c2 = row2[col_i] if col_i < len(row2) else ""
+
+            if c0 and c2 and c0 != c2:
+                lo = _parse_lesson_cell(c0, times[0], times[1])
+                le = _parse_lesson_cell(c2, times[0], times[1])
+                if lo:
+                    groups_sched[name]["odd_week"][day].append(lo)
+                if le:
+                    groups_sched[name]["even_week"][day].append(le)
+            elif c0:
+                lesson = _parse_lesson_cell(c0, times[0], times[1])
+                if lesson:
+                    groups_sched[name]["odd_week"][day].append(lesson)
+                    groups_sched[name]["even_week"][day].append({**lesson})
+            elif c2:
+                lesson = _parse_lesson_cell(c2, times[0], times[1])
+                if lesson:
+                    groups_sched[name]["even_week"][day].append(lesson)
+
+    return _build_result(groups_sched, form, degree)
+
+
+def _parse_mpgu_zfo(
+    rows: list[list[str]],
+    header_idx: int,
+    group_cols: dict[int, str],
+) -> list[dict]:
+    """ZFO format: date strings in col B, lesson data spread across 3-4 rows per slot."""
+    groups_sched = {name: make_schedule_skeleton() for name in group_cols.values()}
+    current_day: str | None = None
+    current_time: tuple | None = None
+    pending: dict[int, list[str]] = {}
+
+    def flush():
+        if not current_day or not current_time:
+            return
+        for col_i, lines in pending.items():
+            name = group_cols.get(col_i)
+            if not name or not lines:
+                continue
+            lesson = _parse_zfo_lines(lines, current_time[0], current_time[1])
+            if lesson:
+                groups_sched[name]["odd_week"][current_day].append(lesson)
+                groups_sched[name]["even_week"][current_day].append({**lesson})
+
+    for row in rows[header_idx + 1:]:
+        if len(row) > 1 and row[1]:
+            d = _day_from_date_str(row[1]) or normalize_day(row[1])
+            if d:
+                current_day = d
+        if len(row) > 2 and row[2]:
+            t = normalize_time(row[2])
+            if t:
+                flush()
+                pending.clear()
+                current_time = t
+                for col_i in group_cols:
+                    if col_i < len(row) and row[col_i]:
+                        pending.setdefault(col_i, []).append(row[col_i])
+                continue
+        if current_time is not None:
+            for col_i in group_cols:
+                if col_i < len(row) and row[col_i]:
+                    pending.setdefault(col_i, []).append(row[col_i])
+
+    flush()
+    return _build_result(groups_sched, "correspondence", "bachelor")
+
+
+def _parse_lesson_cell(cell: str, t_start: str, t_end: str) -> dict | None:
+    """Parse multi-line cell (full-time format): subject\\nteacher\\nroom."""
+    if not cell or cell.strip() in {"-", "–", "—", ".", ""}:
+        return None
+    lines = [l.strip() for l in cell.split("\n") if l.strip()]
+    if not lines:
+        return None
+
+    subject_line = lines[0]
+    lesson_type = normalize_lesson_type(subject_line)
+    subject = re.sub(r"\s*\([ПЛ][ЗКБР]\)", "", subject_line, flags=re.I).strip(" ,.")
+
+    teacher = room = None
+    for line in lines[1:]:
+        room_m = re.search(r"\(ауд\.?\s*([^)]+)\)", line, re.I)
+        if room_m and room is None:
+            room = room_m.group(1).strip()
+        if teacher is None and re.search(r"\b(проф|доц|асс|ст\. пр|преп)\b", line, re.I):
+            teacher = re.sub(r"\(ауд\.?[^)]*\)", "", line).strip().rstrip(",. ")
+
+    return lesson_obj(None, t_start, t_end, subject, lesson_type, teacher, room) if subject else None
+
+
+def _parse_zfo_lines(lines: list[str], t_start: str, t_end: str) -> dict | None:
+    """Combine ZFO multi-row entries (subject across rows, then teacher, then room)."""
+    subject_parts: list[str] = []
+    teacher = room = None
+
+    for line in lines:
+        line = line.strip()
+        if not line:
+            continue
+        if re.match(r"ауд\.?\s*[\d\w]", line, re.I):
+            if room is None:
+                room = re.sub(r"^ауд\.?\s*", "", line, flags=re.I).strip()
+            continue
+        if re.search(r"\b(проф|доц|асс|ст\. пр|преп)\b", line, re.I):
+            if teacher is None:
+                teacher = re.sub(r"\(ауд\.?[^)]*\)", "", line).strip().rstrip(",. ")
+            room_m = re.search(r"\(ауд\.?\s*([^)]+)\)", line, re.I)
+            if room_m and room is None:
+                room = room_m.group(1).strip()
+            continue
+        subject_parts.append(line)
+
+    subject = " ".join(subject_parts).strip()
+    if not subject:
+        return None
+
+    lesson_type = normalize_lesson_type(subject)
+    subject = re.sub(r"\s*\([ПЛ][ЗКБР]\)", "", subject, flags=re.I).strip()
+    return lesson_obj(None, t_start, t_end, subject, lesson_type, teacher, room)
+
+
+def _day_from_date_str(s: str) -> str | None:
+    """Extract day from '14.02.2026 (суббота)' → 'saturday'."""
+    m = re.search(r"\(([а-яёА-ЯЁ]+)\)", s)
+    if m:
+        return normalize_day(m.group(1))
+    return None
+
+
+def _build_result(
+    groups_sched: dict[str, dict],
+    form: str,
+    degree: str,
+) -> list[dict]:
+    result = []
+    for name, sched in groups_sched.items():
+        total = sum(len(v) for v in sched["odd_week"].values())
+        if total > 0:
+            result.append({
+                "name": name,
+                "year": None,
+                "form": form,
+                "degree": degree,
+                "schedule": sched,
+            })
+    return result
+
+
+# ── traditional formats (fallback) ───────────────────────────────────────────
+
+def _find_day_column_header(rows: list[list[str]]) -> int | None:
+    """Find a header row where day names appear as column headers."""
     day_kw = {"понедельник", "вторник", "среда", "четверг", "пятница", "суббота",
                "пн", "вт", "ср", "чт", "пт", "сб"}
     for i, row in enumerate(rows[:10]):
@@ -53,7 +285,9 @@ def _find_header_row(rows: list[list[str]]) -> int | None:
     return None
 
 
-def _parse_with_header(rows, header_idx, header) -> list[dict]:
+def _parse_with_day_columns(rows: list[list[str]], header_idx: int) -> list[dict]:
+    """Format: first column = time, other columns = days."""
+    header = rows[header_idx]
     day_cols: dict[int, str] = {}
     for i, h in enumerate(header):
         day = normalize_day(h)
@@ -69,30 +303,29 @@ def _parse_with_header(rows, header_idx, header) -> list[dict]:
             parsed = normalize_time(time_raw)
             if parsed:
                 current_time = parsed
-
         if current_time is None:
             continue
-
         for col_i, day in day_cols.items():
             cell = row[col_i] if col_i < len(row) else ""
             if not cell:
                 continue
-            week_type, lesson = _parse_cell(cell, current_time[0], current_time[1])
-            if lesson:
+            week_type, les = _parse_simple_cell(cell, current_time[0], current_time[1])
+            if les:
                 if week_type in ("odd", "both"):
-                    schedule["odd_week"][day].append(lesson)
+                    schedule["odd_week"][day].append(les)
                 if week_type in ("even", "both"):
-                    schedule["even_week"][day].append({**lesson})
+                    schedule["even_week"][day].append({**les})
 
     if not any(schedule["odd_week"][d] for d in schedule["odd_week"]):
         return []
-
     return [{"name": "группа", "year": None, "form": "full_time",
              "degree": "bachelor", "schedule": schedule}]
 
 
 def _parse_flat(rows: list[list[str]]) -> list[dict]:
-    """Если нет заголовка с днями — пробуем колонки день/время/предмет."""
+    """Format: rows with day/time/subject columns."""
+    if not rows:
+        return []
     header = rows[0]
     col = {
         "day": _find_col(header, ["день", "дн"]),
@@ -117,18 +350,19 @@ def _parse_flat(rows: list[list[str]]) -> list[dict]:
         lesson_type = normalize_lesson_type(_get(row, col["type"]) or subject)
         teacher = _get(row, col["teacher"])
         room = _get(row, col["room"])
-        lesson = lesson_obj(None, times[0], times[1], subject, lesson_type, teacher, room)
-        schedule["odd_week"][day].append(lesson)
-        schedule["even_week"][day].append({**lesson})
+        les = lesson_obj(None, times[0], times[1], subject, lesson_type, teacher, room)
+        schedule["odd_week"][day].append(les)
+        schedule["even_week"][day].append({**les})
 
     return [{"name": "группа", "year": None, "form": "full_time",
              "degree": "bachelor", "schedule": schedule}]
 
 
-def _parse_cell(cell: str, time_start: str, time_end: str):
+def _parse_simple_cell(cell: str, time_start: str, time_end: str):
     if not cell or cell in {"-", "–", "—"}:
         return "both", None
     week_m = re.search(r"\b(числ[а-я]*|знам[а-я]*|н/|з/|н\b|з\b)\b", cell, re.I)
+    from scraper.normalizer.schedule_normalizer import normalize_week_type
     week_type = normalize_week_type(week_m.group(1)) if week_m else "both"
     if week_m:
         cell = cell[:week_m.start()] + cell[week_m.end():]
@@ -138,6 +372,8 @@ def _parse_cell(cell: str, time_start: str, time_end: str):
     clean = re.sub(r"\bлек\b\.?|\bпрактика\b|\bпр\b\.?|\bлаб\b\.?|\bсеминар\b", "", cell, flags=re.I).strip()
     return week_type, lesson_obj(None, time_start, time_end, clean, lesson_type, None, room)
 
+
+# ── helpers ───────────────────────────────────────────────────────────────────
 
 def _cell_str(v) -> str:
     if v is None:
@@ -154,8 +390,7 @@ def _first_nonempty(cells: list[str]) -> str:
 
 def _find_col(header: list[str], keywords: list[str]) -> int | None:
     for i, h in enumerate(header):
-        h_lower = h.lower()
-        if any(k in h_lower for k in keywords):
+        if any(k in h.lower() for k in keywords):
             return i
     return None
 
@@ -166,11 +401,11 @@ def _get(row: list[str], col: int | None) -> str | None:
     return row[col] or None
 
 
-def _compute_confidence(groups):
+def _compute_confidence(groups: list[dict]) -> float:
     if not groups:
         return 0.0
-    total = sum(len(l) for g in groups
-                for day_l in g["schedule"]["odd_week"].values() for l in [day_l])
+    total = sum(len(v) for g in groups
+                for v in g["schedule"]["odd_week"].values())
     return min(1.0, round(total / 20, 2)) if total else 0.1
 
 
