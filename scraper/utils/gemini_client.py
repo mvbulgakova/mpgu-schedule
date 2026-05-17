@@ -4,7 +4,8 @@ import os
 import threading
 import time
 
-import google.generativeai as genai
+from google import genai
+from google.genai import types
 from tenacity import retry, stop_after_attempt, wait_exponential
 
 SYSTEM_PROMPT = """Ты — парсер расписания занятий российского университета.
@@ -76,32 +77,37 @@ class GeminiClient:
         api_key = os.environ.get("GEMINI_API_KEY")
         if not api_key:
             raise ValueError("GEMINI_API_KEY не задан")
-        genai.configure(api_key=api_key)
-        self.model = genai.GenerativeModel("gemini-2.0-flash")
+        self.client = genai.Client(api_key=api_key)
 
     @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=2, min=10, max=60))
     def parse_pdf(self, pdf_path: str) -> dict:
         _acquire_gemini_slot()
 
-        uploaded = genai.upload_file(pdf_path, mime_type="application/pdf")
+        uploaded = self.client.files.upload(
+            file=pdf_path,
+            config=types.UploadFileConfig(mime_type="application/pdf"),
+        )
         try:
             for _ in range(15):
                 if uploaded.state.name != "PROCESSING":
                     break
                 time.sleep(2)
-                uploaded = genai.get_file(uploaded.name)
+                uploaded = self.client.files.get(name=uploaded.name)
 
             if uploaded.state.name != "ACTIVE":
                 raise RuntimeError(f"File upload failed: {uploaded.state.name}")
 
-            response = self.model.generate_content([
-                SYSTEM_PROMPT,
-                "\n\nРаспарси расписание из этого PDF.",
-                uploaded,
-            ])
+            response = self.client.models.generate_content(
+                model="gemini-2.0-flash",
+                contents=[
+                    SYSTEM_PROMPT,
+                    "\n\nРаспарси расписание из этого PDF.",
+                    uploaded,
+                ],
+            )
         finally:
             try:
-                genai.delete_file(uploaded.name)
+                self.client.files.delete(name=uploaded.name)
             except Exception:
                 pass
 
