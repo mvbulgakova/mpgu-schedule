@@ -22,12 +22,14 @@ class PDFParser(BaseParser):
         result = self._try_pdfplumber(path)
         if result.confidence >= CONFIDENCE_THRESHOLD:
             return result
+        is_image_based = any("image-based" in w for w in result.warnings)
         accumulated_warnings.extend(result.warnings)
 
-        result = self._try_camelot(path)
-        if result.confidence >= CONFIDENCE_THRESHOLD:
-            return result
-        accumulated_warnings.extend(result.warnings)
+        if not is_image_based:
+            result = self._try_camelot(path)
+            if result.confidence >= CONFIDENCE_THRESHOLD:
+                return result
+            accumulated_warnings.extend(result.warnings)
 
         result = self._try_gemini(path)
         result.warnings = accumulated_warnings + result.warnings
@@ -38,6 +40,16 @@ class PDFParser(BaseParser):
     def _try_pdfplumber(self, path: str) -> ParseResult:
         try:
             with pdfplumber.open(path) as pdf:
+                # Detect image-based PDFs: sample first 3 pages for extractable text
+                sample = ""
+                for page in pdf.pages[:3]:
+                    sample += page.extract_text() or ""
+                    if len(sample) > 100:
+                        break
+                if len(sample) < 50:
+                    return ParseResult(groups=[], parser_used="pdfplumber", confidence=0.0,
+                                       warnings=["image-based PDF"])
+
                 all_tables = []
                 for page in pdf.pages:
                     tables = page.extract_tables({
