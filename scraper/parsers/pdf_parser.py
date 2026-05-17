@@ -17,20 +17,26 @@ CONFIDENCE_THRESHOLD = 0.65
 class PDFParser(BaseParser):
     def parse(self, source: str | bytes) -> ParseResult:
         path = source if isinstance(source, str) else _bytes_to_tmp(source, ".pdf")
+        accumulated_warnings = []
 
         result = self._try_pdfplumber(path)
         if result.confidence >= CONFIDENCE_THRESHOLD:
             return result
+        accumulated_warnings.extend(result.warnings)
 
         result = self._try_camelot(path)
         if result.confidence >= CONFIDENCE_THRESHOLD:
             return result
+        accumulated_warnings.extend(result.warnings)
 
         result = self._try_gemini(path)
         if result.confidence >= CONFIDENCE_THRESHOLD:
             return result
+        accumulated_warnings.extend(result.warnings)
 
-        return self._try_claude(path)
+        result = self._try_claude(path)
+        result.warnings = accumulated_warnings + result.warnings
+        return result
 
     # ── уровень 1: pdfplumber ─────────────────────────────────────────────────
 

@@ -123,13 +123,6 @@ async def process_institute(
             parser = get_parser(actual_type, institute)
             result = parser.parse(tmp_path)
 
-            # fallback только когда используем тот же парсер что и основной
-            # (не пытаемся читать PDF через gsheets-парсер и т.п.)
-            if not result.groups and fallback_type and actual_type == parser_type:
-                print(f"  ⚠ Fallback на {fallback_type}: {url[-60:]}")
-                parser = get_parser(fallback_type, institute)
-                result = parser.parse(tmp_path)
-
             print(f"  ✓ {result.parser_used} conf={result.confidence:.2f} "
                   f"групп={len(result.groups)} [{url[-50:]}]")
 
