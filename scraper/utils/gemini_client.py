@@ -57,7 +57,7 @@ class GeminiClient:
         genai.configure(api_key=api_key)
         self.model = genai.GenerativeModel("gemini-2.0-flash")
 
-    @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=2, min=10, max=90))
+    @retry(stop=stop_after_attempt(2), wait=wait_exponential(multiplier=1, min=5, max=30))
     def parse_pdf(self, pdf_path: str) -> dict:
         # Upload via Files API for reliable PDF handling
         uploaded = genai.upload_file(pdf_path, mime_type="application/pdf")

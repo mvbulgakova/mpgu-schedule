@@ -176,13 +176,20 @@ async def main():
     hashes_path = os.path.join(DATA_PATH, "meta", "hashes.json")
     tracker = HashTracker(hashes_path)
 
-    index_entries = []
-
-    connector = aiohttp.TCPConnector(limit=5)
+    connector = aiohttp.TCPConnector(limit=10)
     async with aiohttp.ClientSession(connector=connector) as session:
-        for institute in institutes:
-            entry = await process_institute(session, institute, tracker, storage)
-            index_entries.append(entry)
+        tasks = [
+            process_institute(session, institute, tracker, storage)
+            for institute in institutes
+        ]
+        results = await asyncio.gather(*tasks, return_exceptions=True)
+
+    index_entries = []
+    for inst, result in zip(institutes, results):
+        if isinstance(result, Exception):
+            index_entries.append(_error_entry(inst["id"], inst["name"], str(result)))
+        else:
+            index_entries.append(result)
 
     tracker.save()
     storage.write_hashes(json.loads(Path(hashes_path).read_text()) if Path(hashes_path).exists() else {})
