@@ -30,11 +30,6 @@ class PDFParser(BaseParser):
         accumulated_warnings.extend(result.warnings)
 
         result = self._try_gemini(path)
-        if result.confidence >= CONFIDENCE_THRESHOLD:
-            return result
-        accumulated_warnings.extend(result.warnings)
-
-        result = self._try_claude(path)
         result.warnings = accumulated_warnings + result.warnings
         return result
 
