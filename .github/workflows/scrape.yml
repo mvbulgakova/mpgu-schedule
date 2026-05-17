@@ -32,10 +32,9 @@ jobs:
           rm -rf data-branch
           mkdir data-branch
           cd data-branch
-          git init
-          git checkout -b data
+          git init -b data
           git remote add origin https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git
-          git fetch origin data --depth=1 2>/dev/null && git reset --hard origin/data || echo "data branch не существует, начинаем с нуля"
+          git fetch origin data --depth=1 2>/dev/null && git reset --hard origin/data || true
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -83,6 +82,4 @@ jobs:
           git diff --staged --quiet && echo "Нет изменений" && exit 0
 
           git commit -m "Update $(date -u '+%Y-%m-%d %H:%M UTC')"
-          echo "=== Пушим в data ==="
           git push https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git HEAD:refs/heads/data
-          echo "Push exit code: $?"
