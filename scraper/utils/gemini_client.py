@@ -1,5 +1,7 @@
+import collections
 import json
 import os
+import threading
 import time
 
 import google.generativeai as genai
@@ -48,6 +50,26 @@ SYSTEM_PROMPT = """Ты — парсер расписания занятий р�
 Если ячейка содержит занятия для разных подгрупп — создавай два объекта с subgroup: 1 и subgroup: 2.
 Верни ТОЛЬКО валидный JSON без пояснений."""
 
+# Global sliding-window rate limiter: max 12 calls per 60 s (free tier = 15 RPM)
+_rate_lock = threading.Lock()
+_call_times: collections.deque = collections.deque()
+_MAX_RPM = 12
+
+
+def _acquire_gemini_slot() -> None:
+    """Block the calling thread until a rate slot is available."""
+    while True:
+        with _rate_lock:
+            now = time.monotonic()
+            while _call_times and now - _call_times[0] >= 60:
+                _call_times.popleft()
+            if len(_call_times) < _MAX_RPM:
+                _call_times.append(now)
+                return
+            oldest = _call_times[0]
+        wait = 60 - (time.monotonic() - oldest) + 1.0
+        time.sleep(max(1.0, wait))
+
 
 class GeminiClient:
     def __init__(self):
@@ -57,12 +79,12 @@ class GeminiClient:
         genai.configure(api_key=api_key)
         self.model = genai.GenerativeModel("gemini-2.0-flash")
 
-    @retry(stop=stop_after_attempt(2), wait=wait_exponential(multiplier=1, min=5, max=30))
+    @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=2, min=10, max=60))
     def parse_pdf(self, pdf_path: str) -> dict:
-        # Upload via Files API for reliable PDF handling
+        _acquire_gemini_slot()
+
         uploaded = genai.upload_file(pdf_path, mime_type="application/pdf")
         try:
-            # Wait until file is active (usually instant, but can take a few seconds)
             for _ in range(15):
                 if uploaded.state.name != "PROCESSING":
                     break

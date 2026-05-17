@@ -121,7 +121,7 @@ async def process_institute(
 
         try:
             parser = get_parser(actual_type, institute)
-            result = parser.parse(tmp_path)
+            result = await asyncio.to_thread(parser.parse, tmp_path)
 
             print(f"  ✓ {result.parser_used} conf={result.confidence:.2f} "
                   f"групп={len(result.groups)} [{url[-50:]}]")
