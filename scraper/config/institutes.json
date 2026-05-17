@@ -1,0 +1,152 @@
+{
+  "institutes": [
+    {
+      "id": "biology",
+      "name": "Институт биологии и химии",
+      "short_name": "ИБиХ",
+      "schedule_url": "https://mpgu.su/ob-mpgu/struktura/faculties/institut-biologii-i-himii/uchebnyiy-protsess/raspisanie-uchebnyih-zanyatiy/",
+      "parser_type": "nextcloud",
+      "url_path_variant": "uchebnyiy-protsess"
+    },
+    {
+      "id": "childhood",
+      "name": "Институт детства",
+      "short_name": "ИД",
+      "schedule_url": "https://mpgu.su/raspisanie-zanyatiy-instituta/",
+      "parser_type": "pdf",
+      "url_path_variant": "uchebnyiy-protsess",
+      "sub_faculties": [
+        {
+          "id": "defectology",
+          "name": "Дефектологический факультет",
+          "schedule_url": "https://mpgu.su/ob-mpgu/struktura/faculties/institut-detstva/defektologicheskiy-fakultet/uchebnyiy-protsess/raspisanie-uchebnyih-zanyatiy/"
+        },
+        {
+          "id": "primary_edu",
+          "name": "Факультет начального образования",
+          "schedule_url": "https://mpgu.su/ob-mpgu/struktura/faculties/institut-detstva/fakultet-nachalnogo-obrazovaniya/uchenyiy-otdel/raspisanie-uchebnyih-zanyatiy/"
+        },
+        {
+          "id": "music",
+          "name": "Факультет музыкального искусства",
+          "schedule_url": "https://mpgu.su/ob-mpgu/struktura/faculties/institut-detstva/uchebnyiy-protsess/raspisanie-uchebnyih-zanyatiy/"
+        }
+      ]
+    },
+    {
+      "id": "philology",
+      "name": "Институт филологии",
+      "short_name": "ИФил",
+      "schedule_url": "https://mpgu.su/ob-mpgu/struktura/faculties/institut-filologii/uchebnyiy-protsess/raspisanie-uchebnyih-zanyatiy/",
+      "parser_type": "pdf",
+      "url_path_variant": "uchebnyiy-protsess"
+    },
+    {
+      "id": "physics",
+      "name": "Институт физики, технологии и информационных систем",
+      "short_name": "ИФТИС",
+      "schedule_url": "https://mpgu.su/ob-mpgu/struktura/faculties/institut-fiziki/uchebnaya-deyatelnost/raspisanie-uchebnyih-zanyatiy/",
+      "parser_type": "pdf",
+      "url_path_variant": "uchebnaya-deyatelnost"
+    },
+    {
+      "id": "sport",
+      "name": "Институт физической культуры, спорта и здоровья",
+      "short_name": "ИФКСиЗ",
+      "schedule_url": "https://mpgu.su/ob-mpgu/struktura/faculties/institut-fizkultury/uchebnaya-deyatelnost/raspisanie-uchebnyih-zanyatiy/",
+      "parser_type": "excel",
+      "url_path_variant": "uchebnaya-deyatelnost"
+    },
+    {
+      "id": "social",
+      "name": "Институт социально-гуманитарного образования",
+      "short_name": "ИСГО",
+      "schedule_url": "https://mpgu.su/ob-mpgu/struktura/faculties/institut-sotsiolno-gumanitarnogo-obrazovania/uchebnyiy-protsess/raspisanie-uchebnyih-zanyatiy/",
+      "parser_type": "gsheets",
+      "fallback_parser_type": "pdf",
+      "url_path_variant": "uchebnyiy-protsess"
+    },
+    {
+      "id": "geography",
+      "name": "Географический факультет",
+      "short_name": "ГФ",
+      "schedule_url": "https://mpgu.su/ob-mpgu/struktura/faculties/geograficheskiy-fakultet/uchebnyiy-protsess/raspisanie-uchebnyih-zanyatiy/",
+      "parser_type": "pdf",
+      "url_path_variant": "uchebnyiy-protsess"
+    },
+    {
+      "id": "history",
+      "name": "Институт истории и политики",
+      "short_name": "ИИиП",
+      "schedule_url": "https://mpgu.su/ob-mpgu/struktura/faculties/institut-istorii-politiki/uchebnyiy-protsess/raspisanie-uchebnyih-zanyatiy/",
+      "parser_type": "excel",
+      "url_path_variant": "uchebnyiy-protsess"
+    },
+    {
+      "id": "math",
+      "name": "Институт математики и информатики",
+      "short_name": "ИМиИ",
+      "schedule_url": "https://mpgu.su/ob-mpgu/struktura/faculties/matematicheskiy-fakultet/uchebnyiy-protsess/raspisanie-uchebnyih-zanyatiy/",
+      "parser_type": "pdf",
+      "url_path_variant": "uchebnyiy-protsess"
+    },
+    {
+      "id": "arts",
+      "name": "Институт изящных искусств",
+      "short_name": "ИИИ",
+      "schedule_url": "https://mpgu.su/ob-mpgu/struktura/faculties/institut-iskusstv/uchebnyiy-protsess/raspisanie-uchebnyih-zanyatiy/",
+      "parser_type": "pdf",
+      "url_path_variant": "uchebnyiy-protsess"
+    },
+    {
+      "id": "preschool",
+      "name": "Факультет дошкольной педагогики и психологии",
+      "short_name": "ФДПиП",
+      "schedule_url": "https://mpgu.su/ob-mpgu/struktura/faculties/fakultet-doshkolnoy-pedagogiki-i-psihologii-2/uchebnyiy-protsess/raspisanie-uchebnyih-zanyatiy/",
+      "parser_type": "pdf",
+      "url_path_variant": "uchebnyiy-protsess"
+    },
+    {
+      "id": "pedagogy",
+      "name": "Институт педагогики и психологии",
+      "short_name": "ИПиП",
+      "schedule_url": "https://mpgu.su/ob-mpgu/struktura/faculties/fakultet-pedagogiki-i-psyhologii/uchebnyiy-protsess/raspisanie-uchebnyih-zanyatiy/",
+      "parser_type": "gsheets",
+      "fallback_parser_type": "nextcloud",
+      "url_path_variant": "uchebnyiy-protsess"
+    },
+    {
+      "id": "languages",
+      "name": "Институт иностранных языков",
+      "short_name": "ИИЯ",
+      "schedule_url": "https://mpgu.su/ob-mpgu/struktura/faculties/fakultet-inostrannyih-yazyikov-2/uchebnyiy-protsess/raspisanie-uchebnyih-zanyatiy/",
+      "parser_type": "pdf",
+      "fallback_parser_type": "gsheets",
+      "url_path_variant": "uchebnyiy-protsess"
+    },
+    {
+      "id": "international",
+      "name": "Институт международного образования",
+      "short_name": "ИМО",
+      "schedule_url": "https://mpgu.su/ob-mpgu/struktura/faculties/institut-mezhdunarodnogo-obrazovaniya/uchebnyiy-protsess/raspisanie-uchebnyih-zanyatiy/",
+      "parser_type": "pdf",
+      "url_path_variant": "uchebnyiy-protsess"
+    },
+    {
+      "id": "journalism",
+      "name": "Институт журналистики, коммуникаций и медиаобразования",
+      "short_name": "ИЖКМ",
+      "schedule_url": "https://mpgu.su/ob-mpgu/struktura/faculties/institut-zhurnalistiki-kommunikatsii-i-mediaobrazovaniya/uchebnyiy-protsess/raspisanie-uchebnyih-zanyatiy/",
+      "parser_type": "pdf",
+      "url_path_variant": "uchebnyiy-protsess"
+    },
+    {
+      "id": "digital",
+      "name": "Институт развития цифрового образования",
+      "short_name": "ИРЦО",
+      "schedule_url": "https://mpgu.su/ob-mpgu/struktura/faculties/institut-razvitiya-tsifrovogo-obrazovaniya/uchebnyiy-protsess/raspisanie-uchebnyih-zanyatiy/",
+      "parser_type": "pdf",
+      "url_path_variant": "uchebnyiy-protsess"
+    }
+  ]
+}
