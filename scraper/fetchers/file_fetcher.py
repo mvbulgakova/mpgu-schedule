@@ -15,10 +15,21 @@ HEADERS = {
 }
 
 
+_SSL_SKIP_HOSTS = {"oc.mpgu.su"}
+
+
+def _ssl_for(url: str):
+    """False для хостов с проблемными сертификатами, иначе None (системный CA)."""
+    from urllib.parse import urlparse
+    host = urlparse(url).hostname or ""
+    return False if host in _SSL_SKIP_HOSTS else None
+
+
 @retry(stop=stop_after_attempt(4), wait=wait_exponential(multiplier=1, min=2, max=16))
 async def fetch_file(session: aiohttp.ClientSession, url: str) -> tuple[bytes, str]:
     """Скачивает файл, возвращает (content, md5)."""
-    async with session.get(url, headers=HEADERS, timeout=aiohttp.ClientTimeout(total=60)) as resp:
+    async with session.get(url, headers=HEADERS, timeout=aiohttp.ClientTimeout(total=60),
+                           ssl=_ssl_for(url)) as resp:
         resp.raise_for_status()
         content = await resp.read()
     return content, hashlib.md5(content).hexdigest()
@@ -30,11 +41,11 @@ async def check_changed(session: aiohttp.ClientSession, url: str, known_md5: str
     if known_md5 is None:
         return True
     try:
-        async with session.head(url, headers=HEADERS, timeout=aiohttp.ClientTimeout(total=10)) as resp:
+        async with session.head(url, headers=HEADERS, timeout=aiohttp.ClientTimeout(total=10),
+                                ssl=_ssl_for(url)) as resp:
             etag = resp.headers.get("ETag", "").strip('"')
             if etag and etag == known_md5:
                 return False
-            # ETag не совпал или отсутствует — скачиваем и сравниваем
     except Exception:
         pass
     content, new_md5 = await fetch_file(session, url)

@@ -22,8 +22,8 @@ def nextcloud_download_url(url: str) -> str:
     """Превращает ссылку просмотра в ссылку для скачивания."""
     if "/download" in url:
         return url
-    # /index.php/s/{token} → /index.php/s/{token}/download
-    m = re.search(r"(/index\.php/s/[a-zA-Z0-9]+)", url)
+    # /s/{token} или /index.php/s/{token} → добавляем /download
+    m = re.search(r"/(?:index\.php/)?s/[a-zA-Z0-9]+", url)
     if m:
         return url.rstrip("/") + "/download"
     return url
