@@ -2,7 +2,7 @@ name: Scrape Schedules
 
 on:
   schedule:
-    - cron: "0 5,17 * * *"   # 08:00 и 20:00 МСК (UTC+3)
+    - cron: "0 5,17 * * *"
   workflow_dispatch:
     inputs:
       institute_id:
@@ -19,56 +19,49 @@ jobs:
     timeout-minutes: 30
 
     steps:
-      - name: Checkout repo
+      - name: Checkout main (code)
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
-
-      - name: Switch to data branch
-        run: |
-          git fetch origin data 2>/dev/null && git checkout data || {
-            git checkout --orphan data
-            git rm -rf . --quiet 2>/dev/null || true
-          }
-
-      - name: Stash data, checkout code to subdir
-        run: |
-          mkdir -p /tmp/code
-          git clone --depth=1 --branch main . /tmp/code
+          ref: main
+          path: main-branch
 
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
           cache: pip
-          cache-dependency-path: /tmp/code/scraper/requirements.txt
+          cache-dependency-path: main-branch/scraper/requirements.txt
 
       - name: Install system deps
         run: sudo apt-get update -q && sudo apt-get install -y ghostscript poppler-utils
 
       - name: Install Python deps
-        run: pip install -r /tmp/code/scraper/requirements.txt
+        run: pip install -r main-branch/scraper/requirements.txt
+
+      - name: Prepare data dir
+        run: mkdir -p data-branch/meta data-branch/institutes
 
       - name: Run scraper
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          DATA_PATH: ${{ github.workspace }}
-          CHANGED_ONLY: "true"
+          DATA_PATH: ${{ github.workspace }}/data-branch
+          CHANGED_ONLY: "false"
           INSTITUTE_ID: ${{ github.event.inputs.institute_id }}
-          PYTHONPATH: /tmp/code
-        run: python -m scraper.main
+          PYTHONPATH: ${{ github.workspace }}/main-branch
+        run: cd main-branch && python -m scraper.main
 
-      - name: Commit and push
+      - name: Push data to branch
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
         run: |
-          echo "=== Workspace ===" && ls -la ${{ github.workspace }}/
-          echo "=== git branch ===" && git branch
-          echo "=== git status ===" && git status
+          cd data-branch
+          git init -b data
           git config user.name "MPGU Schedule Bot"
           git config user.email "bot@github-actions"
+          git remote add origin https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git
           git add -A
-          echo "=== after git add ===" && git status
-          git diff --staged --quiet && echo "НЕТ ИЗМЕНЕНИЙ" && exit 0
+          git diff --staged --quiet && echo "Нет данных" && exit 0
           git commit -m "Update $(date -u '+%Y-%m-%d %H:%M UTC')"
-          git push origin data -v || (echo "PUSH FAILED: $?" && exit 1)
-          echo "PUSH OK"
+          git push origin HEAD:refs/heads/data --force
+          echo "Done"
