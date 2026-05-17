@@ -35,12 +35,15 @@ class NextcloudParser(BaseParser):
         path = source if isinstance(source, str) else _bytes_to_tmp(source, ".bin")
         ext = _detect_extension(path)
 
+        with open(path, "rb") as f:
+            data = f.read()
+
         if ext == "pdf":
-            return PDFParser(self.config).parse(path)
+            return PDFParser(self.config).parse(data)
         elif ext in {"xlsx", "xls"}:
-            return ExcelParser(self.config).parse(path)
+            return ExcelParser(self.config).parse(data)
         elif ext in {"docx", "doc"}:
-            return DocxParser(self.config).parse(path)
+            return DocxParser(self.config).parse(data)
         else:
             return ParseResult(groups=[], parser_used="nextcloud",
                                confidence=0.0, warnings=[f"Неизвестное расширение: {ext}"])
