@@ -130,21 +130,366 @@ def _bytes_to_tmp(data: bytes, ext: str) -> str:
 
 def _parse_tables(tables: list[list[list]]) -> list[dict]:
     """Определяет формат таблицы и парсит группы."""
-    groups = []
-    for table in tables:
-        if not table or len(table) < 2:
-            continue
-        header = [str(c or "").strip().lower() for c in table[0]]
+    # Если хотя бы одна таблица — МПГУ-формат, считаем весь PDF одним расписанием.
+    # Все таблицы из одного PDF-файла передаются сюда разом.
+    valid = [t for t in tables if t and len(t) >= 2]
+    if any(_is_mpgu_timetable_format(t) for t in valid):
+        return _parse_mpgu_timetable_pages(valid)
 
+    groups = []
+    for table in valid:
+        header = [str(c or "").strip().lower() for c in table[0]]
         if _is_day_column_format(header):
             groups.extend(_parse_day_columns(table))
         elif _is_day_row_format(header):
             groups.extend(_parse_day_rows(table))
         else:
-            # пробуем эвристически
             groups.extend(_parse_heuristic(table))
-
     return groups
+
+
+_SKIP_CELLS = {"День самоподготовки", "—", "-", "–"}
+
+
+def _is_mpgu_timetable_format(table: list[list]) -> bool:
+    """Формат МПГУ: колонка 0 = день, колонка 1 = время, колонка 2+ = занятие."""
+    if len(table) < 3 or not table[0] or len(table[0]) < 3:
+        return False
+    # Явный заголовок "День\nнедели" в одной ячейке (форматы 1a и 3)
+    for row in table[:8]:
+        c0 = str(row[0] or "").strip().lower()
+        c1 = str(row[1] or "").strip().lower()
+        if "день" in c0 and "недели" in c0:
+            return True
+        if "группа" in c1 and "время" in c1:
+            return True
+    # Продолжение (нет заголовка): col0 содержит буквы дня, col1 — время
+    # Ищем по всей таблице, т.к. буквы могут начинаться не с первых строк
+    has_day_letter = False
+    has_time = False
+    for row in table:
+        c0 = str(row[0] or "").strip()
+        c1 = str(row[1] or "").strip() if len(row) > 1 else ""
+        chars = [ch for ch in c0.split("\n") if ch.strip()]
+        if chars and all(len(ch.strip()) == 1 for ch in chars):
+            has_day_letter = True
+        if re.search(r"\d{4}", c1):
+            has_time = True
+        if has_day_letter and has_time:
+            return True
+    return False
+
+
+def _parse_mpgu_timetable_pages(tables: list[list[list]]) -> list[dict]:
+    """Объединяет несколько таблиц одного PDF, возвращает список групп.
+
+    Поддерживает:
+    - Один PDF = одна группа (Format 1a: перевёрнутое название дня)
+    - Один PDF = несколько групп (Format 3: прямое название дня, несколько колонок-групп)
+    - Продолжение страниц без заголовка (Format 2: буквы по одной в отдельных строках)
+    """
+    if not tables:
+        return []
+
+    # Извлекаем все группы из первой таблицы
+    group_cols, form, degree, year = _extract_timetable_groups(tables[0])
+    # group_cols: list of (name, col_idx)
+
+    schedules: dict[str, dict] = {name: make_schedule_skeleton() for name, _ in group_cols}
+    col_to_group: dict[int, str] = {col: name for name, col in group_cols}
+    default_group = group_cols[0][0] if group_cols else "группа"
+
+    current_day: str | None = None
+    day_acc: list[str] = []  # накопитель для формата с одной буквой на строку
+
+    for table in tables:
+        has_header = any(
+            "день" in str(row[0] or "").lower() and "недели" in str(row[0] or "").lower()
+            for row in table[:8]
+        )
+        current_day, day_acc = _fill_mpgu_schedule_multi(
+            table, schedules, col_to_group, default_group,
+            data_started=not has_header,
+            current_day=current_day, day_acc=day_acc,
+        )
+
+    result = []
+    for name, col in group_cols:
+        sched = schedules[name]
+        if any(sched["odd_week"][d] for d in sched["odd_week"]):
+            result.append({"name": name, "year": year, "form": form,
+                           "degree": degree, "schedule": sched})
+    return result
+
+
+def _fill_mpgu_schedule_multi(
+    table: list[list],
+    schedules: dict[str, dict],
+    col_to_group: dict[int, str],
+    default_group: str,
+    data_started: bool = False,
+    current_day: str | None = None,
+    day_acc: list[str] | None = None,
+) -> tuple[str | None, list[str]]:
+    """Читает одну таблицу и добавляет занятия в schedules. Возвращает (current_day, day_acc)."""
+    if day_acc is None:
+        day_acc = []
+
+    current_time: tuple[str, str] | None = None
+    # pending: {(group_name, col_idx): [fragments]}
+    pending: dict[tuple[str, int], list[str]] = {}
+
+    def flush():
+        nonlocal pending
+        if not pending or not current_day or not current_time:
+            pending = {}
+            return
+        t_start, t_end = current_time
+        for (gname, ci), frags in pending.items():
+            sched = schedules.get(gname)
+            if sched is None:
+                continue
+            content = "\n".join(frags)
+            lesson = _parse_timetable_cell(content, t_start, t_end, None)
+            if lesson:
+                sched["odd_week"][current_day].append(lesson)
+                sched["even_week"][current_day].append({**lesson})
+        pending = {}
+
+    for row in table:
+        c0 = str(row[0] or "").strip()
+        c1 = str(row[1] or "").strip() if len(row) > 1 else ""
+
+        if not data_started:
+            if "день" in c0.lower() and "недели" in c0.lower():
+                data_started = True
+            continue
+
+        # Определяем день
+        if c0:
+            raw = c0.replace("\n", "").strip()
+            if raw:
+                # 1) Пробуем как полное название дня — прямое (Format 3) или обратное (Format 1a)
+                day = normalize_day(raw.lower())
+                if not day and len(raw) > 1:
+                    day = normalize_day("".join(reversed(raw)).lower())
+                if day:
+                    current_day = day
+                    day_acc = []
+                elif len(raw) == 1:
+                    # 2) Накапливаем одиночные буквы (Format 2)
+                    day_acc.append(raw.upper())
+                    candidate = "".join(day_acc)
+                    day = normalize_day(candidate.lower())
+                    if day:
+                        current_day = day
+                        day_acc = []
+                # Если len>1 и не день — это, скорее всего, фрагмент (напр. 'ИК'), игнорируем
+
+        # Новый временной слот
+        time_match = re.search(r"(\d{4})\D+(\d{4})", c1)
+        if time_match:
+            flush()
+            current_time = (_fmt_time(time_match.group(1)), _fmt_time(time_match.group(2)))
+
+        # Собираем содержимое всех колонок с занятиями (col2+)
+        if current_day and current_time:
+            for ci in range(2, len(row)):
+                cell = str(row[ci] or "").strip()
+                if cell and cell not in _SKIP_CELLS:
+                    gname = col_to_group.get(ci, default_group)
+                    key = (gname, ci)
+                    if key not in pending:
+                        pending[key] = []
+                    pending[key].append(cell)
+
+    flush()
+    return current_day, day_acc
+
+
+def _parse_mpgu_timetable(table: list[list], data_started: bool = False) -> list[dict]:
+    """Парсит формат МПГУ: один PDF = одна группа, день — вертикальный текст."""
+    group_name, form, degree, year = _extract_timetable_header(table)
+    schedule = make_schedule_skeleton()
+
+    current_day: str | None = None
+    current_time: tuple[str, str] | None = None
+    pending: list[str] = []  # content cells накопленные для текущего слота
+
+    for row in table:
+        c0 = str(row[0] or "").strip()
+        c1 = str(row[1] or "").strip() if len(row) > 1 else ""
+        c2 = str(row[2] or "").strip() if len(row) > 2 else ""
+
+        # Начинаем читать данные после строки-заголовка "День недели / Время / ..."
+        if not data_started:
+            if "день" in c0.lower() and "недели" in c0.lower():
+                data_started = True
+            continue
+
+        # Определяем день (перевёрнутый текст в col0)
+        if c0:
+            reversed_text = "".join(reversed(c0.replace("\n", "")))
+            day = normalize_day(reversed_text.strip().lower())
+            if day:
+                current_day = day
+
+        # Определяем временной слот в col1
+        time_match = re.search(r"(\d{4})\D+(\d{4})", c1)
+        if time_match:
+            # Сбрасываем накопленные занятия предыдущего слота
+            if pending and current_day and current_time:
+                _assign_timetable_lessons(schedule, current_day, current_time, pending)
+            pending = []
+            t_start = _fmt_time(time_match.group(1))
+            t_end = _fmt_time(time_match.group(2))
+            current_time = (t_start, t_end)
+
+        # Собираем контент текущего слота
+        if c2 and c2 not in {"День самоподготовки", "—", "-"} and current_day and current_time:
+            pending.append(c2)
+
+    # Последний слот
+    if pending and current_day and current_time:
+        _assign_timetable_lessons(schedule, current_day, current_time, pending)
+
+    has_lessons = any(schedule["odd_week"][d] for d in schedule["odd_week"])
+    if not has_lessons:
+        return []
+
+    return [{"name": group_name, "year": year, "form": form, "degree": degree,
+             "schedule": schedule}]
+
+
+def _extract_timetable_groups(table: list[list]) -> tuple:
+    """Извлекает список групп (name, col_idx), форму, степень и курс из заголовка таблицы.
+
+    Возвращает: ([(group_name, col_idx), ...], form, degree, year)
+    """
+    GROUP_RE = re.compile(r"[А-ЯЁA-Z]{2,5}\d{2}-[А-ЯЁA-Z]{2,5}\d{4}")
+    groups: list[tuple[str, int]] = []
+    form = "full_time"
+    degree = "bachelor"
+    year = None
+
+    for row in table[:20]:
+        for ci, cell in enumerate(row):
+            text = str(cell or "").strip()
+            if not text:
+                continue
+            tl = text.lower()
+            if "заочная форма" in tl:
+                form = "correspondence"
+            elif "очно-заочная" in tl:
+                form = "part_time"
+            if "магистр" in tl:
+                degree = "master"
+            elif "специалит" in tl:
+                degree = "specialist"
+            m = re.search(r"(\d)\s+курс", tl)
+            if m and year is None:
+                year = int(m.group(1))
+            if ci >= 2 and GROUP_RE.match(text):
+                name = text.split("\n")[0].strip()
+                if not any(n == name for n, _ in groups):
+                    groups.append((name, ci))
+
+    if not groups:
+        # Запасной вариант: ищем любую ячейку с кодом группы
+        for row in table[:20]:
+            for ci, cell in enumerate(row):
+                text = str(cell or "").strip()
+                if GROUP_RE.match(text):
+                    name = text.split("\n")[0].strip()
+                    if not any(n == name for n, _ in groups):
+                        groups.append((name, ci))
+    if not groups:
+        groups = [("группа", 2)]
+
+    return groups, form, degree, year
+
+
+def _extract_timetable_header(table: list[list]) -> tuple:
+    """Совместимость: возвращает первую группу как строку."""
+    groups, form, degree, year = _extract_timetable_groups(table)
+    return groups[0][0], form, degree, year
+
+
+def _assign_timetable_lessons(
+    schedule: dict, day: str, times: tuple[str, str], contents: list[str]
+) -> None:
+    """Добавляет занятия в расписание; несколько content = подгруппы."""
+    t_start, t_end = times
+    lessons = []
+    for i, content in enumerate(contents):
+        sg = i + 1 if len(contents) > 1 else None
+        lesson = _parse_timetable_cell(content, t_start, t_end, sg)
+        if lesson:
+            lessons.append(lesson)
+    for lesson in lessons:
+        schedule["odd_week"][day].append(lesson)
+        schedule["even_week"][day].append({**lesson})
+
+
+def _parse_timetable_cell(content: str, t_start: str, t_end: str,
+                           subgroup: int | None) -> dict | None:
+    """Парсит ячейку занятия: предмет, тип, преподаватель, аудитория."""
+    lines = [l.strip() for l in content.split("\n") if l.strip()]
+    if not lines:
+        return None
+
+    subject = lines[0]
+    lesson_type = "other"
+    teacher: str | None = None
+    room: str | None = None
+
+    TYPE_MAP = {"лк": "lecture", "пз": "practice", "лаб": "lab", "лб": "lab",
+                "сем": "seminar", "сем.": "seminar"}
+
+    for line in lines:
+        # Тип занятия в скобках
+        m = re.search(r"\(([А-ЯЁA-Zа-яёa-z.]{2,4})\)", line)
+        if m:
+            t = TYPE_MAP.get(m.group(1).lower())
+            if t:
+                lesson_type = t
+            if line.strip().startswith("(") and line.strip().endswith(")"):
+                continue  # строка только с типом — не предмет
+
+        # teacher // room
+        if "//" in line:
+            parts = line.split("//", 1)
+            left, right = parts[0].strip(), parts[1].strip()
+            if re.search(r"\b(проф|доц|ст\.?\s*преп|асс|преп)\b", left, re.I):
+                teacher = left
+            if right and re.search(r"\d", right):
+                room = right
+            continue
+
+        # Только аудитория
+        if re.search(r"\d+\s+корп\.", line, re.I) or re.search(r"ауд\.?\s*\d", line, re.I) \
+                or re.search(r"спортзал|зал|стадион", line, re.I):
+            if room is None:
+                room = line
+            continue
+
+        # Преподаватель
+        if re.search(r"\b(проф|доц|ст\.?\s*преп|асс|преп)\b", line, re.I):
+            if teacher is None:
+                teacher = re.sub(r"\(ауд\.?[^)]*\)", "", line).strip().rstrip(",. ")
+            continue
+
+    # Очищаем предмет от маркеров типа
+    subject = re.sub(r"\([А-ЯЁа-яёA-Za-z.]{2,4}\)", "", subject).strip(" ,.")
+    if not subject:
+        return None
+
+    return lesson_obj(None, t_start, t_end, subject, lesson_type, teacher, room, subgroup)
+
+
+def _fmt_time(hhmm: str) -> str:
+    """'0900' → '09:00'"""
+    return f"{hhmm[:2]}:{hhmm[2:]}"
 
 
 def _is_day_column_format(header: list[str]) -> bool:
