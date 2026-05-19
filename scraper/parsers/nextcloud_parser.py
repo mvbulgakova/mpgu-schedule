@@ -45,6 +45,10 @@ class NextcloudParser(BaseParser):
             return ExcelParser(self.config).parse(data)
         elif fmt in {"docx", "doc"}:
             return DocxParser(self.config).parse(data)
+        elif fmt == "html":
+            return ParseResult(groups=[], parser_used="nextcloud",
+                               confidence=0.0,
+                               warnings=["Nextcloud вернул HTML — ссылка требует авторизации или недоступна"])
         else:
             return ParseResult(groups=[], parser_used="nextcloud",
                                confidence=0.0, warnings=[f"Неизвестный формат: {fmt}"])
@@ -112,6 +116,10 @@ def _detect_format(path: str) -> str:
                     return "docx"
                 return "xlsx"  # предполагаем xlsx
             return "zip"  # архив с несколькими файлами
+
+        # HTML — Nextcloud вернул страницу авторизации или ошибку
+        if sig[:5] in (b"<!DOC", b"<html", b"<?xml") or sig[:1] == b"<":
+            return "html"
     except Exception:
         pass
 

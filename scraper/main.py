@@ -123,15 +123,21 @@ async def process_institute(
             parser = get_parser(actual_type, institute)
             result = await asyncio.to_thread(parser.parse, tmp_path)
 
-            print(f"  ✓ {result.parser_used} conf={result.confidence:.2f} "
-                  f"групп={len(result.groups)} [{url[-50:]}]")
-
-            all_groups.extend(result.groups)
-            parser_used = result.parser_used
-
-            if result.warnings:
+            is_auth_error = any("авторизации" in w or "HTML" in w for w in result.warnings)
+            if is_auth_error:
+                # не обновляем хеш — нужно попробовать снова в следующий раз
+                file_hashes.pop(link_key, None)
+                print(f"  ✗ недоступен (HTML/авторизация): {url[-50:]}")
                 for w in result.warnings:
                     print(f"    ⚠ {w}")
+            else:
+                print(f"  ✓ {result.parser_used} conf={result.confidence:.2f} "
+                      f"групп={len(result.groups)} [{url[-50:]}]")
+                all_groups.extend(result.groups)
+                parser_used = result.parser_used
+                if result.warnings:
+                    for w in result.warnings:
+                        print(f"    ⚠ {w}")
         except Exception as e:
             print(f"  ✗ Ошибка парсинга {url}: {e}")
         finally:
