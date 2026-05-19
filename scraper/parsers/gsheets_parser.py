@@ -32,7 +32,8 @@ class GSheetsParser(BaseParser):
         if isinstance(source, bytes):
             text = source.decode("utf-8", errors="replace")
         else:
-            text = source
+            with open(source, encoding="utf-8", errors="replace") as f:
+                text = f.read()
         try:
             rows = list(csv.reader(io.StringIO(text)))
             groups = _parse_csv_rows(rows)
@@ -43,11 +44,22 @@ class GSheetsParser(BaseParser):
                                warnings=[str(e)])
 
 
+_GROUP_RE = re.compile(r"[А-ЯЁA-Z]{2,5}\d{2}-[А-ЯЁA-Z]{2,4}\d{4}")
+_TIME_RE = re.compile(r"(\d{1,2})[\.:](\d{2})\s*[-–]\s*(\d{1,2})[\.:](\d{2})")
+_SKIP_PHRASES = {"самостоятельных занятий", "день самостоятельных"}
+_SKIP_CELLS = {"—", "-", "–"}
+
+
 def _parse_csv_rows(rows: list[list[str]]) -> list[dict]:
     if not rows:
         return []
 
-    # ищем строку с днями недели
+    # Формат МПГУ-ИСГО: «день недели и дата» в col0, группы в col2+
+    isgo_idx = _find_isgo_header(rows)
+    if isgo_idx is not None:
+        return _parse_isgo(rows, isgo_idx)
+
+    # Классический формат: дни как столбцы
     header_idx = _find_header(rows)
     if header_idx is None:
         return _parse_flat(rows)
@@ -87,6 +99,157 @@ def _parse_csv_rows(rows: list[list[str]]) -> list[dict]:
         return []
     return [{"name": "группа", "year": None, "form": "full_time",
              "degree": "bachelor", "schedule": schedule}]
+
+
+# ── формат МПГУ-ИСГО ─────────────────────────────────────────────────────────
+
+def _find_isgo_header(rows: list[list[str]]) -> int | None:
+    for i, row in enumerate(rows[:20]):
+        if any("день недели" in c.lower() for c in row):
+            return i
+    return None
+
+
+def _parse_time_str(text: str) -> tuple[str, str] | None:
+    text = text.strip().rstrip("\r\n")
+    m = _TIME_RE.search(text)
+    if not m:
+        return None
+    t_start = f"{int(m.group(1)):02d}:{m.group(2)}"
+    t_end = f"{int(m.group(3)):02d}:{m.group(4)}"
+    return t_start, t_end
+
+
+def _parse_isgo(rows: list[list[str]], header_idx: int) -> list[dict]:
+    header = rows[header_idx]
+
+    # Определяем колонки с группами (начиная с col2)
+    group_cols: dict[int, str] = {}
+    for ci, cell in enumerate(header):
+        if ci < 2:
+            continue
+        name = cell.strip()
+        if _GROUP_RE.match(name):
+            group_cols[ci] = name
+
+    if not group_cols:
+        return []
+
+    schedules: dict[str, dict] = {n: make_schedule_skeleton() for n in group_cols.values()}
+    # seen: предотвращаем дублирование одинаковых занятий
+    seen: dict[tuple, set] = {}
+
+    current_day: str | None = None
+    current_time: tuple[str, str] | None = None
+    col_offset = 0  # 0: занятие в group_cols[ci]; -1: сдвинуто влево
+
+    for row in rows[header_idx + 1:]:
+        if not any(c.strip() for c in row):
+            continue
+
+        c0 = row[0].strip() if row else ""
+        c1 = row[1].strip().rstrip("\r\n") if len(row) > 1 else ""
+
+        # Пропускаем строки с «днём самоподготовки»
+        combined = (c0 + " " + c1).lower()
+        if any(s in combined for s in _SKIP_PHRASES):
+            continue
+
+        # Определяем день (первая строка col0 до переноса)
+        first_line_c0 = c0.split("\n")[0].strip().lower()
+        day = normalize_day(first_line_c0)
+        if day:
+            current_day = day
+            col_offset = 0
+
+        # Определяем время: в формате ИСГО оно всегда в col1
+        t = _parse_time_str(c1)
+        if t:
+            current_time = t
+            col_offset = 0
+        elif not day:
+            # col0 может быть временем (другие форматы)
+            t = _parse_time_str(c0)
+            if t:
+                current_time = t
+                col_offset = -1 if c1 and not _parse_time_str(c1) else 0
+
+        if not current_day or not current_time:
+            continue
+
+        # Собираем занятия из колонок групп (с учётом сдвига)
+        slot_key = (current_day, current_time[0])
+        for col_idx, gname in group_cols.items():
+            effective = col_idx + col_offset
+            if effective < 0 or effective >= len(row):
+                continue
+            content = row[effective].strip()
+            if not content or content in _SKIP_CELLS or any(s in content.lower() for s in _SKIP_PHRASES):
+                continue
+            # Дедупликация
+            sk = (slot_key, gname)
+            if sk not in seen:
+                seen[sk] = set()
+            if content in seen[sk]:
+                continue
+            seen[sk].add(content)
+
+            lesson = _parse_isgo_cell(content, current_time[0], current_time[1])
+            if lesson:
+                schedules[gname]["odd_week"][current_day].append(lesson)
+                schedules[gname]["even_week"][current_day].append({**lesson})
+
+    result = []
+    for name, sched in schedules.items():
+        if any(sched["odd_week"][d] for d in sched["odd_week"]):
+            result.append({"name": name, "year": None, "form": "part_time",
+                           "degree": "bachelor", "schedule": sched})
+    return result
+
+
+def _parse_isgo_cell(content: str, t_start: str, t_end: str) -> dict | None:
+    """Парсит ячейку занятия формата ИСГО: 'Название (ЛК 16)\nПреп. // ауд.'"""
+    if not content or content in {"-", "–", "—"}:
+        return None
+    lines = [l.strip() for l in content.replace("\r", "").split("\n") if l.strip()]
+    if not lines:
+        return None
+
+    subject = lines[0]
+    lesson_type = "other"
+    teacher: str | None = None
+    room: str | None = None
+
+    TYPE_MAP = {"лк": "lecture", "пз": "practice", "лаб": "lab", "лб": "lab",
+                "сем": "seminar", "сем.": "seminar", "лаб.": "lab"}
+
+    for line in lines:
+        # Тип в скобках: (ЛК 16), (ПЗ 32)
+        m = re.search(r"\(([А-ЯЁа-яёA-Za-z.]{2,4})[\s\d]*\)", line)
+        if m:
+            t = TYPE_MAP.get(m.group(1).lower())
+            if t:
+                lesson_type = t
+
+        if "//" in line:
+            parts = line.split("//", 1)
+            left, right = parts[0].strip(), parts[1].strip()
+            if re.search(r"\b(проф|доц|ст\.?\s*преп|асс|преп)\b", left, re.I):
+                teacher = left
+            if right:
+                room = right
+            continue
+
+        if re.search(r"\b(проф|доц|ст\.?\s*преп|асс|преп)\b", line, re.I) and teacher is None:
+            teacher = line
+            continue
+
+    subject = re.sub(r"\([А-ЯЁа-яёA-Za-z.]{2,4}[\s\d]*\)", "", subject).strip(" ,.")
+    if not subject:
+        return None
+
+    from scraper.normalizer.schedule_normalizer import lesson_obj
+    return lesson_obj(None, t_start, t_end, subject, lesson_type, teacher, room)
 
 
 def _parse_flat(rows):
