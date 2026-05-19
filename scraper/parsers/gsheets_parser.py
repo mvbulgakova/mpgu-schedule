@@ -207,49 +207,81 @@ def _parse_isgo(rows: list[list[str]], header_idx: int) -> list[dict]:
     return result
 
 
+_TEACHER_TITLE_RE = re.compile(
+    r"\b(проф|доц|ст\.?\s*преп|асс|преп)\.?\s", re.IGNORECASE
+)
+_ROOM_RE = re.compile(r"\(ауд\.?\s*([\w\-]+)\)", re.IGNORECASE)
+_TYPE_BRACKET_RE = re.compile(r"\(([А-ЯЁа-яёA-Za-z./]{2,6})[\s\d/]*\)")
+_TYPE_MAP = {
+    "лк": "lecture", "пз": "practice", "лаб": "lab", "лб": "lab",
+    "сем": "seminar", "сем.": "seminar", "лаб.": "lab",
+}
+
+
 def _parse_isgo_cell(content: str, t_start: str, t_end: str) -> dict | None:
-    """Парсит ячейку занятия формата ИСГО: 'Название (ЛК 16)\nПреп. // ауд.'"""
+    """Парсит ячейку занятия формата ИСГО.
+
+    Форматы:
+    - 'Название (ЛК 16) доц. Иванов 01.09; 15.09. (ауд. 826)'  — одна строка
+    - 'Название (ЛК 16)\nдоц. Иванов // ауд. 826'              — через '//'
+    """
     if not content or content in {"-", "–", "—"}:
         return None
-    lines = [l.strip() for l in content.replace("\r", "").split("\n") if l.strip()]
+    lines = [ln.strip() for ln in content.replace("\r", "").split("\n") if ln.strip()]
     if not lines:
         return None
 
-    subject = lines[0]
     lesson_type = "other"
     teacher: str | None = None
     room: str | None = None
 
-    TYPE_MAP = {"лк": "lecture", "пз": "practice", "лаб": "lab", "лб": "lab",
-                "сем": "seminar", "сем.": "seminar", "лаб.": "lab"}
-
+    # Сканируем все строки для определения типа и комнаты
     for line in lines:
-        # Тип в скобках: (ЛК 16), (ПЗ 32)
-        m = re.search(r"\(([А-ЯЁа-яёA-Za-z.]{2,4})[\s\d]*\)", line)
-        if m:
-            t = TYPE_MAP.get(m.group(1).lower())
+        for m in _TYPE_BRACKET_RE.finditer(line):
+            t = _TYPE_MAP.get(m.group(1).lower())
             if t:
                 lesson_type = t
+
+        rm = _ROOM_RE.search(line)
+        if rm and room is None:
+            room = rm.group(1)
 
         if "//" in line:
             parts = line.split("//", 1)
             left, right = parts[0].strip(), parts[1].strip()
-            if re.search(r"\b(проф|доц|ст\.?\s*преп|асс|преп)\b", left, re.I):
-                teacher = left
-            if right:
-                room = right
-            continue
+            if _TEACHER_TITLE_RE.search(left) and teacher is None:
+                teacher = _clean_teacher(left)
+            if right and room is None:
+                # Правая часть после '//' — аудитория
+                room = re.sub(r"(?i)ауд\.?\s*", "", right).strip(" .,()")
 
-        if re.search(r"\b(проф|доц|ст\.?\s*преп|асс|преп)\b", line, re.I) and teacher is None:
-            teacher = line
-            continue
+    # Извлекаем subject и teacher из первой строки
+    first = lines[0]
+    title_m = _TEACHER_TITLE_RE.search(first)
+    if title_m and teacher is None:
+        teacher = _clean_teacher(first[title_m.start():])
+        subject_raw = first[:title_m.start()]
+    else:
+        subject_raw = first
 
-    subject = re.sub(r"\([А-ЯЁа-яёA-Za-z.]{2,4}[\s\d]*\)", "", subject).strip(" ,.")
+    # Убираем скобки с типом занятия и лишние пробелы
+    subject = _TYPE_BRACKET_RE.sub("", subject_raw).strip(" ,.")
     if not subject:
         return None
 
     from scraper.normalizer.schedule_normalizer import lesson_obj
     return lesson_obj(None, t_start, t_end, subject, lesson_type, teacher, room)
+
+
+def _clean_teacher(text: str) -> str:
+    """Убирает даты, аудиторию и лишние символы из строки с преподавателем."""
+    # Убираем "(ауд. 826)" и подобное
+    text = _ROOM_RE.sub("", text)
+    # Убираем даты типа "01.09; 16.09; ..."
+    text = re.sub(r"\b\d{2}\.\d{2}[;,]?", "", text)
+    # Убираем скобки с типом занятия
+    text = _TYPE_BRACKET_RE.sub("", text)
+    return text.strip(" .,()")
 
 
 def _parse_flat(rows):
