@@ -14,13 +14,18 @@ load_dotenv()
 
 from scraper.fetchers.site_fetcher import fetch_schedule_links
 from scraper.fetchers.file_fetcher import fetch_file, check_changed, save_to_temp
-from scraper.parsers.pdf_parser import PDFParser
 from scraper.parsers.excel_parser import ExcelParser
 from scraper.parsers.gsheets_parser import GSheetsParser, gsheets_to_csv_url
 from scraper.parsers.nextcloud_parser import NextcloudParser, nextcloud_download_url
 from scraper.parsers.docx_parser import DocxParser
 from scraper.storage.git_storage import GitStorage
 from scraper.utils.hash_tracker import HashTracker, md5_of_bytes
+
+try:
+    from scraper.parsers.pdf_parser import PDFParser
+except ImportError as _pdf_import_err:
+    print(f"⚠ PDF парсер недоступен: {_pdf_import_err}", file=sys.stderr)
+    PDFParser = None  # type: ignore
 
 CONFIG_PATH = Path(__file__).parent / "config" / "institutes.json"
 DATA_PATH = os.environ.get("DATA_PATH", "./data")
@@ -37,13 +42,18 @@ def load_institutes() -> list[dict]:
 
 
 def get_parser(parser_type: str, config: dict):
-    return {
-        "pdf": PDFParser,
+    mapping = {
         "excel": ExcelParser,
         "gsheets": GSheetsParser,
         "nextcloud": NextcloudParser,
         "docx": DocxParser,
-    }.get(parser_type, PDFParser)(config)
+    }
+    if PDFParser is not None:
+        mapping["pdf"] = PDFParser
+    cls = mapping.get(parser_type) or mapping.get("pdf")
+    if cls is None:
+        raise RuntimeError(f"Парсер для типа '{parser_type}' недоступен")
+    return cls(config)
 
 
 async def process_institute(
