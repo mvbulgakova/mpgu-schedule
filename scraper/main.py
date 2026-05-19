@@ -145,6 +145,18 @@ async def process_institute(
         tracker.update(key, key.split(":", 1)[1], md5, 0, datetime.now(timezone.utc).isoformat())
 
     if not all_groups:
+        existing = storage.read_schedule(inst_id)
+        if existing and existing.get("groups"):
+            print(f"  ↔ нет новых данных, используем кеш ({len(existing['groups'])} групп)")
+            return {
+                "id": inst_id,
+                "name": inst_name,
+                "short_name": institute.get("short_name", existing.get("short_name", "")),
+                "groups_count": len(existing["groups"]),
+                "updated_at": existing.get("updated_at", datetime.now(timezone.utc).isoformat()),
+                "status": "ok",
+                "parser_used": existing.get("parser_used", parser_type),
+            }
         return _error_entry(inst_id, inst_name, "Группы не найдены")
 
     now = datetime.now(timezone.utc).isoformat()

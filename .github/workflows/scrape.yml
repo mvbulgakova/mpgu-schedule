@@ -38,8 +38,22 @@ jobs:
       - name: Install Python deps
         run: pip install -r main-branch/scraper/requirements.txt
 
-      - name: Prepare data dir
-        run: mkdir -p data-branch/meta data-branch/institutes
+      - name: Checkout data branch (preserve historical data)
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          REMOTE=https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git
+          if git ls-remote --exit-code --heads "$REMOTE" data 2>/dev/null; then
+            git clone --depth=1 --branch data "$REMOTE" data-branch
+          else
+            mkdir -p data-branch/meta data-branch/institutes
+            cd data-branch
+            git init -b data
+            git remote add origin "$REMOTE"
+          fi
+          cd data-branch
+          git config user.name "MPGU Schedule Bot"
+          git config user.email "bot@github-actions"
 
       - name: Run scraper
         env:
@@ -56,12 +70,9 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
         run: |
           cd data-branch
-          git init -b data
-          git config user.name "MPGU Schedule Bot"
-          git config user.email "bot@github-actions"
-          git remote add origin https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git
+          git remote set-url origin https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git
           git add -A
-          git diff --staged --quiet && echo "Нет данных" && exit 0
+          git diff --staged --quiet && echo "Нет изменений" && exit 0
           git commit -m "Update $(date -u '+%Y-%m-%d %H:%M UTC')"
-          git push origin HEAD:refs/heads/data --force
+          git push -u origin data
           echo "Done"

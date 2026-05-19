@@ -9,6 +9,15 @@ class GitStorage:
     def __init__(self, data_path: str):
         self.root = Path(data_path)
 
+    def read_schedule(self, institute_id: str) -> dict | None:
+        path = self.root / "institutes" / institute_id / "schedule.json"
+        if path.exists():
+            try:
+                return json.loads(path.read_text(encoding="utf-8"))
+            except Exception:
+                return None
+        return None
+
     def write_schedule(self, institute_id: str, data: dict):
         path = self.root / "institutes" / institute_id / "schedule.json"
         _write_json(path, data)
