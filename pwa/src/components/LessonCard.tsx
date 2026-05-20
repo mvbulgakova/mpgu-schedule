@@ -20,18 +20,28 @@ const TYPE_LABELS: Record<string, string> = {
 interface Props {
   lesson: Lesson;
   slot: number;
+  isNow?: boolean;
 }
 
-export default function LessonCard({ lesson, slot: _slot }: Props) {
-  const colors = TYPE_COLORS[lesson.type] ?? TYPE_COLORS.other;
+export default function LessonCard({ lesson, slot: _slot, isNow }: Props) {
+  const colors = isNow
+    ? "bg-indigo-50 border-indigo-400 text-indigo-900 ring-2 ring-indigo-300"
+    : (TYPE_COLORS[lesson.type] ?? TYPE_COLORS.other);
 
   return (
     <div className={clsx("rounded-lg border px-3 py-2 text-sm", colors)}>
       <div className="flex items-start justify-between gap-2">
         <span className="font-semibold leading-tight flex-1">{lesson.subject}</span>
-        <span className="text-xs whitespace-nowrap opacity-70 mt-0.5">
-          {lesson.time_start}–{lesson.time_end}
-        </span>
+        <div className="flex flex-col items-end gap-0.5 shrink-0">
+          {isNow && (
+            <span className="text-xs font-bold bg-indigo-600 text-white rounded px-1.5 py-0.5 leading-none">
+              Сейчас
+            </span>
+          )}
+          <span className="text-xs whitespace-nowrap opacity-70">
+            {lesson.time_start}–{lesson.time_end}
+          </span>
+        </div>
       </div>
 
       <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-1 text-xs opacity-80">

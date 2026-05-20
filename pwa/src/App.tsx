@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useAppStore } from "./store";
 import { useIndex, useInstituteSchedule } from "./hooks/useSchedule";
@@ -36,11 +37,17 @@ function ScheduleApp() {
 
   const group = cachedSchedule?.groups.find((g) => g.name === groupName);
 
+  const setWeek = useAppStore((s) => s.setWeek);
+
   const today = new Date();
   const weekNum = getISOWeek(today);
   const isCurrentWeekEven = weekNum % 2 === 0;
-  // автоматически устанавливаем текущую неделю при первом открытии
-  // (это делается в useEffect, но для простоты просто показываем индикатор)
+
+  // Устанавливаем текущую неделю при каждом открытии приложения
+  useEffect(() => {
+    setWeek(isCurrentWeekEven);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div className="min-h-screen bg-gray-50 font-sans max-w-2xl mx-auto">

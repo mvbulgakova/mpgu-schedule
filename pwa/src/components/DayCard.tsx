@@ -23,9 +23,10 @@ interface Props {
   day: DayKey;
   lessons: Lesson[];
   isToday?: boolean;
+  currentTime?: string; // "HH:MM", передаётся только для сегодняшнего дня
 }
 
-export default function DayCard({ day, lessons, isToday }: Props) {
+export default function DayCard({ day, lessons, isToday, currentTime }: Props) {
   const hasLessons = lessons.length > 0;
 
   return (
@@ -43,7 +44,16 @@ export default function DayCard({ day, lessons, isToday }: Props) {
           {lessons
             .sort((a, b) => (a.slot ?? 9) - (b.slot ?? 9))
             .map((lesson, i) => (
-              <LessonCard key={i} lesson={lesson} slot={lesson.slot ?? i + 1} />
+              <LessonCard
+                key={i}
+                lesson={lesson}
+                slot={lesson.slot ?? i + 1}
+                isNow={
+                  currentTime !== undefined &&
+                  lesson.time_start <= currentTime &&
+                  currentTime < lesson.time_end
+                }
+              />
             ))}
         </div>
       ) : (
