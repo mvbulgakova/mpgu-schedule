@@ -22,7 +22,7 @@ interface Props {
   slot: number;
 }
 
-export default function LessonCard({ lesson, slot }: Props) {
+export default function LessonCard({ lesson, slot: _slot }: Props) {
   const colors = TYPE_COLORS[lesson.type] ?? TYPE_COLORS.other;
 
   return (

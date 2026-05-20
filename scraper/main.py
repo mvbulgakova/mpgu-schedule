@@ -188,6 +188,8 @@ async def process_institute(
         err["alerts"] = alerts
         return err
 
+    all_groups = _merge_duplicate_groups(all_groups)
+
     now = datetime.now(timezone.utc).isoformat()
     schedule_doc = {
         "institute_id": inst_id,
@@ -310,6 +312,31 @@ def _detect_anomalies(
         })
 
     return alerts
+
+
+def _merge_duplicate_groups(groups: list[dict]) -> list[dict]:
+    """Объединяет расписания групп с одинаковым именем из разных файлов.
+
+    Если одна и та же группа встречается в нескольких PDF/DOCX,
+    уроки объединяются (без дублей по time_start + subject).
+    """
+    merged: dict[str, dict] = {}
+    for g in groups:
+        name = g["name"]
+        if name not in merged:
+            merged[name] = g
+            continue
+        existing = merged[name]
+        for week in ("odd_week", "even_week"):
+            for day, lessons in g["schedule"][week].items():
+                target = existing["schedule"][week][day]
+                seen = {(l["time_start"], l["subject"]) for l in target}
+                for lesson in lessons:
+                    key = (lesson["time_start"], lesson["subject"])
+                    if key not in seen:
+                        target.append(lesson)
+                        seen.add(key)
+    return list(merged.values())
 
 
 def _error_entry(inst_id, inst_name, error):
