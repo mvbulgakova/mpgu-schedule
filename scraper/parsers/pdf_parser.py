@@ -40,6 +40,15 @@ class PDFParser(BaseParser):
             accumulated_warnings.extend(result.warnings)
 
         result = self._try_gemini(path)
+        if result.confidence >= CONFIDENCE_THRESHOLD or (result.groups and not any(
+            "провалился" in w for w in result.warnings
+        )):
+            result.warnings = accumulated_warnings + result.warnings
+            return result
+        accumulated_warnings.extend(result.warnings)
+
+        # Уровень 4: Claude vision (если Gemini недоступен)
+        result = self._try_claude(path)
         result.warnings = accumulated_warnings + result.warnings
         return result
 
