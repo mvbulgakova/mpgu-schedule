@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-05-20T11:56:21.817880+00:00",
+  "generated_at": "2026-05-20T12:24:50.717403+00:00",
   "academic_year": "2025-2026",
   "institutes": [
     {
@@ -7,7 +7,7 @@
       "name": "Институт физической культуры, спорта и здоровья",
       "short_name": "ИФКСиЗ",
       "groups_count": 39,
-      "updated_at": "2026-05-19T20:18:15.228630+00:00",
+      "updated_at": "2026-05-19T20:18:15+00:00",
       "status": "ok",
       "parser_used": "excel"
     },
@@ -37,6 +37,24 @@
       "updated_at": "2026-05-19T21:33:34+00:00",
       "status": "ok",
       "parser_used": "gsheets"
+    },
+    {
+      "id": "arts",
+      "name": "Институт изящных искусств",
+      "short_name": "ИИИ",
+      "groups_count": 14,
+      "updated_at": "2026-05-20T12:00:00+00:00",
+      "status": "ok",
+      "parser_used": "pdfplumber"
+    },
+    {
+      "id": "geography",
+      "name": "Географический факультет",
+      "short_name": "ГФ",
+      "groups_count": 12,
+      "updated_at": "2026-05-20T11:59:00+00:00",
+      "status": "ok",
+      "parser_used": "pdfplumber"
     }
   ]
 }
