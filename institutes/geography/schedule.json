@@ -3,8 +3,8 @@
   "institute_name": "Географический факультет",
   "short_name": "ГФ",
   "academic_year": "2025-2026",
-  "updated_at": "2026-05-20T12:20:13.506412+00:00",
-  "parser_used": "gemini",
+  "updated_at": "2026-05-20T19:20:02.429908+00:00",
+  "parser_used": "pdfplumber",
   "groups": [
     {
       "name": "ВОГ34-ГЕО2501",
@@ -13,42 +13,41 @@
       "degree": "bachelor",
       "schedule": {
         "odd_week": {
-          "monday": [
-            {
-              "slot": null,
-              "time_start": "12:40",
-              "time_end": "14:10",
-              "subject": "доц. Е.Б. Баранникова",
-              "type": "practice",
-              "teacher": "доц. Е.Б. Баранникова",
-              "room": "ауд. 107",
-              "subgroup": null,
-              "notes": ""
-            },
-            {
-              "slot": null,
-              "time_start": "12:40",
-              "time_end": "14:10",
-              "subject": "Иностранный",
-              "type": "practice",
-              "teacher": "доц. Ю.А. Галкина",
-              "room": "ауд. 203",
-              "subgroup": null,
-              "notes": ""
-            },
-            {
-              "slot": null,
-              "time_start": "16:00",
-              "time_end": "17:30",
-              "subject": "Практика устной",
-              "type": "practice",
-              "teacher": "доц. Ю.А. Галкина",
-              "room": "ауд. 203",
-              "subgroup": null,
-              "notes": ""
-            }
-          ],
+          "monday": [],
           "tuesday": [
+            {
+              "slot": null,
+              "time_start": "10:40",
+              "time_end": "14:10",
+              "subject": "Общее землеведение",
+              "type": "lecture",
+              "teacher": "ст. преп. Е.В. Болдырева",
+              "room": "ауд. 306",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "10:40",
+              "time_end": "14:10",
+              "subject": "образования",
+              "type": "practice",
+              "teacher": "доц. С.Е. Грачев",
+              "room": "ауд. 405",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "10:40",
+              "time_end": "14:10",
+              "subject": "Геология",
+              "type": "practice",
+              "teacher": null,
+              "room": null,
+              "subgroup": null,
+              "notes": ""
+            },
             {
               "slot": null,
               "time_start": "16:00",
@@ -59,20 +58,21 @@
               "room": "ауд. 308",
               "subgroup": null,
               "notes": ""
-            },
+            }
+          ],
+          "wednesday": [
             {
               "slot": null,
-              "time_start": "16:00",
-              "time_end": "17:30",
-              "subject": "образования",
-              "type": "practice",
-              "teacher": "доц. С.Е. Грачев",
-              "room": "ауд. 405",
+              "time_start": "10:40",
+              "time_end": "12:10",
+              "subject": "доц. А.Н. Гречнева",
+              "type": "other",
+              "teacher": "доц. А.Н. Гречнева",
+              "room": "ауд. 405, 404",
               "subgroup": null,
               "notes": ""
             }
           ],
-          "wednesday": [],
           "thursday": [],
           "friday": [
             {
@@ -83,17 +83,6 @@
               "type": "practice",
               "teacher": null,
               "room": "История России (ПЗ), доц. М.К. Чиняков, ауд. 511",
-              "subgroup": null,
-              "notes": ""
-            },
-            {
-              "slot": null,
-              "time_start": "10:40",
-              "time_end": "12:10",
-              "subject": "Практическая",
-              "type": "practice",
-              "teacher": "асс. П",
-              "room": "ауд. 209",
               "subgroup": null,
               "notes": ""
             },
@@ -116,28 +105,6 @@
               "type": "practice",
               "teacher": "доц. А.С. Калякин",
               "room": "ауд. 201",
-              "subgroup": null,
-              "notes": ""
-            },
-            {
-              "slot": null,
-              "time_start": "12:40",
-              "time_end": "14:10",
-              "subject": "Практическая",
-              "type": "practice",
-              "teacher": "асс. П. Жуньцзе",
-              "room": "ауд. 209",
-              "subgroup": null,
-              "notes": ""
-            },
-            {
-              "slot": null,
-              "time_start": "12:40",
-              "time_end": "14:10",
-              "subject": "Практическая",
-              "type": "practice",
-              "teacher": "асс. П",
-              "room": "ауд. 209",
               "subgroup": null,
               "notes": ""
             },
@@ -180,17 +147,6 @@
               "slot": null,
               "time_start": "16:00",
               "time_end": "17:30",
-              "subject": "103",
-              "type": "other",
-              "teacher": null,
-              "room": null,
-              "subgroup": null,
-              "notes": ""
-            },
-            {
-              "slot": null,
-              "time_start": "16:00",
-              "time_end": "17:30",
               "subject": "101-03",
               "type": "other",
               "teacher": null,
@@ -203,39 +159,6 @@
               "time_start": "16:00",
               "time_end": "17:30",
               "subject": "101-04",
-              "type": "other",
-              "teacher": null,
-              "room": null,
-              "subgroup": null,
-              "notes": ""
-            },
-            {
-              "slot": null,
-              "time_start": "16:00",
-              "time_end": "17:30",
-              "subject": "102-06",
-              "type": "other",
-              "teacher": null,
-              "room": null,
-              "subgroup": null,
-              "notes": ""
-            },
-            {
-              "slot": null,
-              "time_start": "16:00",
-              "time_end": "17:30",
-              "subject": "103-08",
-              "type": "other",
-              "teacher": null,
-              "room": null,
-              "subgroup": null,
-              "notes": ""
-            },
-            {
-              "slot": null,
-              "time_start": "16:00",
-              "time_end": "17:30",
-              "subject": "104-10",
               "type": "other",
               "teacher": null,
               "room": null,
@@ -245,42 +168,41 @@
           ]
         },
         "even_week": {
-          "monday": [
-            {
-              "slot": null,
-              "time_start": "12:40",
-              "time_end": "14:10",
-              "subject": "доц. Е.Б. Баранникова",
-              "type": "practice",
-              "teacher": "доц. Е.Б. Баранникова",
-              "room": "ауд. 107",
-              "subgroup": null,
-              "notes": ""
-            },
-            {
-              "slot": null,
-              "time_start": "12:40",
-              "time_end": "14:10",
-              "subject": "Иностранный",
-              "type": "practice",
-              "teacher": "доц. Ю.А. Галкина",
-              "room": "ауд. 203",
-              "subgroup": null,
-              "notes": ""
-            },
-            {
-              "slot": null,
-              "time_start": "16:00",
-              "time_end": "17:30",
-              "subject": "Практика устной",
-              "type": "practice",
-              "teacher": "доц. Ю.А. Галкина",
-              "room": "ауд. 203",
-              "subgroup": null,
-              "notes": ""
-            }
-          ],
+          "monday": [],
           "tuesday": [
+            {
+              "slot": null,
+              "time_start": "10:40",
+              "time_end": "14:10",
+              "subject": "Общее землеведение",
+              "type": "lecture",
+              "teacher": "ст. преп. Е.В. Болдырева",
+              "room": "ауд. 306",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "10:40",
+              "time_end": "14:10",
+              "subject": "образования",
+              "type": "practice",
+              "teacher": "доц. С.Е. Грачев",
+              "room": "ауд. 405",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "10:40",
+              "time_end": "14:10",
+              "subject": "Геология",
+              "type": "practice",
+              "teacher": null,
+              "room": null,
+              "subgroup": null,
+              "notes": ""
+            },
             {
               "slot": null,
               "time_start": "16:00",
@@ -291,20 +213,21 @@
               "room": "ауд. 308",
               "subgroup": null,
               "notes": ""
-            },
+            }
+          ],
+          "wednesday": [
             {
               "slot": null,
-              "time_start": "16:00",
-              "time_end": "17:30",
-              "subject": "образования",
-              "type": "practice",
-              "teacher": "доц. С.Е. Грачев",
-              "room": "ауд. 405",
+              "time_start": "10:40",
+              "time_end": "12:10",
+              "subject": "доц. А.Н. Гречнева",
+              "type": "other",
+              "teacher": "доц. А.Н. Гречнева",
+              "room": "ауд. 405, 404",
               "subgroup": null,
               "notes": ""
             }
           ],
-          "wednesday": [],
           "thursday": [],
           "friday": [
             {
@@ -315,17 +238,6 @@
               "type": "practice",
               "teacher": null,
               "room": "История России (ПЗ), доц. М.К. Чиняков, ауд. 511",
-              "subgroup": null,
-              "notes": ""
-            },
-            {
-              "slot": null,
-              "time_start": "10:40",
-              "time_end": "12:10",
-              "subject": "Практическая",
-              "type": "practice",
-              "teacher": "асс. П",
-              "room": "ауд. 209",
               "subgroup": null,
               "notes": ""
             },
@@ -348,28 +260,6 @@
               "type": "practice",
               "teacher": "доц. А.С. Калякин",
               "room": "ауд. 201",
-              "subgroup": null,
-              "notes": ""
-            },
-            {
-              "slot": null,
-              "time_start": "12:40",
-              "time_end": "14:10",
-              "subject": "Практическая",
-              "type": "practice",
-              "teacher": "асс. П. Жуньцзе",
-              "room": "ауд. 209",
-              "subgroup": null,
-              "notes": ""
-            },
-            {
-              "slot": null,
-              "time_start": "12:40",
-              "time_end": "14:10",
-              "subject": "Практическая",
-              "type": "practice",
-              "teacher": "асс. П",
-              "room": "ауд. 209",
               "subgroup": null,
               "notes": ""
             },
@@ -412,17 +302,6 @@
               "slot": null,
               "time_start": "16:00",
               "time_end": "17:30",
-              "subject": "103",
-              "type": "other",
-              "teacher": null,
-              "room": null,
-              "subgroup": null,
-              "notes": ""
-            },
-            {
-              "slot": null,
-              "time_start": "16:00",
-              "time_end": "17:30",
               "subject": "101-03",
               "type": "other",
               "teacher": null,
@@ -435,39 +314,6 @@
               "time_start": "16:00",
               "time_end": "17:30",
               "subject": "101-04",
-              "type": "other",
-              "teacher": null,
-              "room": null,
-              "subgroup": null,
-              "notes": ""
-            },
-            {
-              "slot": null,
-              "time_start": "16:00",
-              "time_end": "17:30",
-              "subject": "102-06",
-              "type": "other",
-              "teacher": null,
-              "room": null,
-              "subgroup": null,
-              "notes": ""
-            },
-            {
-              "slot": null,
-              "time_start": "16:00",
-              "time_end": "17:30",
-              "subject": "103-08",
-              "type": "other",
-              "teacher": null,
-              "room": null,
-              "subgroup": null,
-              "notes": ""
-            },
-            {
-              "slot": null,
-              "time_start": "16:00",
-              "time_end": "17:30",
-              "subject": "104-10",
               "type": "other",
               "teacher": null,
               "room": null,
@@ -485,9 +331,78 @@
       "degree": "bachelor",
       "schedule": {
         "odd_week": {
-          "monday": [],
-          "tuesday": [],
-          "wednesday": [],
+          "monday": [
+            {
+              "slot": null,
+              "time_start": "12:40",
+              "time_end": "14:10",
+              "subject": "доц. Е.Б. Баранникова",
+              "type": "practice",
+              "teacher": "доц. Е.Б. Баранникова",
+              "room": "ауд. 107",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "12:40",
+              "time_end": "14:10",
+              "subject": "Иностранный",
+              "type": "practice",
+              "teacher": "доц. Ю.А. Галкина",
+              "room": "ауд. 203",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "16:00",
+              "time_end": "17:30",
+              "subject": "Практика устной",
+              "type": "practice",
+              "teacher": "доц. Ю.А. Галкина",
+              "room": "ауд. 203",
+              "subgroup": null,
+              "notes": ""
+            }
+          ],
+          "tuesday": [
+            {
+              "slot": null,
+              "time_start": "10:40",
+              "time_end": "14:10",
+              "subject": "Технологии цифрового",
+              "type": "other",
+              "teacher": null,
+              "room": null,
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "16:00",
+              "time_end": "17:30",
+              "subject": "образования",
+              "type": "practice",
+              "teacher": "доц. С.Е. Грачев",
+              "room": "ауд. 405",
+              "subgroup": null,
+              "notes": ""
+            }
+          ],
+          "wednesday": [
+            {
+              "slot": null,
+              "time_start": "10:40",
+              "time_end": "12:10",
+              "subject": "Учебная практика (технологическая (проектно-",
+              "type": "other",
+              "teacher": "доц. А.Н. Гречнева",
+              "room": "ауд. 405, 404",
+              "subgroup": null,
+              "notes": ""
+            }
+          ],
           "thursday": [],
           "friday": [
             {
@@ -503,12 +418,45 @@
             },
             {
               "slot": null,
+              "time_start": "10:40",
+              "time_end": "12:10",
+              "subject": "Практическая",
+              "type": "practice",
+              "teacher": "асс. П",
+              "room": "ауд. 209",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
               "time_start": "12:40",
               "time_end": "14:10",
               "subject": "Речевые практики",
               "type": "practice",
               "teacher": "доц. Е.Б. Баранникова",
               "room": "ауд. 107",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "12:40",
+              "time_end": "14:10",
+              "subject": "Практическая",
+              "type": "practice",
+              "teacher": "асс. П. Жуньцзе",
+              "room": "ауд. 209",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "12:40",
+              "time_end": "14:10",
+              "subject": "Практическая",
+              "type": "practice",
+              "teacher": "асс. П",
+              "room": "ауд. 209",
               "subgroup": null,
               "notes": ""
             }
@@ -522,15 +470,117 @@
               "type": "practice",
               "teacher": null,
               "room": "История России (ПЗ), доц. М.К. Чиняков, ауд. 511",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "16:00",
+              "time_end": "17:30",
+              "subject": "103",
+              "type": "other",
+              "teacher": null,
+              "room": null,
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "16:00",
+              "time_end": "17:30",
+              "subject": "102-06",
+              "type": "other",
+              "teacher": null,
+              "room": null,
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "16:00",
+              "time_end": "17:30",
+              "subject": "103-08",
+              "type": "other",
+              "teacher": null,
+              "room": null,
               "subgroup": null,
               "notes": ""
             }
           ]
         },
         "even_week": {
-          "monday": [],
-          "tuesday": [],
-          "wednesday": [],
+          "monday": [
+            {
+              "slot": null,
+              "time_start": "12:40",
+              "time_end": "14:10",
+              "subject": "доц. Е.Б. Баранникова",
+              "type": "practice",
+              "teacher": "доц. Е.Б. Баранникова",
+              "room": "ауд. 107",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "12:40",
+              "time_end": "14:10",
+              "subject": "Иностранный",
+              "type": "practice",
+              "teacher": "доц. Ю.А. Галкина",
+              "room": "ауд. 203",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "16:00",
+              "time_end": "17:30",
+              "subject": "Практика устной",
+              "type": "practice",
+              "teacher": "доц. Ю.А. Галкина",
+              "room": "ауд. 203",
+              "subgroup": null,
+              "notes": ""
+            }
+          ],
+          "tuesday": [
+            {
+              "slot": null,
+              "time_start": "10:40",
+              "time_end": "14:10",
+              "subject": "Технологии цифрового",
+              "type": "other",
+              "teacher": null,
+              "room": null,
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "16:00",
+              "time_end": "17:30",
+              "subject": "образования",
+              "type": "practice",
+              "teacher": "доц. С.Е. Грачев",
+              "room": "ауд. 405",
+              "subgroup": null,
+              "notes": ""
+            }
+          ],
+          "wednesday": [
+            {
+              "slot": null,
+              "time_start": "10:40",
+              "time_end": "12:10",
+              "subject": "Учебная практика (технологическая (проектно-",
+              "type": "other",
+              "teacher": "доц. А.Н. Гречнева",
+              "room": "ауд. 405, 404",
+              "subgroup": null,
+              "notes": ""
+            }
+          ],
           "thursday": [],
           "friday": [
             {
@@ -546,12 +596,45 @@
             },
             {
               "slot": null,
+              "time_start": "10:40",
+              "time_end": "12:10",
+              "subject": "Практическая",
+              "type": "practice",
+              "teacher": "асс. П",
+              "room": "ауд. 209",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
               "time_start": "12:40",
               "time_end": "14:10",
               "subject": "Речевые практики",
               "type": "practice",
               "teacher": "доц. Е.Б. Баранникова",
               "room": "ауд. 107",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "12:40",
+              "time_end": "14:10",
+              "subject": "Практическая",
+              "type": "practice",
+              "teacher": "асс. П. Жуньцзе",
+              "room": "ауд. 209",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "12:40",
+              "time_end": "14:10",
+              "subject": "Практическая",
+              "type": "practice",
+              "teacher": "асс. П",
+              "room": "ауд. 209",
               "subgroup": null,
               "notes": ""
             }
@@ -565,6 +648,39 @@
               "type": "practice",
               "teacher": null,
               "room": "История России (ПЗ), доц. М.К. Чиняков, ауд. 511",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "16:00",
+              "time_end": "17:30",
+              "subject": "103",
+              "type": "other",
+              "teacher": null,
+              "room": null,
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "16:00",
+              "time_end": "17:30",
+              "subject": "102-06",
+              "type": "other",
+              "teacher": null,
+              "room": null,
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "16:00",
+              "time_end": "17:30",
+              "subject": "103-08",
+              "type": "other",
+              "teacher": null,
+              "room": null,
               "subgroup": null,
               "notes": ""
             }
@@ -592,8 +708,43 @@
               "notes": ""
             }
           ],
-          "tuesday": [],
-          "wednesday": [],
+          "tuesday": [
+            {
+              "slot": null,
+              "time_start": "10:40",
+              "time_end": "14:10",
+              "subject": "Климатология с основами метеорологии",
+              "type": "practice",
+              "teacher": "доц. О.В. Ковалева",
+              "room": "доц. И. Ф. Асауляк, ауд. 307",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "10:40",
+              "time_end": "14:10",
+              "subject": "Химия",
+              "type": "practice",
+              "teacher": "доц. Е.А. Фураев",
+              "room": "ауд. 506",
+              "subgroup": null,
+              "notes": ""
+            }
+          ],
+          "wednesday": [
+            {
+              "slot": null,
+              "time_start": "10:40",
+              "time_end": "12:10",
+              "subject": "Технологии здоровьесбережения",
+              "type": "practice",
+              "teacher": "доц. С.В. Воробьев",
+              "room": "ауд. 301",
+              "subgroup": null,
+              "notes": ""
+            }
+          ],
           "thursday": [],
           "friday": [
             {
@@ -625,6 +776,17 @@
               "time_start": "16:00",
               "time_end": "17:30",
               "subject": "104",
+              "type": "other",
+              "teacher": null,
+              "room": null,
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "16:00",
+              "time_end": "17:30",
+              "subject": "104-10",
               "type": "other",
               "teacher": null,
               "room": null,
@@ -658,8 +820,43 @@
               "notes": ""
             }
           ],
-          "tuesday": [],
-          "wednesday": [],
+          "tuesday": [
+            {
+              "slot": null,
+              "time_start": "10:40",
+              "time_end": "14:10",
+              "subject": "Климатология с основами метеорологии",
+              "type": "practice",
+              "teacher": "доц. О.В. Ковалева",
+              "room": "доц. И. Ф. Асауляк, ауд. 307",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "10:40",
+              "time_end": "14:10",
+              "subject": "Химия",
+              "type": "practice",
+              "teacher": "доц. Е.А. Фураев",
+              "room": "ауд. 506",
+              "subgroup": null,
+              "notes": ""
+            }
+          ],
+          "wednesday": [
+            {
+              "slot": null,
+              "time_start": "10:40",
+              "time_end": "12:10",
+              "subject": "Технологии здоровьесбережения",
+              "type": "practice",
+              "teacher": "доц. С.В. Воробьев",
+              "room": "ауд. 301",
+              "subgroup": null,
+              "notes": ""
+            }
+          ],
           "thursday": [],
           "friday": [
             {
@@ -691,6 +888,17 @@
               "time_start": "16:00",
               "time_end": "17:30",
               "subject": "104",
+              "type": "other",
+              "teacher": null,
+              "room": null,
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "16:00",
+              "time_end": "17:30",
+              "subject": "104-10",
               "type": "other",
               "teacher": null,
               "room": null,
@@ -722,17 +930,50 @@
           "monday": [
             {
               "slot": null,
-              "time_start": "12:40",
-              "time_end": "14:10",
-              "subject": "Элективные курсы по физической",
-              "type": "practice",
-              "teacher": "доц. Г.Н. Макушина",
-              "room": "спорт.зал",
+              "time_start": "09:00",
+              "time_end": "10:30",
+              "subject": "Методы исследовательской и проектной деятельности , проф. Е.А. Беловолова, ауд. 301 (с 02.03)",
+              "type": "lecture",
+              "teacher": null,
+              "room": "Методы исследовательской и проектной деятельности (ЛК), проф. Е.А. Беловолова, ауд. 301 (с 02.03)",
               "subgroup": null,
               "notes": ""
             }
           ],
           "tuesday": [
+            {
+              "slot": null,
+              "time_start": "09:00",
+              "time_end": "10:30",
+              "subject": "Философия",
+              "type": "practice",
+              "teacher": "доц. И.В. Погодин",
+              "room": "ауд. 201",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "09:00",
+              "time_end": "10:30",
+              "subject": "Философия , доц. И.В. Погодин, ауд. 201",
+              "type": "practice",
+              "teacher": "доц. Т.Л. Смоктунович",
+              "room": "Философия (ЛК), доц. И.В. Погодин, ауд. 201",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "12:40",
+              "time_end": "15:50",
+              "subject": "Физическая география материков и океанов",
+              "type": "practice",
+              "teacher": "доц. Т.Л. Смоктунович",
+              "room": "ауд. 304",
+              "subgroup": null,
+              "notes": ""
+            },
             {
               "slot": null,
               "time_start": "16:00",
@@ -748,12 +989,12 @@
           "wednesday": [
             {
               "slot": null,
-              "time_start": "14:20",
-              "time_end": "15:50",
-              "subject": "география",
-              "type": "practice",
+              "time_start": "10:40",
+              "time_end": "12:10",
+              "subject": "География почв с основами почвоведения , доц. Е.А. Фураев, ауд. 511",
+              "type": "lecture",
               "teacher": "доц. С.Г. Толкунова",
-              "room": "ауд. 407",
+              "room": "География почв с основами почвоведения (ЛК), доц. Е.А. Фураев, ауд. 511",
               "subgroup": null,
               "notes": ""
             },
@@ -761,10 +1002,10 @@
               "slot": null,
               "time_start": "14:20",
               "time_end": "15:50",
-              "subject": "письменной речи",
+              "subject": "география",
               "type": "practice",
-              "teacher": "асс. П. Жуньзце",
-              "room": "ауд.207",
+              "teacher": "доц. С.Г. Толкунова",
+              "room": "ауд. 407",
               "subgroup": null,
               "notes": ""
             },
@@ -789,28 +1030,6 @@
               "type": "practice",
               "teacher": "доц. Г.Н. Макушина",
               "room": "спорт.зал",
-              "subgroup": null,
-              "notes": ""
-            },
-            {
-              "slot": null,
-              "time_start": "10:40",
-              "time_end": "12:10",
-              "subject": "География почв с основами",
-              "type": "practice",
-              "teacher": "доц. Н.В. Косарева",
-              "room": "ауд. 506",
-              "subgroup": null,
-              "notes": ""
-            },
-            {
-              "slot": null,
-              "time_start": "10:40",
-              "time_end": "12:10",
-              "subject": "География почв с основами",
-              "type": "lecture",
-              "teacher": "доц. Е.А. Фураев",
-              "room": "ауд. 506",
               "subgroup": null,
               "notes": ""
             },
@@ -833,17 +1052,50 @@
           "monday": [
             {
               "slot": null,
-              "time_start": "12:40",
-              "time_end": "14:10",
-              "subject": "Элективные курсы по физической",
-              "type": "practice",
-              "teacher": "доц. Г.Н. Макушина",
-              "room": "спорт.зал",
+              "time_start": "09:00",
+              "time_end": "10:30",
+              "subject": "Методы исследовательской и проектной деятельности , проф. Е.А. Беловолова, ауд. 301 (с 02.03)",
+              "type": "lecture",
+              "teacher": null,
+              "room": "Методы исследовательской и проектной деятельности (ЛК), проф. Е.А. Беловолова, ауд. 301 (с 02.03)",
               "subgroup": null,
               "notes": ""
             }
           ],
           "tuesday": [
+            {
+              "slot": null,
+              "time_start": "09:00",
+              "time_end": "10:30",
+              "subject": "Философия",
+              "type": "practice",
+              "teacher": "доц. И.В. Погодин",
+              "room": "ауд. 201",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "09:00",
+              "time_end": "10:30",
+              "subject": "Философия , доц. И.В. Погодин, ауд. 201",
+              "type": "practice",
+              "teacher": "доц. Т.Л. Смоктунович",
+              "room": "Философия (ЛК), доц. И.В. Погодин, ауд. 201",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "12:40",
+              "time_end": "15:50",
+              "subject": "Физическая география материков и океанов",
+              "type": "practice",
+              "teacher": "доц. Т.Л. Смоктунович",
+              "room": "ауд. 304",
+              "subgroup": null,
+              "notes": ""
+            },
             {
               "slot": null,
               "time_start": "16:00",
@@ -859,12 +1111,12 @@
           "wednesday": [
             {
               "slot": null,
-              "time_start": "14:20",
-              "time_end": "15:50",
-              "subject": "география",
-              "type": "practice",
+              "time_start": "10:40",
+              "time_end": "12:10",
+              "subject": "География почв с основами почвоведения , доц. Е.А. Фураев, ауд. 511",
+              "type": "lecture",
               "teacher": "доц. С.Г. Толкунова",
-              "room": "ауд. 407",
+              "room": "География почв с основами почвоведения (ЛК), доц. Е.А. Фураев, ауд. 511",
               "subgroup": null,
               "notes": ""
             },
@@ -872,10 +1124,10 @@
               "slot": null,
               "time_start": "14:20",
               "time_end": "15:50",
-              "subject": "письменной речи",
+              "subject": "география",
               "type": "practice",
-              "teacher": "асс. П. Жуньзце",
-              "room": "ауд.207",
+              "teacher": "доц. С.Г. Толкунова",
+              "room": "ауд. 407",
               "subgroup": null,
               "notes": ""
             },
@@ -900,28 +1152,6 @@
               "type": "practice",
               "teacher": "доц. Г.Н. Макушина",
               "room": "спорт.зал",
-              "subgroup": null,
-              "notes": ""
-            },
-            {
-              "slot": null,
-              "time_start": "10:40",
-              "time_end": "12:10",
-              "subject": "География почв с основами",
-              "type": "practice",
-              "teacher": "доц. Н.В. Косарева",
-              "room": "ауд. 506",
-              "subgroup": null,
-              "notes": ""
-            },
-            {
-              "slot": null,
-              "time_start": "10:40",
-              "time_end": "12:10",
-              "subject": "География почв с основами",
-              "type": "lecture",
-              "teacher": "доц. Е.А. Фураев",
-              "room": "ауд. 506",
               "subgroup": null,
               "notes": ""
             },
@@ -950,8 +1180,53 @@
       "schedule": {
         "odd_week": {
           "monday": [],
-          "tuesday": [],
+          "tuesday": [
+            {
+              "slot": null,
+              "time_start": "09:00",
+              "time_end": "10:30",
+              "subject": "Общая экономическая и социальная география , доц. С.Г. Толкунова, ауд. 511",
+              "type": "lecture",
+              "teacher": null,
+              "room": "Общая экономическая и социальная география (ЛК), доц. С.Г. Толкунова, ауд. 511",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "09:00",
+              "time_end": "10:30",
+              "subject": "Философия",
+              "type": "practice",
+              "teacher": "доц. И.В. Погодин",
+              "room": "ауд. 201",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "12:40",
+              "time_end": "15:50",
+              "subject": "Общая экономическая и социальная география",
+              "type": "practice",
+              "teacher": "доц. С.Г. Толкунова",
+              "room": "ауд. 407",
+              "subgroup": null,
+              "notes": ""
+            }
+          ],
           "wednesday": [
+            {
+              "slot": null,
+              "time_start": "10:40",
+              "time_end": "12:10",
+              "subject": "Общая экология , доц. Н.В. Каргаполов, ауд. 201",
+              "type": "practice",
+              "teacher": null,
+              "room": "Общая экология (ЛК), доц. Н.В. Каргаполов, ауд. 201",
+              "subgroup": null,
+              "notes": ""
+            },
             {
               "slot": null,
               "time_start": "14:20",
@@ -973,6 +1248,17 @@
               "type": "practice",
               "teacher": "доц. В.С. Коничев",
               "room": "ауд. 207",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "10:40",
+              "time_end": "12:10",
+              "subject": "География почв с основами",
+              "type": "lecture",
+              "teacher": "доц. Е.А. Фураев",
+              "room": "ауд. 506",
               "subgroup": null,
               "notes": ""
             }
@@ -982,8 +1268,53 @@
         },
         "even_week": {
           "monday": [],
-          "tuesday": [],
+          "tuesday": [
+            {
+              "slot": null,
+              "time_start": "09:00",
+              "time_end": "10:30",
+              "subject": "Общая экономическая и социальная география , доц. С.Г. Толкунова, ауд. 511",
+              "type": "lecture",
+              "teacher": null,
+              "room": "Общая экономическая и социальная география (ЛК), доц. С.Г. Толкунова, ауд. 511",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "09:00",
+              "time_end": "10:30",
+              "subject": "Философия",
+              "type": "practice",
+              "teacher": "доц. И.В. Погодин",
+              "room": "ауд. 201",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "12:40",
+              "time_end": "15:50",
+              "subject": "Общая экономическая и социальная география",
+              "type": "practice",
+              "teacher": "доц. С.Г. Толкунова",
+              "room": "ауд. 407",
+              "subgroup": null,
+              "notes": ""
+            }
+          ],
           "wednesday": [
+            {
+              "slot": null,
+              "time_start": "10:40",
+              "time_end": "12:10",
+              "subject": "Общая экология , доц. Н.В. Каргаполов, ауд. 201",
+              "type": "practice",
+              "teacher": null,
+              "room": "Общая экология (ЛК), доц. Н.В. Каргаполов, ауд. 201",
+              "subgroup": null,
+              "notes": ""
+            },
             {
               "slot": null,
               "time_start": "14:20",
@@ -1005,6 +1336,17 @@
               "type": "practice",
               "teacher": "доц. В.С. Коничев",
               "room": "ауд. 207",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "10:40",
+              "time_end": "12:10",
+              "subject": "География почв с основами",
+              "type": "lecture",
+              "teacher": "доц. Е.А. Фураев",
+              "room": "ауд. 506",
               "subgroup": null,
               "notes": ""
             }
@@ -1024,6 +1366,17 @@
           "monday": [
             {
               "slot": null,
+              "time_start": "09:00",
+              "time_end": "10:30",
+              "subject": "Практика устной и письменной",
+              "type": "practice",
+              "teacher": "доц. Ю.А. Галкина",
+              "room": "ауд. 203",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
               "time_start": "12:40",
               "time_end": "14:10",
               "subject": "физической культуре и спорту",
@@ -1032,9 +1385,53 @@
               "room": "спорт.зал",
               "subgroup": null,
               "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "12:40",
+              "time_end": "14:10",
+              "subject": "Элективные курсы по физической",
+              "type": "practice",
+              "teacher": "доц. Г.Н. Макушина",
+              "room": "спорт.зал",
+              "subgroup": null,
+              "notes": ""
             }
           ],
           "tuesday": [
+            {
+              "slot": null,
+              "time_start": "09:00",
+              "time_end": "10:30",
+              "subject": "доц. С.Г. Толкунова",
+              "type": "other",
+              "teacher": "доц. С.Г. Толкунова",
+              "room": "ауд. 407",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "09:00",
+              "time_end": "10:30",
+              "subject": "Безопасность жизнедеятельности",
+              "type": "practice",
+              "teacher": "доц. В.С. Коничев",
+              "room": "ауд. 207",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "12:40",
+              "time_end": "15:50",
+              "subject": "Философия",
+              "type": "practice",
+              "teacher": "доц. И.В. Погодин",
+              "room": "ауд. 201",
+              "subgroup": null,
+              "notes": ""
+            },
             {
               "slot": null,
               "time_start": "16:00",
@@ -1047,8 +1444,43 @@
               "notes": ""
             }
           ],
-          "wednesday": [],
-          "thursday": [],
+          "wednesday": [
+            {
+              "slot": null,
+              "time_start": "10:40",
+              "time_end": "12:10",
+              "subject": "Практикум устной и",
+              "type": "practice",
+              "teacher": "асс. П. Жуньзце",
+              "room": "ауд.207",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "14:20",
+              "time_end": "15:50",
+              "subject": "письменной речи",
+              "type": "practice",
+              "teacher": "асс. П. Жуньзце",
+              "room": "ауд.207",
+              "subgroup": null,
+              "notes": ""
+            }
+          ],
+          "thursday": [
+            {
+              "slot": null,
+              "time_start": "10:40",
+              "time_end": "12:10",
+              "subject": "География почв с основами",
+              "type": "practice",
+              "teacher": "доц. Н.В. Косарева",
+              "room": "ауд. 506",
+              "subgroup": null,
+              "notes": ""
+            }
+          ],
           "friday": [],
           "saturday": [
             {
@@ -1068,6 +1500,17 @@
           "monday": [
             {
               "slot": null,
+              "time_start": "09:00",
+              "time_end": "10:30",
+              "subject": "Практика устной и письменной",
+              "type": "practice",
+              "teacher": "доц. Ю.А. Галкина",
+              "room": "ауд. 203",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
               "time_start": "12:40",
               "time_end": "14:10",
               "subject": "физической культуре и спорту",
@@ -1076,9 +1519,53 @@
               "room": "спорт.зал",
               "subgroup": null,
               "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "12:40",
+              "time_end": "14:10",
+              "subject": "Элективные курсы по физической",
+              "type": "practice",
+              "teacher": "доц. Г.Н. Макушина",
+              "room": "спорт.зал",
+              "subgroup": null,
+              "notes": ""
             }
           ],
           "tuesday": [
+            {
+              "slot": null,
+              "time_start": "09:00",
+              "time_end": "10:30",
+              "subject": "доц. С.Г. Толкунова",
+              "type": "other",
+              "teacher": "доц. С.Г. Толкунова",
+              "room": "ауд. 407",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "09:00",
+              "time_end": "10:30",
+              "subject": "Безопасность жизнедеятельности",
+              "type": "practice",
+              "teacher": "доц. В.С. Коничев",
+              "room": "ауд. 207",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "12:40",
+              "time_end": "15:50",
+              "subject": "Философия",
+              "type": "practice",
+              "teacher": "доц. И.В. Погодин",
+              "room": "ауд. 201",
+              "subgroup": null,
+              "notes": ""
+            },
             {
               "slot": null,
               "time_start": "16:00",
@@ -1091,8 +1578,43 @@
               "notes": ""
             }
           ],
-          "wednesday": [],
-          "thursday": [],
+          "wednesday": [
+            {
+              "slot": null,
+              "time_start": "10:40",
+              "time_end": "12:10",
+              "subject": "Практикум устной и",
+              "type": "practice",
+              "teacher": "асс. П. Жуньзце",
+              "room": "ауд.207",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "14:20",
+              "time_end": "15:50",
+              "subject": "письменной речи",
+              "type": "practice",
+              "teacher": "асс. П. Жуньзце",
+              "room": "ауд.207",
+              "subgroup": null,
+              "notes": ""
+            }
+          ],
+          "thursday": [
+            {
+              "slot": null,
+              "time_start": "10:40",
+              "time_end": "12:10",
+              "subject": "География почв с основами",
+              "type": "practice",
+              "teacher": "доц. Н.В. Косарева",
+              "room": "ауд. 506",
+              "subgroup": null,
+              "notes": ""
+            }
+          ],
           "friday": [],
           "saturday": [
             {
@@ -1117,8 +1639,54 @@
       "degree": "bachelor",
       "schedule": {
         "odd_week": {
-          "monday": [],
-          "tuesday": [],
+          "monday": [
+            {
+              "slot": null,
+              "time_start": "10:40",
+              "time_end": "12:10",
+              "subject": "Физическая география России",
+              "type": "practice",
+              "teacher": "доц. В.А. Кошевой",
+              "room": "ауд. 305",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "12:40",
+              "time_end": "14:10",
+              "subject": "Производственная практика",
+              "type": "other",
+              "teacher": null,
+              "room": null,
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "14:20",
+              "time_end": "15:50",
+              "subject": "руководство)",
+              "type": "other",
+              "teacher": "доц. Н.Н. Солодухина",
+              "room": null,
+              "subgroup": null,
+              "notes": ""
+            }
+          ],
+          "tuesday": [
+            {
+              "slot": null,
+              "time_start": "10:40",
+              "time_end": "12:10",
+              "subject": "Учебная практика (технологическая",
+              "type": "other",
+              "teacher": "асс. Е.В. Лозован",
+              "room": null,
+              "subgroup": null,
+              "notes": ""
+            }
+          ],
           "wednesday": [],
           "thursday": [],
           "friday": [
@@ -1215,8 +1783,54 @@
           ]
         },
         "even_week": {
-          "monday": [],
-          "tuesday": [],
+          "monday": [
+            {
+              "slot": null,
+              "time_start": "10:40",
+              "time_end": "12:10",
+              "subject": "Физическая география России",
+              "type": "practice",
+              "teacher": "доц. В.А. Кошевой",
+              "room": "ауд. 305",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "12:40",
+              "time_end": "14:10",
+              "subject": "Производственная практика",
+              "type": "other",
+              "teacher": null,
+              "room": null,
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "14:20",
+              "time_end": "15:50",
+              "subject": "руководство)",
+              "type": "other",
+              "teacher": "доц. Н.Н. Солодухина",
+              "room": null,
+              "subgroup": null,
+              "notes": ""
+            }
+          ],
+          "tuesday": [
+            {
+              "slot": null,
+              "time_start": "10:40",
+              "time_end": "12:10",
+              "subject": "Учебная практика (технологическая",
+              "type": "other",
+              "teacher": "асс. Е.В. Лозован",
+              "room": null,
+              "subgroup": null,
+              "notes": ""
+            }
+          ],
           "wednesday": [],
           "thursday": [],
           "friday": [
@@ -1321,8 +1935,65 @@
       "degree": "bachelor",
       "schedule": {
         "odd_week": {
-          "monday": [],
-          "tuesday": [],
+          "monday": [
+            {
+              "slot": null,
+              "time_start": "10:40",
+              "time_end": "12:10",
+              "subject": "Производственная",
+              "type": "other",
+              "teacher": null,
+              "room": null,
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "10:40",
+              "time_end": "12:10",
+              "subject": "День",
+              "type": "other",
+              "teacher": null,
+              "room": null,
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "12:40",
+              "time_end": "14:10",
+              "subject": "(педагогическая",
+              "type": "other",
+              "teacher": "асс. Е.В Лозован",
+              "room": null,
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "12:40",
+              "time_end": "14:10",
+              "subject": "самостоятельной",
+              "type": "other",
+              "teacher": null,
+              "room": null,
+              "subgroup": null,
+              "notes": ""
+            }
+          ],
+          "tuesday": [
+            {
+              "slot": null,
+              "time_start": "10:40",
+              "time_end": "12:10",
+              "subject": "доц. Н.Н. Баркова ауд. 511",
+              "type": "practice",
+              "teacher": "доц. Н.Н. Баркова",
+              "room": "доц. Н.Н. Баркова ауд. 511",
+              "subgroup": null,
+              "notes": ""
+            }
+          ],
           "wednesday": [],
           "thursday": [],
           "friday": [
@@ -1386,8 +2057,65 @@
           ]
         },
         "even_week": {
-          "monday": [],
-          "tuesday": [],
+          "monday": [
+            {
+              "slot": null,
+              "time_start": "10:40",
+              "time_end": "12:10",
+              "subject": "Производственная",
+              "type": "other",
+              "teacher": null,
+              "room": null,
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "10:40",
+              "time_end": "12:10",
+              "subject": "День",
+              "type": "other",
+              "teacher": null,
+              "room": null,
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "12:40",
+              "time_end": "14:10",
+              "subject": "(педагогическая",
+              "type": "other",
+              "teacher": "асс. Е.В Лозован",
+              "room": null,
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "12:40",
+              "time_end": "14:10",
+              "subject": "самостоятельной",
+              "type": "other",
+              "teacher": null,
+              "room": null,
+              "subgroup": null,
+              "notes": ""
+            }
+          ],
+          "tuesday": [
+            {
+              "slot": null,
+              "time_start": "10:40",
+              "time_end": "12:10",
+              "subject": "доц. Н.Н. Баркова ауд. 511",
+              "type": "practice",
+              "teacher": "доц. Н.Н. Баркова",
+              "room": "доц. Н.Н. Баркова ауд. 511",
+              "subgroup": null,
+              "notes": ""
+            }
+          ],
           "wednesday": [],
           "thursday": [],
           "friday": [
@@ -1459,8 +2187,54 @@
       "degree": "bachelor",
       "schedule": {
         "odd_week": {
-          "monday": [],
-          "tuesday": [],
+          "monday": [
+            {
+              "slot": null,
+              "time_start": "10:40",
+              "time_end": "12:10",
+              "subject": "Практика устной и",
+              "type": "practice",
+              "teacher": "доц. С.В. Майоршина",
+              "room": "ауд. 208",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "12:40",
+              "time_end": "14:10",
+              "subject": "Практика устной и",
+              "type": "practice",
+              "teacher": "доц. С.В. Майоршина",
+              "room": "ауд. 208",
+              "subgroup": null,
+              "notes": ""
+            }
+          ],
+          "tuesday": [
+            {
+              "slot": null,
+              "time_start": "10:40",
+              "time_end": "12:10",
+              "subject": "Теория и методика обучения географии",
+              "type": "practice",
+              "teacher": "проф. Е.А. Беловолова",
+              "room": "ауд. 402",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "10:40",
+              "time_end": "12:10",
+              "subject": "Технология и организация воспитательных практик",
+              "type": "practice",
+              "teacher": "доц. Н.Н. Баркова",
+              "room": "ауд. 306",
+              "subgroup": null,
+              "notes": ""
+            }
+          ],
           "wednesday": [
             {
               "slot": null,
@@ -1514,8 +2288,54 @@
           ]
         },
         "even_week": {
-          "monday": [],
-          "tuesday": [],
+          "monday": [
+            {
+              "slot": null,
+              "time_start": "10:40",
+              "time_end": "12:10",
+              "subject": "Практика устной и",
+              "type": "practice",
+              "teacher": "доц. С.В. Майоршина",
+              "room": "ауд. 208",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "12:40",
+              "time_end": "14:10",
+              "subject": "Практика устной и",
+              "type": "practice",
+              "teacher": "доц. С.В. Майоршина",
+              "room": "ауд. 208",
+              "subgroup": null,
+              "notes": ""
+            }
+          ],
+          "tuesday": [
+            {
+              "slot": null,
+              "time_start": "10:40",
+              "time_end": "12:10",
+              "subject": "Теория и методика обучения географии",
+              "type": "practice",
+              "teacher": "проф. Е.А. Беловолова",
+              "room": "ауд. 402",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "10:40",
+              "time_end": "12:10",
+              "subject": "Технология и организация воспитательных практик",
+              "type": "practice",
+              "teacher": "доц. Н.Н. Баркова",
+              "room": "ауд. 306",
+              "subgroup": null,
+              "notes": ""
+            }
+          ],
           "wednesday": [
             {
               "slot": null,
@@ -1577,8 +2397,54 @@
       "degree": "bachelor",
       "schedule": {
         "odd_week": {
-          "monday": [],
-          "tuesday": [],
+          "monday": [
+            {
+              "slot": null,
+              "time_start": "12:40",
+              "time_end": "14:10",
+              "subject": "География Московского",
+              "type": "lecture",
+              "teacher": "доц. В.А. Кошевой",
+              "room": "ауд. 305",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "14:20",
+              "time_end": "15:50",
+              "subject": "География Московского",
+              "type": "practice",
+              "teacher": "доц. В.А. Кошевой",
+              "room": "ауд. 305",
+              "subgroup": null,
+              "notes": ""
+            }
+          ],
+          "tuesday": [
+            {
+              "slot": null,
+              "time_start": "10:40",
+              "time_end": "12:10",
+              "subject": "регионы России",
+              "type": "practice",
+              "teacher": "доц. Е.Ю. Зейналова",
+              "room": "ауд. 305",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "10:40",
+              "time_end": "12:10",
+              "subject": "Экономическая и социальная",
+              "type": "practice",
+              "teacher": "доц. Н.Н Роготень",
+              "room": "ауд. 406",
+              "subgroup": null,
+              "notes": ""
+            }
+          ],
           "wednesday": [],
           "thursday": [],
           "friday": [
@@ -1631,8 +2497,54 @@
           ]
         },
         "even_week": {
-          "monday": [],
-          "tuesday": [],
+          "monday": [
+            {
+              "slot": null,
+              "time_start": "12:40",
+              "time_end": "14:10",
+              "subject": "География Московского",
+              "type": "lecture",
+              "teacher": "доц. В.А. Кошевой",
+              "room": "ауд. 305",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "14:20",
+              "time_end": "15:50",
+              "subject": "География Московского",
+              "type": "practice",
+              "teacher": "доц. В.А. Кошевой",
+              "room": "ауд. 305",
+              "subgroup": null,
+              "notes": ""
+            }
+          ],
+          "tuesday": [
+            {
+              "slot": null,
+              "time_start": "10:40",
+              "time_end": "12:10",
+              "subject": "регионы России",
+              "type": "practice",
+              "teacher": "доц. Е.Ю. Зейналова",
+              "room": "ауд. 305",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "10:40",
+              "time_end": "12:10",
+              "subject": "Экономическая и социальная",
+              "type": "practice",
+              "teacher": "доц. Н.Н Роготень",
+              "room": "ауд. 406",
+              "subgroup": null,
+              "notes": ""
+            }
+          ],
           "wednesday": [],
           "thursday": [],
           "friday": [
@@ -1676,6 +2588,922 @@
               "time_start": "10:40",
               "time_end": "12:10",
               "subject": "День",
+              "type": "other",
+              "teacher": null,
+              "room": null,
+              "subgroup": null,
+              "notes": ""
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "БОГ34-ГЕО2201",
+      "year": 4,
+      "form": "full_time",
+      "degree": "bachelor",
+      "schedule": {
+        "odd_week": {
+          "monday": [
+            {
+              "slot": null,
+              "time_start": "12:40",
+              "time_end": "14:10",
+              "subject": "День самостоятельной работы",
+              "type": "other",
+              "teacher": null,
+              "room": null,
+              "subgroup": null,
+              "notes": ""
+            }
+          ],
+          "tuesday": [
+            {
+              "slot": null,
+              "time_start": "10:40",
+              "time_end": "12:10",
+              "subject": "Глобальные проблемы человечества",
+              "type": "lecture",
+              "teacher": "доц. С.Г. Толкунова",
+              "room": "ауд. 407",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "12:40",
+              "time_end": "14:10",
+              "subject": "Глобальные проблемы человечества",
+              "type": "practice",
+              "teacher": "доц. С.Г. Толкунова",
+              "room": "ауд. 407",
+              "subgroup": null,
+              "notes": ""
+            }
+          ],
+          "wednesday": [
+            {
+              "slot": null,
+              "time_start": "09:00",
+              "time_end": "10:30",
+              "subject": "мира",
+              "type": "lecture",
+              "teacher": "доц. Е.В. Баранчиков",
+              "room": "ауд. 407",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "10:40",
+              "time_end": "12:10",
+              "subject": "Экономическая и социальная география",
+              "type": "lecture",
+              "teacher": "доц. Е.В. Баранчиков",
+              "room": "ауд. 407",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "12:40",
+              "time_end": "14:10",
+              "subject": "Экономическая и социальная география",
+              "type": "practice",
+              "teacher": "доц. Е.В. Баранчиков",
+              "room": "ауд. 407",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "14:20",
+              "time_end": "15:50",
+              "subject": "мира",
+              "type": "practice",
+              "teacher": "доц. Е.В. Баранчиков",
+              "room": "ауд. 407",
+              "subgroup": null,
+              "notes": ""
+            }
+          ],
+          "thursday": [
+            {
+              "slot": null,
+              "time_start": "10:40",
+              "time_end": "12:10",
+              "subject": "Регионалистика",
+              "type": "lecture",
+              "teacher": "доц. Д.В. Заяц",
+              "room": "ауд. 406",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "12:40",
+              "time_end": "14:10",
+              "subject": "Регионалистика",
+              "type": "practice",
+              "teacher": "доц. Д.В. Заяц",
+              "room": "ауд. 406",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "14:20",
+              "time_end": "15:50",
+              "subject": "Регионалистика",
+              "type": "practice",
+              "teacher": "доц. Д.В. Заяц",
+              "room": "ауд. 406",
+              "subgroup": null,
+              "notes": ""
+            }
+          ],
+          "friday": [],
+          "saturday": [
+            {
+              "slot": null,
+              "time_start": "12:40",
+              "time_end": "14:10",
+              "subject": "День самостоятельной работы",
+              "type": "other",
+              "teacher": null,
+              "room": null,
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "14:20",
+              "time_end": "15:50",
+              "subject": "Наименование дисциплины (форма проведения занятия)",
+              "type": "other",
+              "teacher": null,
+              "room": null,
+              "subgroup": null,
+              "notes": ""
+            }
+          ]
+        },
+        "even_week": {
+          "monday": [
+            {
+              "slot": null,
+              "time_start": "12:40",
+              "time_end": "14:10",
+              "subject": "День самостоятельной работы",
+              "type": "other",
+              "teacher": null,
+              "room": null,
+              "subgroup": null,
+              "notes": ""
+            }
+          ],
+          "tuesday": [
+            {
+              "slot": null,
+              "time_start": "10:40",
+              "time_end": "12:10",
+              "subject": "Глобальные проблемы человечества",
+              "type": "lecture",
+              "teacher": "доц. С.Г. Толкунова",
+              "room": "ауд. 407",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "12:40",
+              "time_end": "14:10",
+              "subject": "Глобальные проблемы человечества",
+              "type": "practice",
+              "teacher": "доц. С.Г. Толкунова",
+              "room": "ауд. 407",
+              "subgroup": null,
+              "notes": ""
+            }
+          ],
+          "wednesday": [
+            {
+              "slot": null,
+              "time_start": "09:00",
+              "time_end": "10:30",
+              "subject": "мира",
+              "type": "lecture",
+              "teacher": "доц. Е.В. Баранчиков",
+              "room": "ауд. 407",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "10:40",
+              "time_end": "12:10",
+              "subject": "Экономическая и социальная география",
+              "type": "lecture",
+              "teacher": "доц. Е.В. Баранчиков",
+              "room": "ауд. 407",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "12:40",
+              "time_end": "14:10",
+              "subject": "Экономическая и социальная география",
+              "type": "practice",
+              "teacher": "доц. Е.В. Баранчиков",
+              "room": "ауд. 407",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "14:20",
+              "time_end": "15:50",
+              "subject": "мира",
+              "type": "practice",
+              "teacher": "доц. Е.В. Баранчиков",
+              "room": "ауд. 407",
+              "subgroup": null,
+              "notes": ""
+            }
+          ],
+          "thursday": [
+            {
+              "slot": null,
+              "time_start": "10:40",
+              "time_end": "12:10",
+              "subject": "Регионалистика",
+              "type": "lecture",
+              "teacher": "доц. Д.В. Заяц",
+              "room": "ауд. 406",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "12:40",
+              "time_end": "14:10",
+              "subject": "Регионалистика",
+              "type": "practice",
+              "teacher": "доц. Д.В. Заяц",
+              "room": "ауд. 406",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "14:20",
+              "time_end": "15:50",
+              "subject": "Регионалистика",
+              "type": "practice",
+              "teacher": "доц. Д.В. Заяц",
+              "room": "ауд. 406",
+              "subgroup": null,
+              "notes": ""
+            }
+          ],
+          "friday": [],
+          "saturday": [
+            {
+              "slot": null,
+              "time_start": "12:40",
+              "time_end": "14:10",
+              "subject": "День самостоятельной работы",
+              "type": "other",
+              "teacher": null,
+              "room": null,
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "14:20",
+              "time_end": "15:50",
+              "subject": "Наименование дисциплины (форма проведения занятия)",
+              "type": "other",
+              "teacher": null,
+              "room": null,
+              "subgroup": null,
+              "notes": ""
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "БОГ35-ГЭК2201",
+      "year": 4,
+      "form": "full_time",
+      "degree": "bachelor",
+      "schedule": {
+        "odd_week": {
+          "monday": [
+            {
+              "slot": null,
+              "time_start": "09:00",
+              "time_end": "10:30",
+              "subject": "Экологический практикум",
+              "type": "practice",
+              "teacher": "доц. Н.В. Косарева",
+              "room": "ауд. 506",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "09:00",
+              "time_end": "10:30",
+              "subject": "Теория и методика обучения",
+              "type": "other",
+              "teacher": null,
+              "room": null,
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "10:40",
+              "time_end": "12:10",
+              "subject": "географии",
+              "type": "practice",
+              "teacher": "проф. Е.А. Таможняя",
+              "room": "ауд. 402",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "12:40",
+              "time_end": "14:10",
+              "subject": "Теория и методика обучения",
+              "type": "practice",
+              "teacher": "проф. Е.А. Таможняя",
+              "room": "ауд. 402",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "12:40",
+              "time_end": "14:10",
+              "subject": "Экологический практикум",
+              "type": "practice",
+              "teacher": "доц. Н.В. Косарева",
+              "room": "ауд. 506",
+              "subgroup": null,
+              "notes": ""
+            }
+          ],
+          "tuesday": [
+            {
+              "slot": null,
+              "time_start": "09:00",
+              "time_end": "10:30",
+              "subject": "Экономическая и социальная география России",
+              "type": "lecture",
+              "teacher": "доц. Н.Н. Роготень",
+              "room": "ауд. 406",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "10:40",
+              "time_end": "12:10",
+              "subject": "Экономическая и социальная география России",
+              "type": "practice",
+              "teacher": "доц. Н.Н. Роготень",
+              "room": "ауд. 406",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "14:20",
+              "time_end": "15:50",
+              "subject": "Экономическая и социальная география мира",
+              "type": "practice",
+              "teacher": "доц. Е.В. Баранчиков",
+              "room": "ауд. 107",
+              "subgroup": null,
+              "notes": ""
+            }
+          ],
+          "wednesday": [
+            {
+              "slot": null,
+              "time_start": "09:00",
+              "time_end": "10:30",
+              "subject": "Экономическая и социальная география России",
+              "type": "lecture",
+              "teacher": "доц. Н.Н. Роготень",
+              "room": null,
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "10:40",
+              "time_end": "12:10",
+              "subject": "ауд. 406",
+              "type": "practice",
+              "teacher": "доц. Н.Н. Роготень",
+              "room": "ауд. 406",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "12:40",
+              "time_end": "14:10",
+              "subject": "Экологические проблемы",
+              "type": "lecture",
+              "teacher": "ст.преп. Ю.И. Ермакова",
+              "room": "ауд. 511",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "14:20",
+              "time_end": "15:50",
+              "subject": "Экологические проблемы",
+              "type": "practice",
+              "teacher": "ст.преп. Ю.И. Ермакова",
+              "room": "ауд. 511",
+              "subgroup": null,
+              "notes": ""
+            }
+          ],
+          "thursday": [
+            {
+              "slot": null,
+              "time_start": "10:40",
+              "time_end": "12:10",
+              "subject": "День самостоятельной работы",
+              "type": "other",
+              "teacher": null,
+              "room": null,
+              "subgroup": null,
+              "notes": ""
+            }
+          ],
+          "friday": [],
+          "saturday": [
+            {
+              "slot": null,
+              "time_start": "14:20",
+              "time_end": "15:50",
+              "subject": "И.А. Курдюков",
+              "type": "other",
+              "teacher": null,
+              "room": null,
+              "subgroup": null,
+              "notes": ""
+            }
+          ]
+        },
+        "even_week": {
+          "monday": [
+            {
+              "slot": null,
+              "time_start": "09:00",
+              "time_end": "10:30",
+              "subject": "Экологический практикум",
+              "type": "practice",
+              "teacher": "доц. Н.В. Косарева",
+              "room": "ауд. 506",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "09:00",
+              "time_end": "10:30",
+              "subject": "Теория и методика обучения",
+              "type": "other",
+              "teacher": null,
+              "room": null,
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "10:40",
+              "time_end": "12:10",
+              "subject": "географии",
+              "type": "practice",
+              "teacher": "проф. Е.А. Таможняя",
+              "room": "ауд. 402",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "12:40",
+              "time_end": "14:10",
+              "subject": "Теория и методика обучения",
+              "type": "practice",
+              "teacher": "проф. Е.А. Таможняя",
+              "room": "ауд. 402",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "12:40",
+              "time_end": "14:10",
+              "subject": "Экологический практикум",
+              "type": "practice",
+              "teacher": "доц. Н.В. Косарева",
+              "room": "ауд. 506",
+              "subgroup": null,
+              "notes": ""
+            }
+          ],
+          "tuesday": [
+            {
+              "slot": null,
+              "time_start": "09:00",
+              "time_end": "10:30",
+              "subject": "Экономическая и социальная география России",
+              "type": "lecture",
+              "teacher": "доц. Н.Н. Роготень",
+              "room": "ауд. 406",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "10:40",
+              "time_end": "12:10",
+              "subject": "Экономическая и социальная география России",
+              "type": "practice",
+              "teacher": "доц. Н.Н. Роготень",
+              "room": "ауд. 406",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "14:20",
+              "time_end": "15:50",
+              "subject": "Экономическая и социальная география мира",
+              "type": "practice",
+              "teacher": "доц. Е.В. Баранчиков",
+              "room": "ауд. 107",
+              "subgroup": null,
+              "notes": ""
+            }
+          ],
+          "wednesday": [
+            {
+              "slot": null,
+              "time_start": "09:00",
+              "time_end": "10:30",
+              "subject": "Экономическая и социальная география России",
+              "type": "lecture",
+              "teacher": "доц. Н.Н. Роготень",
+              "room": null,
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "10:40",
+              "time_end": "12:10",
+              "subject": "ауд. 406",
+              "type": "practice",
+              "teacher": "доц. Н.Н. Роготень",
+              "room": "ауд. 406",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "12:40",
+              "time_end": "14:10",
+              "subject": "Экологические проблемы",
+              "type": "lecture",
+              "teacher": "ст.преп. Ю.И. Ермакова",
+              "room": "ауд. 511",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "14:20",
+              "time_end": "15:50",
+              "subject": "Экологические проблемы",
+              "type": "practice",
+              "teacher": "ст.преп. Ю.И. Ермакова",
+              "room": "ауд. 511",
+              "subgroup": null,
+              "notes": ""
+            }
+          ],
+          "thursday": [
+            {
+              "slot": null,
+              "time_start": "10:40",
+              "time_end": "12:10",
+              "subject": "День самостоятельной работы",
+              "type": "other",
+              "teacher": null,
+              "room": null,
+              "subgroup": null,
+              "notes": ""
+            }
+          ],
+          "friday": [],
+          "saturday": [
+            {
+              "slot": null,
+              "time_start": "14:20",
+              "time_end": "15:50",
+              "subject": "И.А. Курдюков",
+              "type": "other",
+              "teacher": null,
+              "room": null,
+              "subgroup": null,
+              "notes": ""
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "БOГ35-ГЯА2201",
+      "year": 4,
+      "form": "full_time",
+      "degree": "bachelor",
+      "schedule": {
+        "odd_week": {
+          "monday": [
+            {
+              "slot": null,
+              "time_start": "12:40",
+              "time_end": "14:10",
+              "subject": "День самостоятельной работы",
+              "type": "other",
+              "teacher": null,
+              "room": null,
+              "subgroup": null,
+              "notes": ""
+            }
+          ],
+          "tuesday": [
+            {
+              "slot": null,
+              "time_start": "09:00",
+              "time_end": "10:30",
+              "subject": "Экономическая и социальная география мира",
+              "type": "practice",
+              "teacher": "доц. Е.В. Баранчиков",
+              "room": "ауд. 403",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "10:40",
+              "time_end": "12:10",
+              "subject": "Экономическая и социальная география мира",
+              "type": "practice",
+              "teacher": "доц. Е.В. Баранчиков",
+              "room": "ауд. 403",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "14:20",
+              "time_end": "15:50",
+              "subject": "Теория и методика обучения географии",
+              "type": "practice",
+              "teacher": null,
+              "room": "проф. Е.А. Беловолова, ауд. 404",
+              "subgroup": null,
+              "notes": ""
+            }
+          ],
+          "wednesday": [
+            {
+              "slot": null,
+              "time_start": "10:40",
+              "time_end": "12:10",
+              "subject": "Коммуникативный практикум",
+              "type": "practice",
+              "teacher": "доц. К.М. Бржозовская",
+              "room": "ауд. 206",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "12:40",
+              "time_end": "14:10",
+              "subject": "Коммуникативный практикум",
+              "type": "practice",
+              "teacher": "доц. К.М. Бржозовская",
+              "room": "ауд. 206",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "14:20",
+              "time_end": "15:50",
+              "subject": "доц. К.М. Бржозовская",
+              "type": "other",
+              "teacher": "доц. К.М. Бржозовская",
+              "room": "ауд. 206",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "16:00",
+              "time_end": "17:30",
+              "subject": "Практика устной и письменной речи",
+              "type": "practice",
+              "teacher": "доц. К.М. Бржозовская",
+              "room": "ауд. 206",
+              "subgroup": null,
+              "notes": ""
+            }
+          ],
+          "thursday": [
+            {
+              "slot": null,
+              "time_start": "12:40",
+              "time_end": "14:10",
+              "subject": "Стилистика",
+              "type": "practice",
+              "teacher": "доц. К.М. Бржозовская",
+              "room": "ауд. 206",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "14:20",
+              "time_end": "15:50",
+              "subject": "Коммуникативный практикум",
+              "type": "practice",
+              "teacher": "доц. К.М. Бржозовская",
+              "room": "ауд. 206",
+              "subgroup": null,
+              "notes": ""
+            }
+          ],
+          "friday": [],
+          "saturday": [
+            {
+              "slot": null,
+              "time_start": "14:20",
+              "time_end": "15:50",
+              "subject": "Формы проведения",
+              "type": "other",
+              "teacher": null,
+              "room": null,
+              "subgroup": null,
+              "notes": ""
+            }
+          ]
+        },
+        "even_week": {
+          "monday": [
+            {
+              "slot": null,
+              "time_start": "12:40",
+              "time_end": "14:10",
+              "subject": "День самостоятельной работы",
+              "type": "other",
+              "teacher": null,
+              "room": null,
+              "subgroup": null,
+              "notes": ""
+            }
+          ],
+          "tuesday": [
+            {
+              "slot": null,
+              "time_start": "09:00",
+              "time_end": "10:30",
+              "subject": "Экономическая и социальная география мира",
+              "type": "practice",
+              "teacher": "доц. Е.В. Баранчиков",
+              "room": "ауд. 403",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "10:40",
+              "time_end": "12:10",
+              "subject": "Экономическая и социальная география мира",
+              "type": "practice",
+              "teacher": "доц. Е.В. Баранчиков",
+              "room": "ауд. 403",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "14:20",
+              "time_end": "15:50",
+              "subject": "Теория и методика обучения географии",
+              "type": "practice",
+              "teacher": null,
+              "room": "проф. Е.А. Беловолова, ауд. 404",
+              "subgroup": null,
+              "notes": ""
+            }
+          ],
+          "wednesday": [
+            {
+              "slot": null,
+              "time_start": "10:40",
+              "time_end": "12:10",
+              "subject": "Коммуникативный практикум",
+              "type": "practice",
+              "teacher": "доц. К.М. Бржозовская",
+              "room": "ауд. 206",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "12:40",
+              "time_end": "14:10",
+              "subject": "Коммуникативный практикум",
+              "type": "practice",
+              "teacher": "доц. К.М. Бржозовская",
+              "room": "ауд. 206",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "14:20",
+              "time_end": "15:50",
+              "subject": "доц. К.М. Бржозовская",
+              "type": "other",
+              "teacher": "доц. К.М. Бржозовская",
+              "room": "ауд. 206",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "16:00",
+              "time_end": "17:30",
+              "subject": "Практика устной и письменной речи",
+              "type": "practice",
+              "teacher": "доц. К.М. Бржозовская",
+              "room": "ауд. 206",
+              "subgroup": null,
+              "notes": ""
+            }
+          ],
+          "thursday": [
+            {
+              "slot": null,
+              "time_start": "12:40",
+              "time_end": "14:10",
+              "subject": "Стилистика",
+              "type": "practice",
+              "teacher": "доц. К.М. Бржозовская",
+              "room": "ауд. 206",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "14:20",
+              "time_end": "15:50",
+              "subject": "Коммуникативный практикум",
+              "type": "practice",
+              "teacher": "доц. К.М. Бржозовская",
+              "room": "ауд. 206",
+              "subgroup": null,
+              "notes": ""
+            }
+          ],
+          "friday": [],
+          "saturday": [
+            {
+              "slot": null,
+              "time_start": "14:20",
+              "time_end": "15:50",
+              "subject": "Формы проведения",
               "type": "other",
               "teacher": null,
               "room": null,
@@ -1707,67 +3535,12 @@
             },
             {
               "slot": null,
-              "time_start": "10:40",
-              "time_end": "12:10",
-              "subject": "Практика устной и",
-              "type": "practice",
-              "teacher": "доц. Ю.С. Кузин",
-              "room": "ауд. 206",
-              "subgroup": null,
-              "notes": ""
-            },
-            {
-              "slot": null,
               "time_start": "12:40",
               "time_end": "14:10",
               "subject": "Экологический",
               "type": "practice",
               "teacher": "доц. Э.Г. Рябова",
               "room": "ауд. 502",
-              "subgroup": null,
-              "notes": ""
-            },
-            {
-              "slot": null,
-              "time_start": "12:40",
-              "time_end": "14:10",
-              "subject": "Практика устной и",
-              "type": "practice",
-              "teacher": "доц. Ю.С. Кузин",
-              "room": "ауд. 206",
-              "subgroup": null,
-              "notes": ""
-            },
-            {
-              "slot": null,
-              "time_start": "14:20",
-              "time_end": "15:50",
-              "subject": "Практика устной и",
-              "type": "practice",
-              "teacher": "доц. Ю.С. Кузин",
-              "room": "ауд. 206",
-              "subgroup": null,
-              "notes": ""
-            },
-            {
-              "slot": null,
-              "time_start": "14:20",
-              "time_end": "15:50",
-              "subject": "Практикум по культуре",
-              "type": "practice",
-              "teacher": "доц. С.В. Майоршина",
-              "room": "ауд. 208",
-              "subgroup": null,
-              "notes": ""
-            },
-            {
-              "slot": null,
-              "time_start": "16:00",
-              "time_end": "17:30",
-              "subject": "Реферирование текстов на",
-              "type": "practice",
-              "teacher": "доц. С.В. Майоршина",
-              "room": "ауд. 208",
               "subgroup": null,
               "notes": ""
             }
@@ -1851,42 +3624,9 @@
               "room": "ауд. 502",
               "subgroup": null,
               "notes": ""
-            },
-            {
-              "slot": null,
-              "time_start": "14:20",
-              "time_end": "15:50",
-              "subject": "Методика преподавания английского языка",
-              "type": "practice",
-              "teacher": "доц. К.М. Бржозовская",
-              "room": "ауд. 206",
-              "subgroup": null,
-              "notes": ""
-            },
-            {
-              "slot": null,
-              "time_start": "16:00",
-              "time_end": "17:30",
-              "subject": "доц. К.М. Бржозовская",
-              "type": "other",
-              "teacher": "доц. К.М. Бржозовская",
-              "room": "ауд. 206",
-              "subgroup": null,
-              "notes": ""
             }
           ],
           "thursday": [
-            {
-              "slot": null,
-              "time_start": "10:40",
-              "time_end": "12:10",
-              "subject": "Практикум по культуре",
-              "type": "practice",
-              "teacher": "доц. Ю.С. Кузин",
-              "room": "ауд. 207",
-              "subgroup": null,
-              "notes": ""
-            },
             {
               "slot": null,
               "time_start": "12:40",
@@ -1900,34 +3640,12 @@
             },
             {
               "slot": null,
-              "time_start": "12:40",
-              "time_end": "14:10",
-              "subject": "Реферирование текстов на",
-              "type": "practice",
-              "teacher": "доц. Ю.С. Кузин",
-              "room": "ауд. 207",
-              "subgroup": null,
-              "notes": ""
-            },
-            {
-              "slot": null,
               "time_start": "14:20",
               "time_end": "15:50",
               "subject": "Основы экологической культуры",
               "type": "practice",
               "teacher": "доц. И.Ф. Асауляк",
               "room": "ауд. 304",
-              "subgroup": null,
-              "notes": ""
-            },
-            {
-              "slot": null,
-              "time_start": "14:20",
-              "time_end": "15:50",
-              "subject": "Практика устной и",
-              "type": "practice",
-              "teacher": "доц. Ю.С. Кузин",
-              "room": "ауд. 207",
               "subgroup": null,
               "notes": ""
             }
@@ -1946,56 +3664,12 @@
             },
             {
               "slot": null,
-              "time_start": "10:40",
-              "time_end": "12:10",
-              "subject": "Практика устной и",
-              "type": "practice",
-              "teacher": "доц. С.В. Майоршина",
-              "room": "ауд. 208",
-              "subgroup": null,
-              "notes": ""
-            },
-            {
-              "slot": null,
               "time_start": "12:40",
               "time_end": "14:10",
               "subject": "Охрана окружающей среды",
               "type": "practice",
               "teacher": "доц. Э.Г. Рябова",
               "room": "ауд. 403",
-              "subgroup": null,
-              "notes": ""
-            },
-            {
-              "slot": null,
-              "time_start": "12:40",
-              "time_end": "14:10",
-              "subject": "Практика устной и",
-              "type": "practice",
-              "teacher": "доц. С.В. Майоршина",
-              "room": "ауд. 208",
-              "subgroup": null,
-              "notes": ""
-            },
-            {
-              "slot": null,
-              "time_start": "14:20",
-              "time_end": "15:50",
-              "subject": "Практика устной и",
-              "type": "practice",
-              "teacher": "доц. С.В. Майоршина",
-              "room": "ауд. 208",
-              "subgroup": null,
-              "notes": ""
-            },
-            {
-              "slot": null,
-              "time_start": "16:00",
-              "time_end": "17:30",
-              "subject": "Практикум по культуре",
-              "type": "practice",
-              "teacher": "доц. С.В. Майоршина",
-              "room": "ауд. 208",
               "subgroup": null,
               "notes": ""
             }
@@ -2006,17 +3680,6 @@
               "time_start": "14:20",
               "time_end": "15:50",
               "subject": "ель: И.А. Курдюков",
-              "type": "other",
-              "teacher": null,
-              "room": null,
-              "subgroup": null,
-              "notes": ""
-            },
-            {
-              "slot": null,
-              "time_start": "14:20",
-              "time_end": "15:50",
-              "subject": "Занятия по нечетным неделям 1 неделя",
               "type": "other",
               "teacher": null,
               "room": null,
@@ -2040,67 +3703,12 @@
             },
             {
               "slot": null,
-              "time_start": "10:40",
-              "time_end": "12:10",
-              "subject": "Практика устной и",
-              "type": "practice",
-              "teacher": "доц. Ю.С. Кузин",
-              "room": "ауд. 206",
-              "subgroup": null,
-              "notes": ""
-            },
-            {
-              "slot": null,
               "time_start": "12:40",
               "time_end": "14:10",
               "subject": "Экологический",
               "type": "practice",
               "teacher": "доц. Э.Г. Рябова",
               "room": "ауд. 502",
-              "subgroup": null,
-              "notes": ""
-            },
-            {
-              "slot": null,
-              "time_start": "12:40",
-              "time_end": "14:10",
-              "subject": "Практика устной и",
-              "type": "practice",
-              "teacher": "доц. Ю.С. Кузин",
-              "room": "ауд. 206",
-              "subgroup": null,
-              "notes": ""
-            },
-            {
-              "slot": null,
-              "time_start": "14:20",
-              "time_end": "15:50",
-              "subject": "Практика устной и",
-              "type": "practice",
-              "teacher": "доц. Ю.С. Кузин",
-              "room": "ауд. 206",
-              "subgroup": null,
-              "notes": ""
-            },
-            {
-              "slot": null,
-              "time_start": "14:20",
-              "time_end": "15:50",
-              "subject": "Практикум по культуре",
-              "type": "practice",
-              "teacher": "доц. С.В. Майоршина",
-              "room": "ауд. 208",
-              "subgroup": null,
-              "notes": ""
-            },
-            {
-              "slot": null,
-              "time_start": "16:00",
-              "time_end": "17:30",
-              "subject": "Реферирование текстов на",
-              "type": "practice",
-              "teacher": "доц. С.В. Майоршина",
-              "room": "ауд. 208",
               "subgroup": null,
               "notes": ""
             }
@@ -2184,42 +3792,9 @@
               "room": "ауд. 502",
               "subgroup": null,
               "notes": ""
-            },
-            {
-              "slot": null,
-              "time_start": "14:20",
-              "time_end": "15:50",
-              "subject": "Методика преподавания английского языка",
-              "type": "practice",
-              "teacher": "доц. К.М. Бржозовская",
-              "room": "ауд. 206",
-              "subgroup": null,
-              "notes": ""
-            },
-            {
-              "slot": null,
-              "time_start": "16:00",
-              "time_end": "17:30",
-              "subject": "доц. К.М. Бржозовская",
-              "type": "other",
-              "teacher": "доц. К.М. Бржозовская",
-              "room": "ауд. 206",
-              "subgroup": null,
-              "notes": ""
             }
           ],
           "thursday": [
-            {
-              "slot": null,
-              "time_start": "10:40",
-              "time_end": "12:10",
-              "subject": "Практикум по культуре",
-              "type": "practice",
-              "teacher": "доц. Ю.С. Кузин",
-              "room": "ауд. 207",
-              "subgroup": null,
-              "notes": ""
-            },
             {
               "slot": null,
               "time_start": "12:40",
@@ -2233,34 +3808,12 @@
             },
             {
               "slot": null,
-              "time_start": "12:40",
-              "time_end": "14:10",
-              "subject": "Реферирование текстов на",
-              "type": "practice",
-              "teacher": "доц. Ю.С. Кузин",
-              "room": "ауд. 207",
-              "subgroup": null,
-              "notes": ""
-            },
-            {
-              "slot": null,
               "time_start": "14:20",
               "time_end": "15:50",
               "subject": "Основы экологической культуры",
               "type": "practice",
               "teacher": "доц. И.Ф. Асауляк",
               "room": "ауд. 304",
-              "subgroup": null,
-              "notes": ""
-            },
-            {
-              "slot": null,
-              "time_start": "14:20",
-              "time_end": "15:50",
-              "subject": "Практика устной и",
-              "type": "practice",
-              "teacher": "доц. Ю.С. Кузин",
-              "room": "ауд. 207",
               "subgroup": null,
               "notes": ""
             }
@@ -2279,56 +3832,12 @@
             },
             {
               "slot": null,
-              "time_start": "10:40",
-              "time_end": "12:10",
-              "subject": "Практика устной и",
-              "type": "practice",
-              "teacher": "доц. С.В. Майоршина",
-              "room": "ауд. 208",
-              "subgroup": null,
-              "notes": ""
-            },
-            {
-              "slot": null,
               "time_start": "12:40",
               "time_end": "14:10",
               "subject": "Охрана окружающей среды",
               "type": "practice",
               "teacher": "доц. Э.Г. Рябова",
               "room": "ауд. 403",
-              "subgroup": null,
-              "notes": ""
-            },
-            {
-              "slot": null,
-              "time_start": "12:40",
-              "time_end": "14:10",
-              "subject": "Практика устной и",
-              "type": "practice",
-              "teacher": "доц. С.В. Майоршина",
-              "room": "ауд. 208",
-              "subgroup": null,
-              "notes": ""
-            },
-            {
-              "slot": null,
-              "time_start": "14:20",
-              "time_end": "15:50",
-              "subject": "Практика устной и",
-              "type": "practice",
-              "teacher": "доц. С.В. Майоршина",
-              "room": "ауд. 208",
-              "subgroup": null,
-              "notes": ""
-            },
-            {
-              "slot": null,
-              "time_start": "16:00",
-              "time_end": "17:30",
-              "subject": "Практикум по культуре",
-              "type": "practice",
-              "teacher": "доц. С.В. Майоршина",
-              "room": "ауд. 208",
               "subgroup": null,
               "notes": ""
             }
@@ -2339,17 +3848,6 @@
               "time_start": "14:20",
               "time_end": "15:50",
               "subject": "ель: И.А. Курдюков",
-              "type": "other",
-              "teacher": null,
-              "room": null,
-              "subgroup": null,
-              "notes": ""
-            },
-            {
-              "slot": null,
-              "time_start": "14:20",
-              "time_end": "15:50",
-              "subject": "Занятия по нечетным неделям 1 неделя",
               "type": "other",
               "teacher": null,
               "room": null,
@@ -2381,6 +3879,17 @@
             },
             {
               "slot": null,
+              "time_start": "10:40",
+              "time_end": "12:10",
+              "subject": "Практика устной и",
+              "type": "practice",
+              "teacher": "доц. Ю.С. Кузин",
+              "room": "ауд. 206",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
               "time_start": "12:40",
               "time_end": "14:10",
               "subject": "Методика преподавания испанского языка",
@@ -2392,12 +3901,56 @@
             },
             {
               "slot": null,
+              "time_start": "12:40",
+              "time_end": "14:10",
+              "subject": "Практика устной и",
+              "type": "practice",
+              "teacher": "доц. Ю.С. Кузин",
+              "room": "ауд. 206",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
               "time_start": "14:20",
               "time_end": "15:50",
               "subject": "Методика преподавания испанского языка",
               "type": "lecture",
               "teacher": "доц. Д.С. Белоног",
               "room": "ауд. 209",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "14:20",
+              "time_end": "15:50",
+              "subject": "Практика устной и",
+              "type": "practice",
+              "teacher": "доц. Ю.С. Кузин",
+              "room": "ауд. 206",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "14:20",
+              "time_end": "15:50",
+              "subject": "Практикум по культуре",
+              "type": "practice",
+              "teacher": "доц. С.В. Майоршина",
+              "room": "ауд. 208",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "16:00",
+              "time_end": "17:30",
+              "subject": "Реферирование текстов на",
+              "type": "practice",
+              "teacher": "доц. С.В. Майоршина",
+              "room": "ауд. 208",
               "subgroup": null,
               "notes": ""
             }
@@ -2448,6 +4001,28 @@
               "room": "ауд. 209",
               "subgroup": null,
               "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "14:20",
+              "time_end": "15:50",
+              "subject": "Методика преподавания английского языка",
+              "type": "practice",
+              "teacher": "доц. К.М. Бржозовская",
+              "room": "ауд. 206",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "16:00",
+              "time_end": "17:30",
+              "subject": "доц. К.М. Бржозовская",
+              "type": "other",
+              "teacher": "доц. К.М. Бржозовская",
+              "room": "ауд. 206",
+              "subgroup": null,
+              "notes": ""
             }
           ],
           "thursday": [
@@ -2464,6 +4039,17 @@
             },
             {
               "slot": null,
+              "time_start": "10:40",
+              "time_end": "12:10",
+              "subject": "Практикум по культуре",
+              "type": "practice",
+              "teacher": "доц. Ю.С. Кузин",
+              "room": "ауд. 207",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
               "time_start": "12:40",
               "time_end": "14:10",
               "subject": "Реферирование текстов на испанском языке",
@@ -2472,15 +4058,93 @@
               "room": "ауд. 209",
               "subgroup": null,
               "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "12:40",
+              "time_end": "14:10",
+              "subject": "Реферирование текстов на",
+              "type": "practice",
+              "teacher": "доц. Ю.С. Кузин",
+              "room": "ауд. 207",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "14:20",
+              "time_end": "15:50",
+              "subject": "Практика устной и",
+              "type": "practice",
+              "teacher": "доц. Ю.С. Кузин",
+              "room": "ауд. 207",
+              "subgroup": null,
+              "notes": ""
             }
           ],
-          "friday": [],
+          "friday": [
+            {
+              "slot": null,
+              "time_start": "10:40",
+              "time_end": "12:10",
+              "subject": "Практика устной и",
+              "type": "practice",
+              "teacher": "доц. С.В. Майоршина",
+              "room": "ауд. 208",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "12:40",
+              "time_end": "14:10",
+              "subject": "Практика устной и",
+              "type": "practice",
+              "teacher": "доц. С.В. Майоршина",
+              "room": "ауд. 208",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "14:20",
+              "time_end": "15:50",
+              "subject": "Практика устной и",
+              "type": "practice",
+              "teacher": "доц. С.В. Майоршина",
+              "room": "ауд. 208",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "16:00",
+              "time_end": "17:30",
+              "subject": "Практикум по культуре",
+              "type": "practice",
+              "teacher": "доц. С.В. Майоршина",
+              "room": "ауд. 208",
+              "subgroup": null,
+              "notes": ""
+            }
+          ],
           "saturday": [
             {
               "slot": null,
               "time_start": "14:20",
               "time_end": "15:50",
               "subject": "Формы проведения",
+              "type": "other",
+              "teacher": null,
+              "room": null,
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "14:20",
+              "time_end": "15:50",
+              "subject": "Занятия по нечетным неделям 1 неделя",
               "type": "other",
               "teacher": null,
               "room": null,
@@ -2504,6 +4168,17 @@
             },
             {
               "slot": null,
+              "time_start": "10:40",
+              "time_end": "12:10",
+              "subject": "Практика устной и",
+              "type": "practice",
+              "teacher": "доц. Ю.С. Кузин",
+              "room": "ауд. 206",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
               "time_start": "12:40",
               "time_end": "14:10",
               "subject": "Методика преподавания испанского языка",
@@ -2515,12 +4190,56 @@
             },
             {
               "slot": null,
+              "time_start": "12:40",
+              "time_end": "14:10",
+              "subject": "Практика устной и",
+              "type": "practice",
+              "teacher": "доц. Ю.С. Кузин",
+              "room": "ауд. 206",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
               "time_start": "14:20",
               "time_end": "15:50",
               "subject": "Методика преподавания испанского языка",
               "type": "lecture",
               "teacher": "доц. Д.С. Белоног",
               "room": "ауд. 209",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "14:20",
+              "time_end": "15:50",
+              "subject": "Практика устной и",
+              "type": "practice",
+              "teacher": "доц. Ю.С. Кузин",
+              "room": "ауд. 206",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "14:20",
+              "time_end": "15:50",
+              "subject": "Практикум по культуре",
+              "type": "practice",
+              "teacher": "доц. С.В. Майоршина",
+              "room": "ауд. 208",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "16:00",
+              "time_end": "17:30",
+              "subject": "Реферирование текстов на",
+              "type": "practice",
+              "teacher": "доц. С.В. Майоршина",
+              "room": "ауд. 208",
               "subgroup": null,
               "notes": ""
             }
@@ -2571,6 +4290,28 @@
               "room": "ауд. 209",
               "subgroup": null,
               "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "14:20",
+              "time_end": "15:50",
+              "subject": "Методика преподавания английского языка",
+              "type": "practice",
+              "teacher": "доц. К.М. Бржозовская",
+              "room": "ауд. 206",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "16:00",
+              "time_end": "17:30",
+              "subject": "доц. К.М. Бржозовская",
+              "type": "other",
+              "teacher": "доц. К.М. Бржозовская",
+              "room": "ауд. 206",
+              "subgroup": null,
+              "notes": ""
             }
           ],
           "thursday": [
@@ -2587,6 +4328,17 @@
             },
             {
               "slot": null,
+              "time_start": "10:40",
+              "time_end": "12:10",
+              "subject": "Практикум по культуре",
+              "type": "practice",
+              "teacher": "доц. Ю.С. Кузин",
+              "room": "ауд. 207",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
               "time_start": "12:40",
               "time_end": "14:10",
               "subject": "Реферирование текстов на испанском языке",
@@ -2595,15 +4347,1193 @@
               "room": "ауд. 209",
               "subgroup": null,
               "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "12:40",
+              "time_end": "14:10",
+              "subject": "Реферирование текстов на",
+              "type": "practice",
+              "teacher": "доц. Ю.С. Кузин",
+              "room": "ауд. 207",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "14:20",
+              "time_end": "15:50",
+              "subject": "Практика устной и",
+              "type": "practice",
+              "teacher": "доц. Ю.С. Кузин",
+              "room": "ауд. 207",
+              "subgroup": null,
+              "notes": ""
             }
           ],
-          "friday": [],
+          "friday": [
+            {
+              "slot": null,
+              "time_start": "10:40",
+              "time_end": "12:10",
+              "subject": "Практика устной и",
+              "type": "practice",
+              "teacher": "доц. С.В. Майоршина",
+              "room": "ауд. 208",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "12:40",
+              "time_end": "14:10",
+              "subject": "Практика устной и",
+              "type": "practice",
+              "teacher": "доц. С.В. Майоршина",
+              "room": "ауд. 208",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "14:20",
+              "time_end": "15:50",
+              "subject": "Практика устной и",
+              "type": "practice",
+              "teacher": "доц. С.В. Майоршина",
+              "room": "ауд. 208",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "16:00",
+              "time_end": "17:30",
+              "subject": "Практикум по культуре",
+              "type": "practice",
+              "teacher": "доц. С.В. Майоршина",
+              "room": "ауд. 208",
+              "subgroup": null,
+              "notes": ""
+            }
+          ],
           "saturday": [
             {
               "slot": null,
               "time_start": "14:20",
               "time_end": "15:50",
               "subject": "Формы проведения",
+              "type": "other",
+              "teacher": null,
+              "room": null,
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "14:20",
+              "time_end": "15:50",
+              "subject": "Занятия по нечетным неделям 1 неделя",
+              "type": "other",
+              "teacher": null,
+              "room": null,
+              "subgroup": null,
+              "notes": ""
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "ЗОГ34-ГУМ2501",
+      "year": null,
+      "form": "full_time",
+      "degree": "bachelor",
+      "schedule": {
+        "odd_week": {
+          "monday": [
+            {
+              "slot": null,
+              "time_start": "17:40",
+              "time_end": "19:10",
+              "subject": "Производственная практика (педагогическая практика) 09.02 - 23.03",
+              "type": "other",
+              "teacher": null,
+              "room": null,
+              "subgroup": null,
+              "notes": ""
+            }
+          ],
+          "tuesday": [],
+          "wednesday": [],
+          "thursday": [],
+          "friday": [],
+          "saturday": []
+        },
+        "even_week": {
+          "monday": [
+            {
+              "slot": null,
+              "time_start": "17:40",
+              "time_end": "19:10",
+              "subject": "Производственная практика (педагогическая практика) 09.02 - 23.03",
+              "type": "other",
+              "teacher": null,
+              "room": null,
+              "subgroup": null,
+              "notes": ""
+            }
+          ],
+          "tuesday": [],
+          "wednesday": [],
+          "thursday": [],
+          "friday": [],
+          "saturday": []
+        }
+      }
+    },
+    {
+      "name": "ЗОГ34-ТДО2501",
+      "year": 1,
+      "form": "full_time",
+      "degree": "bachelor",
+      "schedule": {
+        "odd_week": {
+          "monday": [],
+          "tuesday": [
+            {
+              "slot": null,
+              "time_start": "16:00",
+              "time_end": "17:30",
+              "subject": "Технологии географических исследований",
+              "type": "practice",
+              "teacher": null,
+              "room": null,
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "17:40",
+              "time_end": "19:10",
+              "subject": "Технологии проектирования образовательных программ",
+              "type": "lecture",
+              "teacher": null,
+              "room": "ауд. 404",
+              "subgroup": null,
+              "notes": ""
+            }
+          ],
+          "wednesday": [
+            {
+              "slot": null,
+              "time_start": "19:20",
+              "time_end": "21:00",
+              "subject": "Технологии проектирования образовательных программ",
+              "type": "practice",
+              "teacher": null,
+              "room": "ауд. 404",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "16:00",
+              "time_end": "17:30",
+              "subject": "День самостоятельной работы",
+              "type": "other",
+              "teacher": null,
+              "room": null,
+              "subgroup": null,
+              "notes": ""
+            }
+          ],
+          "thursday": [
+            {
+              "slot": null,
+              "time_start": "16:00",
+              "time_end": "17:30",
+              "subject": "Методология исследовательской деятельности (ЛК, ПЗ)",
+              "type": "other",
+              "teacher": "доц. Н.Н. Солодухина",
+              "room": "ауд. 402",
+              "subgroup": null,
+              "notes": ""
+            }
+          ],
+          "friday": [],
+          "saturday": [
+            {
+              "slot": null,
+              "time_start": "17:40",
+              "time_end": "19:10",
+              "subject": "ИКТ в профессиональной деятельности",
+              "type": "practice",
+              "teacher": "доц. Н.Н. Солодухина",
+              "room": "ауд. 402",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "14:20",
+              "time_end": "15:50",
+              "subject": "Иностранный язык для специальных целей",
+              "type": "practice",
+              "teacher": null,
+              "room": null,
+              "subgroup": null,
+              "notes": ""
+            }
+          ]
+        },
+        "even_week": {
+          "monday": [],
+          "tuesday": [
+            {
+              "slot": null,
+              "time_start": "16:00",
+              "time_end": "17:30",
+              "subject": "Технологии географических исследований",
+              "type": "practice",
+              "teacher": null,
+              "room": null,
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "17:40",
+              "time_end": "19:10",
+              "subject": "Технологии проектирования образовательных программ",
+              "type": "lecture",
+              "teacher": null,
+              "room": "ауд. 404",
+              "subgroup": null,
+              "notes": ""
+            }
+          ],
+          "wednesday": [
+            {
+              "slot": null,
+              "time_start": "19:20",
+              "time_end": "21:00",
+              "subject": "Технологии проектирования образовательных программ",
+              "type": "practice",
+              "teacher": null,
+              "room": "ауд. 404",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "16:00",
+              "time_end": "17:30",
+              "subject": "День самостоятельной работы",
+              "type": "other",
+              "teacher": null,
+              "room": null,
+              "subgroup": null,
+              "notes": ""
+            }
+          ],
+          "thursday": [
+            {
+              "slot": null,
+              "time_start": "16:00",
+              "time_end": "17:30",
+              "subject": "Методология исследовательской деятельности (ЛК, ПЗ)",
+              "type": "other",
+              "teacher": "доц. Н.Н. Солодухина",
+              "room": "ауд. 402",
+              "subgroup": null,
+              "notes": ""
+            }
+          ],
+          "friday": [],
+          "saturday": [
+            {
+              "slot": null,
+              "time_start": "17:40",
+              "time_end": "19:10",
+              "subject": "ИКТ в профессиональной деятельности",
+              "type": "practice",
+              "teacher": "доц. Н.Н. Солодухина",
+              "room": "ауд. 402",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "14:20",
+              "time_end": "15:50",
+              "subject": "Иностранный язык для специальных целей",
+              "type": "practice",
+              "teacher": null,
+              "room": null,
+              "subgroup": null,
+              "notes": ""
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "ЗОГ34-ТГО2401",
+      "year": 2,
+      "form": "full_time",
+      "degree": "bachelor",
+      "schedule": {
+        "odd_week": {
+          "monday": [],
+          "tuesday": [],
+          "wednesday": [
+            {
+              "slot": null,
+              "time_start": "16:00",
+              "time_end": "17:30",
+              "subject": "День самостоятельной работы",
+              "type": "other",
+              "teacher": null,
+              "room": null,
+              "subgroup": null,
+              "notes": ""
+            }
+          ],
+          "thursday": [
+            {
+              "slot": null,
+              "time_start": "17:40",
+              "time_end": "19:10",
+              "subject": "Технологии проектирования образовательных программ",
+              "type": "practice",
+              "teacher": null,
+              "room": "профессор Е.А. Беловолова ауд. 404",
+              "subgroup": null,
+              "notes": ""
+            }
+          ],
+          "friday": [
+            {
+              "slot": null,
+              "time_start": "17:40",
+              "time_end": "19:10",
+              "subject": "День самостоятельной работы",
+              "type": "other",
+              "teacher": null,
+              "room": null,
+              "subgroup": null,
+              "notes": ""
+            }
+          ],
+          "saturday": [
+            {
+              "slot": null,
+              "time_start": "14:20",
+              "time_end": "15:50",
+              "subject": "День самостоятельной работы",
+              "type": "other",
+              "teacher": null,
+              "room": null,
+              "subgroup": null,
+              "notes": ""
+            }
+          ]
+        },
+        "even_week": {
+          "monday": [],
+          "tuesday": [],
+          "wednesday": [
+            {
+              "slot": null,
+              "time_start": "16:00",
+              "time_end": "17:30",
+              "subject": "День самостоятельной работы",
+              "type": "other",
+              "teacher": null,
+              "room": null,
+              "subgroup": null,
+              "notes": ""
+            }
+          ],
+          "thursday": [
+            {
+              "slot": null,
+              "time_start": "17:40",
+              "time_end": "19:10",
+              "subject": "Технологии проектирования образовательных программ",
+              "type": "practice",
+              "teacher": null,
+              "room": "профессор Е.А. Беловолова ауд. 404",
+              "subgroup": null,
+              "notes": ""
+            }
+          ],
+          "friday": [
+            {
+              "slot": null,
+              "time_start": "17:40",
+              "time_end": "19:10",
+              "subject": "День самостоятельной работы",
+              "type": "other",
+              "teacher": null,
+              "room": null,
+              "subgroup": null,
+              "notes": ""
+            }
+          ],
+          "saturday": [
+            {
+              "slot": null,
+              "time_start": "14:20",
+              "time_end": "15:50",
+              "subject": "День самостоятельной работы",
+              "type": "other",
+              "teacher": null,
+              "room": null,
+              "subgroup": null,
+              "notes": ""
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "ЗOГ34-ЭКП2401",
+      "year": 2,
+      "form": "full_time",
+      "degree": "bachelor",
+      "schedule": {
+        "odd_week": {
+          "monday": [
+            {
+              "slot": null,
+              "time_start": "17:40",
+              "time_end": "19:10",
+              "subject": "Музейная педагогика (ЛК/ПЗ) доц.Н.В. Косарева",
+              "type": "other",
+              "teacher": "Музейная педагогика (ЛК/ПЗ) доц.Н.В. Косарева",
+              "room": "ауд. 107",
+              "subgroup": null,
+              "notes": ""
+            }
+          ],
+          "tuesday": [
+            {
+              "slot": null,
+              "time_start": "16:00",
+              "time_end": "17:30",
+              "subject": "Экологическое просвещение на особо охраняемых территориях (ЛК/ПЗ)",
+              "type": "other",
+              "teacher": "доц. И.Ф. Асауляк",
+              "room": "ауд. 304",
+              "subgroup": null,
+              "notes": ""
+            }
+          ],
+          "wednesday": [
+            {
+              "slot": null,
+              "time_start": "16:00",
+              "time_end": "17:30",
+              "subject": "День самостоятельной работы",
+              "type": "other",
+              "teacher": null,
+              "room": null,
+              "subgroup": null,
+              "notes": ""
+            }
+          ],
+          "thursday": [
+            {
+              "slot": null,
+              "time_start": "16:00",
+              "time_end": "17:30",
+              "subject": "День самостоятельной работы",
+              "type": "other",
+              "teacher": null,
+              "room": null,
+              "subgroup": null,
+              "notes": ""
+            }
+          ],
+          "friday": [
+            {
+              "slot": null,
+              "time_start": "16:00",
+              "time_end": "17:30",
+              "subject": "Инновационные цифровые технологии в образовании и просвещении",
+              "type": "practice",
+              "teacher": "доц. С.Е. Грачев, 13.02 - 13.03",
+              "room": "ауд. 405",
+              "subgroup": null,
+              "notes": ""
+            }
+          ],
+          "saturday": [
+            {
+              "slot": null,
+              "time_start": "19:20",
+              "time_end": "20:50",
+              "subject": "Технологии организации и проведения экологических акций (ЛК/ПЗ)",
+              "type": "other",
+              "teacher": "ст.преп С.В. Брусиловская",
+              "room": "ауд. 502",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "10:40",
+              "time_end": "12:10",
+              "subject": "Технологии организации и проведения экологических акций (ЛК/ПЗ)",
+              "type": "other",
+              "teacher": "ст.преп С.В. Брусиловская",
+              "room": "ауд. 502",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "12:40",
+              "time_end": "14:10",
+              "subject": "Игровые технологии в экологическом образовании и просвещении (ЛК/ПЗ)",
+              "type": "other",
+              "teacher": "ст.преп С.В. Брусиловская",
+              "room": "ауд. 502",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "14:20",
+              "time_end": "15:50",
+              "subject": "Игровые технологии в экологическом образовании и просвещении (ЛК/ПЗ)",
+              "type": "other",
+              "teacher": "ст.преп С.В. Брусиловская",
+              "room": "ауд. 502",
+              "subgroup": null,
+              "notes": ""
+            }
+          ]
+        },
+        "even_week": {
+          "monday": [
+            {
+              "slot": null,
+              "time_start": "17:40",
+              "time_end": "19:10",
+              "subject": "Музейная педагогика (ЛК/ПЗ) доц.Н.В. Косарева",
+              "type": "other",
+              "teacher": "Музейная педагогика (ЛК/ПЗ) доц.Н.В. Косарева",
+              "room": "ауд. 107",
+              "subgroup": null,
+              "notes": ""
+            }
+          ],
+          "tuesday": [
+            {
+              "slot": null,
+              "time_start": "16:00",
+              "time_end": "17:30",
+              "subject": "Экологическое просвещение на особо охраняемых территориях (ЛК/ПЗ)",
+              "type": "other",
+              "teacher": "доц. И.Ф. Асауляк",
+              "room": "ауд. 304",
+              "subgroup": null,
+              "notes": ""
+            }
+          ],
+          "wednesday": [
+            {
+              "slot": null,
+              "time_start": "16:00",
+              "time_end": "17:30",
+              "subject": "День самостоятельной работы",
+              "type": "other",
+              "teacher": null,
+              "room": null,
+              "subgroup": null,
+              "notes": ""
+            }
+          ],
+          "thursday": [
+            {
+              "slot": null,
+              "time_start": "16:00",
+              "time_end": "17:30",
+              "subject": "День самостоятельной работы",
+              "type": "other",
+              "teacher": null,
+              "room": null,
+              "subgroup": null,
+              "notes": ""
+            }
+          ],
+          "friday": [
+            {
+              "slot": null,
+              "time_start": "16:00",
+              "time_end": "17:30",
+              "subject": "Инновационные цифровые технологии в образовании и просвещении",
+              "type": "practice",
+              "teacher": "доц. С.Е. Грачев, 13.02 - 13.03",
+              "room": "ауд. 405",
+              "subgroup": null,
+              "notes": ""
+            }
+          ],
+          "saturday": [
+            {
+              "slot": null,
+              "time_start": "19:20",
+              "time_end": "20:50",
+              "subject": "Технологии организации и проведения экологических акций (ЛК/ПЗ)",
+              "type": "other",
+              "teacher": "ст.преп С.В. Брусиловская",
+              "room": "ауд. 502",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "10:40",
+              "time_end": "12:10",
+              "subject": "Технологии организации и проведения экологических акций (ЛК/ПЗ)",
+              "type": "other",
+              "teacher": "ст.преп С.В. Брусиловская",
+              "room": "ауд. 502",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "12:40",
+              "time_end": "14:10",
+              "subject": "Игровые технологии в экологическом образовании и просвещении (ЛК/ПЗ)",
+              "type": "other",
+              "teacher": "ст.преп С.В. Брусиловская",
+              "room": "ауд. 502",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "14:20",
+              "time_end": "15:50",
+              "subject": "Игровые технологии в экологическом образовании и просвещении (ЛК/ПЗ)",
+              "type": "other",
+              "teacher": "ст.преп С.В. Брусиловская",
+              "room": "ауд. 502",
+              "subgroup": null,
+              "notes": ""
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "МОГ62-ОЭР2501",
+      "year": null,
+      "form": "full_time",
+      "degree": "bachelor",
+      "schedule": {
+        "odd_week": {
+          "monday": [
+            {
+              "slot": null,
+              "time_start": "16:00",
+              "time_end": "17:30",
+              "subject": "Практикум по экологическому мониторингу",
+              "type": "practice",
+              "teacher": null,
+              "room": "ауд. 502",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "17:40",
+              "time_end": "19:10",
+              "subject": "Практикум по экологическому мониторингу",
+              "type": "practice",
+              "teacher": null,
+              "room": "ауд. 502",
+              "subgroup": null,
+              "notes": ""
+            }
+          ],
+          "tuesday": [
+            {
+              "slot": null,
+              "time_start": "19:20",
+              "time_end": "20:50",
+              "subject": "Методология исследовательской деятельсноти (ЛК/ПЗ)",
+              "type": "other",
+              "teacher": "доц. Э.Г. Рябова 24.03-26.05",
+              "room": "ауд. 405",
+              "subgroup": null,
+              "notes": ""
+            }
+          ],
+          "wednesday": [
+            {
+              "slot": null,
+              "time_start": "16:00",
+              "time_end": "17:30",
+              "subject": "Физические и химические факторы оценки экологического риска (ЛК/ПЗ)",
+              "type": "other",
+              "teacher": "доц. Н.В. Каргаполов 25.03 - 16.04",
+              "room": "ауд. 403",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "17:40",
+              "time_end": "19:10",
+              "subject": "Физические и химические факторы оценки экологического риска (ЛК/ПЗ)",
+              "type": "other",
+              "teacher": "доц. Н.В. Каргаполов 25.03 - 16.04",
+              "room": "ауд. 403",
+              "subgroup": null,
+              "notes": ""
+            }
+          ],
+          "thursday": [
+            {
+              "slot": null,
+              "time_start": "16:00",
+              "time_end": "17:30",
+              "subject": "Экология городов (ЛК/ПЗ)",
+              "type": "other",
+              "teacher": "доц. Э.Г. Рябова 26.03-30.04",
+              "room": "ауд. 405",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "17:40",
+              "time_end": "19:10",
+              "subject": "Экология городов (ЛК/ПЗ)",
+              "type": "other",
+              "teacher": "доц. Э.Г. Рябова 26.03-30.04",
+              "room": "ауд. 405",
+              "subgroup": null,
+              "notes": ""
+            }
+          ],
+          "friday": [
+            {
+              "slot": null,
+              "time_start": "16:00",
+              "time_end": "17:30",
+              "subject": "Информационные технологии в экологии и природопользовании",
+              "type": "practice",
+              "teacher": "доц. С.Е. Грачев 27.03-17.10",
+              "room": "ауд. 405",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "17:40",
+              "time_end": "19:10",
+              "subject": "Информационные технологии в экологии и природопользовании",
+              "type": "practice",
+              "teacher": "доц. С.Е. Грачев 27.03-17.10",
+              "room": "ауд. 405",
+              "subgroup": null,
+              "notes": ""
+            }
+          ],
+          "saturday": [
+            {
+              "slot": null,
+              "time_start": "19:20",
+              "time_end": "20:50",
+              "subject": "День самостоятельной работы",
+              "type": "other",
+              "teacher": null,
+              "room": null,
+              "subgroup": null,
+              "notes": ""
+            }
+          ]
+        },
+        "even_week": {
+          "monday": [
+            {
+              "slot": null,
+              "time_start": "16:00",
+              "time_end": "17:30",
+              "subject": "Практикум по экологическому мониторингу",
+              "type": "practice",
+              "teacher": null,
+              "room": "ауд. 502",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "17:40",
+              "time_end": "19:10",
+              "subject": "Практикум по экологическому мониторингу",
+              "type": "practice",
+              "teacher": null,
+              "room": "ауд. 502",
+              "subgroup": null,
+              "notes": ""
+            }
+          ],
+          "tuesday": [
+            {
+              "slot": null,
+              "time_start": "19:20",
+              "time_end": "20:50",
+              "subject": "Методология исследовательской деятельсноти (ЛК/ПЗ)",
+              "type": "other",
+              "teacher": "доц. Э.Г. Рябова 24.03-26.05",
+              "room": "ауд. 405",
+              "subgroup": null,
+              "notes": ""
+            }
+          ],
+          "wednesday": [
+            {
+              "slot": null,
+              "time_start": "16:00",
+              "time_end": "17:30",
+              "subject": "Физические и химические факторы оценки экологического риска (ЛК/ПЗ)",
+              "type": "other",
+              "teacher": "доц. Н.В. Каргаполов 25.03 - 16.04",
+              "room": "ауд. 403",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "17:40",
+              "time_end": "19:10",
+              "subject": "Физические и химические факторы оценки экологического риска (ЛК/ПЗ)",
+              "type": "other",
+              "teacher": "доц. Н.В. Каргаполов 25.03 - 16.04",
+              "room": "ауд. 403",
+              "subgroup": null,
+              "notes": ""
+            }
+          ],
+          "thursday": [
+            {
+              "slot": null,
+              "time_start": "16:00",
+              "time_end": "17:30",
+              "subject": "Экология городов (ЛК/ПЗ)",
+              "type": "other",
+              "teacher": "доц. Э.Г. Рябова 26.03-30.04",
+              "room": "ауд. 405",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "17:40",
+              "time_end": "19:10",
+              "subject": "Экология городов (ЛК/ПЗ)",
+              "type": "other",
+              "teacher": "доц. Э.Г. Рябова 26.03-30.04",
+              "room": "ауд. 405",
+              "subgroup": null,
+              "notes": ""
+            }
+          ],
+          "friday": [
+            {
+              "slot": null,
+              "time_start": "16:00",
+              "time_end": "17:30",
+              "subject": "Информационные технологии в экологии и природопользовании",
+              "type": "practice",
+              "teacher": "доц. С.Е. Грачев 27.03-17.10",
+              "room": "ауд. 405",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "17:40",
+              "time_end": "19:10",
+              "subject": "Информационные технологии в экологии и природопользовании",
+              "type": "practice",
+              "teacher": "доц. С.Е. Грачев 27.03-17.10",
+              "room": "ауд. 405",
+              "subgroup": null,
+              "notes": ""
+            }
+          ],
+          "saturday": [
+            {
+              "slot": null,
+              "time_start": "19:20",
+              "time_end": "20:50",
+              "subject": "День самостоятельной работы",
+              "type": "other",
+              "teacher": null,
+              "room": null,
+              "subgroup": null,
+              "notes": ""
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "МOГ62-ОЭР2401",
+      "year": 2,
+      "form": "full_time",
+      "degree": "bachelor",
+      "schedule": {
+        "odd_week": {
+          "monday": [
+            {
+              "slot": null,
+              "time_start": "16:00",
+              "time_end": "17:30",
+              "subject": "Управление экологическими рисками (ЛК/ПР)",
+              "type": "other",
+              "teacher": "доц. Гамага В.В. 9.02-30.03",
+              "room": "ауд. 502",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "17:40",
+              "time_end": "19:10",
+              "subject": "Управление экологическими рисками (ЛК/ПР)",
+              "type": "other",
+              "teacher": "доц. Гамага В.В. 9.02-30.03;",
+              "room": "ауд. 502",
+              "subgroup": null,
+              "notes": ""
+            }
+          ],
+          "tuesday": [
+            {
+              "slot": null,
+              "time_start": "16:00",
+              "time_end": "17:30",
+              "subject": "Экологическая безопасность (ЛК/ПР)",
+              "type": "other",
+              "teacher": "доц. В.В. Гамага 9.02-10.03",
+              "room": "ауд. 502",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "17:40",
+              "time_end": "19:10",
+              "subject": "Экологическая безопасность (ЛК/ПР)",
+              "type": "other",
+              "teacher": "доц. В.В. Гамага 9.02-10.03",
+              "room": "ауд. 502",
+              "subgroup": null,
+              "notes": ""
+            }
+          ],
+          "wednesday": [
+            {
+              "slot": null,
+              "time_start": "16:00",
+              "time_end": "17:30",
+              "subject": "Устойчивость и развитие антропогенно измененных территорий (ЛК/ПР)",
+              "type": "other",
+              "teacher": null,
+              "room": "ауд. 405",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "17:40",
+              "time_end": "19:10",
+              "subject": "Устойчивость и развитие антропогенно измененных территорий (ЛК/ПР)",
+              "type": "other",
+              "teacher": null,
+              "room": "ауд. 405",
+              "subgroup": null,
+              "notes": ""
+            }
+          ],
+          "thursday": [
+            {
+              "slot": null,
+              "time_start": "16:00",
+              "time_end": "17:30",
+              "subject": "Экологическая безопасность",
+              "type": "lecture",
+              "teacher": "доц. В.В. Гамага, 12.02 - 11.03",
+              "room": "ауд. 502",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "17:40",
+              "time_end": "19:10",
+              "subject": "Оценка безопасности продуктов питания (ЛК/ПЗ)",
+              "type": "other",
+              "teacher": "доц. В.В. Гамага 12.02 - 11.03",
+              "room": "ауд. 502",
+              "subgroup": null,
+              "notes": ""
+            }
+          ],
+          "friday": [
+            {
+              "slot": null,
+              "time_start": "19:20",
+              "time_end": "20:50",
+              "subject": "День самостоятельной работы",
+              "type": "other",
+              "teacher": null,
+              "room": null,
+              "subgroup": null,
+              "notes": ""
+            }
+          ],
+          "saturday": [
+            {
+              "slot": null,
+              "time_start": "16:00",
+              "time_end": "17:30",
+              "subject": "День самостоятельной работы",
+              "type": "other",
+              "teacher": null,
+              "room": null,
+              "subgroup": null,
+              "notes": ""
+            }
+          ]
+        },
+        "even_week": {
+          "monday": [
+            {
+              "slot": null,
+              "time_start": "16:00",
+              "time_end": "17:30",
+              "subject": "Управление экологическими рисками (ЛК/ПР)",
+              "type": "other",
+              "teacher": "доц. Гамага В.В. 9.02-30.03",
+              "room": "ауд. 502",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "17:40",
+              "time_end": "19:10",
+              "subject": "Управление экологическими рисками (ЛК/ПР)",
+              "type": "other",
+              "teacher": "доц. Гамага В.В. 9.02-30.03;",
+              "room": "ауд. 502",
+              "subgroup": null,
+              "notes": ""
+            }
+          ],
+          "tuesday": [
+            {
+              "slot": null,
+              "time_start": "16:00",
+              "time_end": "17:30",
+              "subject": "Экологическая безопасность (ЛК/ПР)",
+              "type": "other",
+              "teacher": "доц. В.В. Гамага 9.02-10.03",
+              "room": "ауд. 502",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "17:40",
+              "time_end": "19:10",
+              "subject": "Экологическая безопасность (ЛК/ПР)",
+              "type": "other",
+              "teacher": "доц. В.В. Гамага 9.02-10.03",
+              "room": "ауд. 502",
+              "subgroup": null,
+              "notes": ""
+            }
+          ],
+          "wednesday": [
+            {
+              "slot": null,
+              "time_start": "16:00",
+              "time_end": "17:30",
+              "subject": "Устойчивость и развитие антропогенно измененных территорий (ЛК/ПР)",
+              "type": "other",
+              "teacher": null,
+              "room": "ауд. 405",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "17:40",
+              "time_end": "19:10",
+              "subject": "Устойчивость и развитие антропогенно измененных территорий (ЛК/ПР)",
+              "type": "other",
+              "teacher": null,
+              "room": "ауд. 405",
+              "subgroup": null,
+              "notes": ""
+            }
+          ],
+          "thursday": [
+            {
+              "slot": null,
+              "time_start": "16:00",
+              "time_end": "17:30",
+              "subject": "Экологическая безопасность",
+              "type": "lecture",
+              "teacher": "доц. В.В. Гамага, 12.02 - 11.03",
+              "room": "ауд. 502",
+              "subgroup": null,
+              "notes": ""
+            },
+            {
+              "slot": null,
+              "time_start": "17:40",
+              "time_end": "19:10",
+              "subject": "Оценка безопасности продуктов питания (ЛК/ПЗ)",
+              "type": "other",
+              "teacher": "доц. В.В. Гамага 12.02 - 11.03",
+              "room": "ауд. 502",
+              "subgroup": null,
+              "notes": ""
+            }
+          ],
+          "friday": [
+            {
+              "slot": null,
+              "time_start": "19:20",
+              "time_end": "20:50",
+              "subject": "День самостоятельной работы",
+              "type": "other",
+              "teacher": null,
+              "room": null,
+              "subgroup": null,
+              "notes": ""
+            }
+          ],
+          "saturday": [
+            {
+              "slot": null,
+              "time_start": "16:00",
+              "time_end": "17:30",
+              "subject": "День самостоятельной работы",
               "type": "other",
               "teacher": null,
               "room": null,
