@@ -299,18 +299,21 @@ def _parse_mpgu_timetable_pages(tables: list[list[list]]) -> list[dict]:
     first_mpgu = next((t for t in tables if _is_mpgu_timetable_format(t)), tables[0])
     group_cols, form, degree, year = _extract_timetable_groups(first_mpgu)
 
-    # Если МПГУ-таблица не содержит кодов групп, ищем в tables[0]:
-    # в некоторых форматах заголовок с кодами групп находится на первой странице,
-    # но не проходит проверку _is_mpgu_timetable_format (время в col 3, а не col 1).
-    if group_cols == [("группа", 2)] and first_mpgu is not tables[0]:
-        gc0, f0, d0, y0 = _extract_timetable_groups(tables[0])
-        if gc0 != [("группа", 2)]:
-            group_cols, form, degree, year = gc0, f0, d0, y0
-            # Перемапируем индексы колонок: в таблицах данных группы начинаются с col 2
-            min_col = min(col for _, col in group_cols)
-            if min_col > 2:
-                col_offset = min_col - 2
-                group_cols = [(name, col - col_offset) for name, col in group_cols]
+    # Если МПГУ-таблица не содержит кодов групп, ищем в таблицах до неё:
+    # в некоторых форматах заголовок с кодами групп предшествует данным,
+    # но не проходит _is_mpgu_timetable_format (пустой col 0 или время в col 3+).
+    if group_cols == [("группа", 2)]:
+        first_mpgu_idx = next((i for i, t in enumerate(tables) if t is first_mpgu), len(tables))
+        for candidate in tables[:first_mpgu_idx]:
+            gc0, f0, d0, y0 = _extract_timetable_groups(candidate)
+            if gc0 != [("группа", 2)]:
+                group_cols, form, degree, year = gc0, f0, d0, y0
+                # Перемапируем индексы колонок: в таблицах данных группы начинаются с col 2
+                min_col = min(col for _, col in group_cols)
+                if min_col > 2:
+                    col_offset = min_col - 2
+                    group_cols = [(name, col - col_offset) for name, col in group_cols]
+                break
 
     # group_cols: list of (name, col_idx)
 
