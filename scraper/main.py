@@ -2,6 +2,7 @@
 import asyncio
 import json
 import os
+import re
 import sys
 import tempfile
 from datetime import datetime, timezone
@@ -80,6 +81,16 @@ async def process_institute(
     except Exception as e:
         print(f"  Ошибка при получении ссылок: {e}")
         return _error_entry(inst_id, inst_name, str(e))
+
+    min_year = institute.get("link_min_year")
+    if min_year:
+        before = len(links)
+        links = [
+            lnk for lnk in links
+            if not re.findall(r'/(\d{4})/', lnk["url"])
+            or any(int(y) >= min_year for y in re.findall(r'/(\d{4})/', lnk["url"]))
+        ]
+        print(f"  Фильтр по году ≥{min_year}: {len(links)} из {before} ссылок")
 
     all_groups = []
     parser_used = parser_type
