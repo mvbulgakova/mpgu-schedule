@@ -28,6 +28,8 @@ function ScheduleApp() {
   const toggleWeek = useAppStore((s) => s.toggleWeek);
   const setInstitute = useAppStore((s) => s.setInstitute);
   const setGroup = useAppStore((s) => s.setGroup);
+  const darkMode = useAppStore((s) => s.darkMode);
+  const toggleDarkMode = useAppStore((s) => s.toggleDarkMode);
 
   const { data: index, isLoading: indexLoading } = useIndex();
   const cachedIndex = useOfflineCache("index", index);
@@ -49,8 +51,17 @@ function ScheduleApp() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Применяем/убираем класс dark на documentElement
+  useEffect(() => {
+    if (darkMode) {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+  }, [darkMode]);
+
   return (
-    <div className="min-h-screen bg-gray-50 font-sans max-w-2xl mx-auto">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 font-sans max-w-2xl mx-auto">
       {/* Header */}
       <header className="bg-indigo-800 text-white px-4 py-3 flex items-center justify-between sticky top-0 z-10 shadow-md">
         <div className="flex items-center gap-2">
@@ -73,15 +84,25 @@ function ScheduleApp() {
           </div>
         </div>
 
-        {group && (
+        <div className="flex items-center gap-2">
           <button
-            onClick={toggleWeek}
-            className="text-xs bg-indigo-700 hover:bg-indigo-600 rounded-lg px-3 py-1.5 border border-indigo-600"
+            onClick={toggleDarkMode}
+            className="text-xs bg-indigo-700 hover:bg-indigo-600 rounded-lg px-2.5 py-1.5 border border-indigo-600"
+            aria-label="Переключить тему"
           >
-            {showEvenWeek ? "Чётная" : "Нечётная"}
-            <span className="text-indigo-400 ml-1">/ сменить</span>
+            {darkMode ? "☀️" : "🌙"}
           </button>
-        )}
+
+          {group && (
+            <button
+              onClick={toggleWeek}
+              className="text-xs bg-indigo-700 hover:bg-indigo-600 rounded-lg px-3 py-1.5 border border-indigo-600"
+            >
+              {showEvenWeek ? "Чётная" : "Нечётная"}
+              <span className="text-indigo-400 ml-1">/ сменить</span>
+            </button>
+          )}
+        </div>
       </header>
 
       {/* Offline notice */}
@@ -94,13 +115,13 @@ function ScheduleApp() {
       {/* Content */}
       <main>
         {indexLoading && !cachedIndex && (
-          <div className="flex justify-center items-center h-40 text-gray-400 text-sm">
+          <div className="flex justify-center items-center h-40 text-gray-400 dark:text-gray-500 text-sm">
             Загрузка...
           </div>
         )}
 
         {!indexLoading && !cachedIndex && (
-          <div className="p-6 text-center text-gray-500 text-sm">
+          <div className="p-6 text-center text-gray-500 dark:text-gray-400 text-sm">
             Не удалось загрузить данные. Проверьте соединение.
           </div>
         )}
@@ -112,7 +133,7 @@ function ScheduleApp() {
         {cachedIndex && instituteId && !groupName && (
           <>
             {schedLoading && !cachedSchedule && (
-              <div className="flex justify-center items-center h-40 text-gray-400 text-sm">
+              <div className="flex justify-center items-center h-40 text-gray-400 dark:text-gray-500 text-sm">
                 Загрузка групп...
               </div>
             )}
@@ -124,20 +145,20 @@ function ScheduleApp() {
 
         {group && (
           <>
-            <div className="flex items-center justify-between px-4 py-2 border-b border-gray-200 bg-white">
-              <span className="text-xs text-gray-500">
+            <div className="flex items-center justify-between px-4 py-2 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+              <span className="text-xs text-gray-500 dark:text-gray-400">
                 {format(today, "EEEE, d MMMM", { locale: ru })} · {weekNum} неделя
               </span>
               <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
                 showEvenWeek === isCurrentWeekEven
-                  ? "bg-green-100 text-green-700"
-                  : "bg-gray-100 text-gray-500"
+                  ? "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400"
+                  : "bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400"
               }`}>
                 {showEvenWeek ? "чётная" : "нечётная"}{showEvenWeek === isCurrentWeekEven ? " (сейчас)" : ""}
               </span>
             </div>
             <WeekSchedule schedule={group.schedule} showEvenWeek={showEvenWeek} />
-            <div className="text-center text-xs text-gray-300 py-4">
+            <div className="text-center text-xs text-gray-300 dark:text-gray-600 py-4">
               Обновлено: {cachedSchedule?.updated_at
                 ? format(new Date(cachedSchedule.updated_at), "d MMM HH:mm", { locale: ru })
                 : "—"}

@@ -32,11 +32,11 @@ export default function DayCard({ day, lessons, isToday, currentTime }: Props) {
   return (
     <div className="min-w-0">
       <div className={`text-xs font-bold uppercase tracking-wider mb-2 ${
-        isToday ? "text-indigo-700" : "text-gray-400"
+        isToday ? "text-indigo-700 dark:text-indigo-400" : "text-gray-400 dark:text-gray-500"
       }`}>
         <span className="sm:hidden">{DAY_NAMES[day]}</span>
         <span className="hidden sm:inline">{DAY_NAMES_FULL[day]}</span>
-        {isToday && <span className="ml-1 text-indigo-500">●</span>}
+        {isToday && <span className="ml-1 text-indigo-500 dark:text-indigo-400">●</span>}
       </div>
 
       {hasLessons ? (
@@ -57,7 +57,7 @@ export default function DayCard({ day, lessons, isToday, currentTime }: Props) {
             ))}
         </div>
       ) : (
-        <div className="text-xs text-gray-300 text-center py-4">—</div>
+        <div className="text-xs text-gray-300 dark:text-gray-600 text-center py-4">—</div>
       )}
     </div>
   );

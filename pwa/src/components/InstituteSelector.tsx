@@ -13,7 +13,7 @@ export default function InstituteSelector({ institutes }: Props) {
 
   return (
     <div className="p-4">
-      <h2 className="text-sm font-semibold text-gray-500 mb-3 uppercase tracking-wider">
+      <h2 className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-3 uppercase tracking-wider">
         Выберите институт
       </h2>
       <div className="flex flex-col gap-2">
@@ -24,11 +24,11 @@ export default function InstituteSelector({ institutes }: Props) {
             className={`text-left rounded-xl px-4 py-3 border transition-colors ${
               selected === inst.id
                 ? "bg-indigo-700 text-white border-indigo-700"
-                : "bg-white text-gray-800 border-gray-200 hover:border-indigo-300"
+                : "bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 border-gray-200 dark:border-gray-700 hover:border-indigo-300 dark:hover:bg-gray-700"
             }`}
           >
             <div className="font-medium text-sm leading-snug">{inst.name}</div>
-            <div className={`text-xs mt-0.5 ${selected === inst.id ? "text-indigo-200" : "text-gray-400"}`}>
+            <div className={`text-xs mt-0.5 ${selected === inst.id ? "text-indigo-200" : "text-gray-400 dark:text-gray-500"}`}>
               {inst.groups_count} {groupsWord(inst.groups_count)}
             </div>
           </button>
