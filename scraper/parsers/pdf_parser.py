@@ -130,9 +130,25 @@ def _bytes_to_tmp(data: bytes, ext: str) -> str:
 
 def _parse_tables(tables: list[list[list]]) -> list[dict]:
     """Определяет формат таблицы и парсит группы."""
-    # Если хотя бы одна таблица — МПГУ-формат, считаем весь PDF одним расписанием.
-    # Все таблицы из одного PDF-файла передаются сюда разом.
     valid = [t for t in tables if t and len(t) >= 2]
+
+    # Normalize journalism-style tables (time in col>1) to standard layout.
+    # Once a time_col is found in any table, apply it to all tables with the same
+    # column count (continuation pages share the same physical column layout).
+    journ_tc: dict[int, int] = {}  # ncols → time_col
+    for t in valid:
+        ncols = len(t[0]) if t else 0
+        if ncols not in journ_tc:
+            tc = _find_journalism_time_col(t)
+            if tc is not None:
+                journ_tc[ncols] = tc
+    normalized = []
+    for t in valid:
+        ncols = len(t[0]) if t else 0
+        tc = journ_tc.get(ncols)
+        normalized.append(_normalize_journalism_table(t, tc) if tc is not None else t)
+    valid = normalized
+
     if any(_is_mpgu_timetable_format(t) for t in valid):
         return _parse_mpgu_timetable_pages(valid)
 
@@ -151,6 +167,83 @@ def _parse_tables(tables: list[list[list]]) -> list[dict]:
 _SKIP_CELLS = {"День самоподготовки", "—", "-", "–"}
 
 
+def _try_parse_time_cell(c1: str) -> tuple[str, str] | None:
+    """Extracts (HH:MM, HH:MM) from a time cell string, trying multiple formats."""
+    # Format: HH:MM or HH.MM with newline/dash separator (e.g. '09:15\n-\n10:50', '09.00-\n10.30')
+    m = re.search(r"(\d{1,2}[:.]\d{2})\s*[-–\n]+\s*(\d{1,2}[:.]\d{2})", c1, re.DOTALL)
+    if m:
+        t1, t2 = _norm_hm(m.group(1)), _norm_hm(m.group(2))
+        if _valid_time(t1) and _valid_time(t2) and t1 < t2:
+            return t1, t2
+    # Format: 4-digit HHMM direct (e.g. '0900-1030')
+    m = re.search(r"(\d{4})\D+(\d{4})", c1)
+    if m:
+        t1, t2 = _fmt_time(m.group(1)), _fmt_time(m.group(2))
+        if _valid_time(t1) and _valid_time(t2) and t1 < t2:
+            return t1, t2
+    # Format: 4-digit reversed (e.g. '0301-0090' = '0900-1030' reversed)
+    m = re.search(r"(\d{4})\D+(\d{4})", c1[::-1])
+    if m:
+        t1, t2 = _fmt_time(m.group(1)), _fmt_time(m.group(2))
+        if _valid_time(t1) and _valid_time(t2) and t1 < t2:
+            return t1, t2
+    # Fallback: two HH:MM patterns with up to 25 non-digit chars between (mixed content)
+    m = re.search(r"(\d{1,2}[:.]\d{2})\D{0,25}?(\d{1,2}[:.]\d{2})", c1, re.DOTALL)
+    if m:
+        t1, t2 = _norm_hm(m.group(1)), _norm_hm(m.group(2))
+        if _valid_time(t1) and _valid_time(t2) and t1 < t2:
+            return t1, t2
+    return None
+
+
+def _norm_hm(s: str) -> str:
+    """'9.15' or '9:15' → '09:15'"""
+    s = s.replace(".", ":")
+    parts = s.split(":")
+    if len(parts) == 2:
+        try:
+            return f"{int(parts[0]):02d}:{parts[1]}"
+        except ValueError:
+            pass
+    return s
+
+
+def _valid_time(t: str) -> bool:
+    try:
+        h, m = map(int, t.split(":"))
+        return 0 <= h <= 23 and 0 <= m <= 59
+    except Exception:
+        return False
+
+
+def _find_journalism_time_col(table: list[list]) -> int | None:
+    """Detects journalism-style format: 'Время' header in col>=2, day names in col0."""
+    if not table or len(table[0]) < 5:
+        return None
+    time_col = None
+    for row in table[:15]:
+        for ci, cell in enumerate(row):
+            if ci >= 2 and "время" in str(cell or "").strip().lower():
+                time_col = ci
+                break
+        if time_col is not None:
+            break
+    if time_col is None:
+        return None
+    # Verify col0 has recognizable day names in data rows
+    for row in table:
+        raw = str(row[0] or "").replace("\n", "").strip()
+        if len(raw) > 4 and (normalize_day(raw.lower()) or
+                             normalize_day("".join(reversed(raw)).lower())):
+            return time_col
+    return None
+
+
+def _normalize_journalism_table(table: list[list], time_col: int) -> list[list]:
+    """Normalize: keep col0 (day), then time_col onwards, dropping empty filler cols."""
+    return [[row[0]] + list(row[time_col:]) for row in table]
+
+
 def _is_mpgu_timetable_format(table: list[list]) -> bool:
     """Формат МПГУ: колонка 0 = день, колонка 1 = время, колонка 2+ = занятие."""
     if len(table) < 3 or not table[0] or len(table[0]) < 3:
@@ -164,16 +257,19 @@ def _is_mpgu_timetable_format(table: list[list]) -> bool:
         if "группа" in c1 and "время" in c1:
             return True
     # Продолжение (нет заголовка): col0 содержит буквы дня, col1 — время
-    # Ищем по всей таблице, т.к. буквы могут начинаться не с первых строк
     has_day_letter = False
     has_time = False
     for row in table:
         c0 = str(row[0] or "").strip()
         c1 = str(row[1] or "").strip() if len(row) > 1 else ""
+        raw = c0.replace("\n", "").strip()
         chars = [ch for ch in c0.split("\n") if ch.strip()]
         if chars and all(len(ch.strip()) == 1 for ch in chars):
             has_day_letter = True
-        if re.search(r"\d{4}", c1):
+        elif len(raw) > 4 and (normalize_day(raw.lower()) or
+                               normalize_day("".join(reversed(raw)).lower())):
+            has_day_letter = True
+        if re.search(r"\d{4}", c1) or re.search(r"\d{1,2}[:.]\d{2}", c1):
             has_time = True
         if has_day_letter and has_time:
             return True
@@ -191,12 +287,19 @@ def _parse_mpgu_timetable_pages(tables: list[list[list]]) -> list[dict]:
     if not tables:
         return []
 
-    # Извлекаем все группы из первой таблицы
-    group_cols, form, degree, year = _extract_timetable_groups(tables[0])
+    # Извлекаем группы из первой МПГУ-таблицы (может быть не tables[0])
+    first_mpgu = next((t for t in tables if _is_mpgu_timetable_format(t)), tables[0])
+    group_cols, form, degree, year = _extract_timetable_groups(first_mpgu)
     # group_cols: list of (name, col_idx)
 
     schedules: dict[str, dict] = {name: make_schedule_skeleton() for name, _ in group_cols}
-    col_to_group: dict[int, str] = {col: name for name, col in group_cols}
+    # Range-based mapping: cols between group N and group N+1 belong to group N
+    max_col = max((len(row) for t in tables for row in t if row), default=20)
+    col_to_group: dict[int, str] = {}
+    for i, (name, col) in enumerate(group_cols):
+        end = group_cols[i + 1][1] if i + 1 < len(group_cols) else max_col
+        for ci in range(col, end):
+            col_to_group[ci] = name
     default_group = group_cols[0][0] if group_cols else "группа"
 
     current_day: str | None = None
@@ -287,10 +390,10 @@ def _fill_mpgu_schedule_multi(
                 # Если len>1 и не день — это, скорее всего, фрагмент (напр. 'ИК'), игнорируем
 
         # Новый временной слот
-        time_match = re.search(r"(\d{4})\D+(\d{4})", c1)
-        if time_match:
+        parsed_time = _try_parse_time_cell(c1)
+        if parsed_time:
             flush()
-            current_time = (_fmt_time(time_match.group(1)), _fmt_time(time_match.group(2)))
+            current_time = parsed_time
 
         # Собираем содержимое всех колонок с занятиями (col2+)
         if current_day and current_time:
@@ -366,7 +469,7 @@ def _extract_timetable_groups(table: list[list]) -> tuple:
 
     Возвращает: ([(group_name, col_idx), ...], form, degree, year)
     """
-    GROUP_RE = re.compile(r"[А-ЯЁA-Z]{2,5}\d{2}-[А-ЯЁA-Z]{2,5}\d{4}")
+    GROUP_RE = re.compile(r"[А-ЯЁа-яёA-Za-z]{2,6}\d{2}-[А-ЯЁа-яёA-Za-z]{2,6}\d{4}")
     groups: list[tuple[str, int]] = []
     form = "full_time"
     degree = "bachelor"
