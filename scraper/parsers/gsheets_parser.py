@@ -105,7 +105,7 @@ def _parse_csv_rows(rows: list[list[str]]) -> list[dict]:
 
 def _find_isgo_header(rows: list[list[str]]) -> int | None:
     for i, row in enumerate(rows[:20]):
-        if any("день недели" in c.lower() for c in row):
+        if any("недели и дата" in c.lower() or "день недели" in c.lower() for c in row):
             return i
     return None
 
