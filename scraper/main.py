@@ -70,6 +70,10 @@ async def process_institute(
     parser_type = institute.get("parser_type", "pdf")
     fallback_type = institute.get("fallback_parser_type")
 
+    # Запоминаем прежнее количество групп для детектирования аномалий
+    existing_before = storage.read_schedule(inst_id)
+    prev_count = len(existing_before.get("groups", [])) if existing_before else 0
+
     try:
         links = await fetch_schedule_links(session, schedule_url)
         print(f"  Найдено ссылок: {len(links)}")
@@ -160,11 +164,16 @@ async def process_institute(
     for key, md5 in file_hashes.items():
         tracker.update(key, key.split(":", 1)[1], md5, 0, datetime.now(timezone.utc).isoformat())
 
+    # Детектирование аномалий: файлы изменились, но результат подозрительный
+    alerts = _detect_anomalies(inst_id, inst_name, all_groups, prev_count, file_hashes)
+    for alert in alerts:
+        print(f"  ⚠ АНОМАЛИЯ [{alert['type']}]: {alert['message']}")
+
     if not all_groups:
         existing = storage.read_schedule(inst_id)
         if existing and existing.get("groups"):
             print(f"  ↔ нет новых данных, используем кеш ({len(existing['groups'])} групп)")
-            return {
+            entry = {
                 "id": inst_id,
                 "name": inst_name,
                 "short_name": institute.get("short_name", existing.get("short_name", "")),
@@ -173,7 +182,11 @@ async def process_institute(
                 "status": "ok",
                 "parser_used": existing.get("parser_used", parser_type),
             }
-        return _error_entry(inst_id, inst_name, "Группы не найдены")
+            entry["alerts"] = alerts
+            return entry
+        err = _error_entry(inst_id, inst_name, "Группы не найдены")
+        err["alerts"] = alerts
+        return err
 
     now = datetime.now(timezone.utc).isoformat()
     schedule_doc = {
@@ -195,6 +208,7 @@ async def process_institute(
         "updated_at": now,
         "status": "ok",
         "parser_used": parser_used,
+        "alerts": alerts,
     }
 
 
@@ -213,10 +227,12 @@ async def main():
         results = await asyncio.gather(*tasks, return_exceptions=True)
 
     index_entries = []
+    all_alerts = []
     for inst, result in zip(institutes, results):
         if isinstance(result, Exception):
             index_entries.append(_error_entry(inst["id"], inst["name"], str(result)))
         else:
+            all_alerts.extend(result.pop("alerts", []))
             index_entries.append(result)
 
     tracker.save()
@@ -227,15 +243,73 @@ async def main():
         "institutes": index_entries,
     })
 
+    # Пишем/удаляем файл аномалий
+    alerts_path = Path(DATA_PATH) / "meta" / "alerts.json"
+    if all_alerts:
+        alerts_path.write_text(
+            json.dumps(all_alerts, ensure_ascii=False, indent=2), encoding="utf-8"
+        )
+    elif alerts_path.exists():
+        alerts_path.unlink()
+
     ok = sum(1 for e in index_entries if e.get("status") == "ok")
     print(f"\n{'='*50}")
     print(f"Готово: {ok}/{len(index_entries)} институтов обработано успешно")
+    if all_alerts:
+        print(f"⚠ Аномалий: {len(all_alerts)} — проверьте meta/alerts.json")
 
 
 def _current_academic_year() -> str:
     now = datetime.now()
     year = now.year if now.month >= 9 else now.year - 1
     return f"{year}-{year + 1}"
+
+
+def _detect_anomalies(
+    inst_id: str,
+    inst_name: str,
+    new_groups: list,
+    prev_count: int,
+    file_hashes: dict,
+) -> list[dict]:
+    """Возвращает список аномалий, если файлы изменились, но результат подозрительный."""
+    alerts = []
+    changed = len(file_hashes)
+    if changed == 0:
+        return alerts  # файлы не менялись — нечего проверять
+
+    new_count = len(new_groups)
+
+    if new_count == 0 and prev_count > 0:
+        alerts.append({
+            "type": "parser_broken",
+            "severity": "high",
+            "institute_id": inst_id,
+            "institute_name": inst_name,
+            "message": (
+                f"После обновления {changed} файл(ов) парсер вернул 0 групп "
+                f"(раньше было {prev_count}). Возможно, изменился формат."
+            ),
+            "prev_count": prev_count,
+            "new_count": 0,
+            "changed_files": changed,
+        })
+    elif new_count > 0 and prev_count >= 10 and new_count < prev_count * 0.4:
+        alerts.append({
+            "type": "groups_dropped",
+            "severity": "medium",
+            "institute_id": inst_id,
+            "institute_name": inst_name,
+            "message": (
+                f"Количество групп резко сократилось: {prev_count} → {new_count} "
+                f"после обновления {changed} файл(ов)."
+            ),
+            "prev_count": prev_count,
+            "new_count": new_count,
+            "changed_files": changed,
+        })
+
+    return alerts
 
 
 def _error_entry(inst_id, inst_name, error):
@@ -246,6 +320,7 @@ def _error_entry(inst_id, inst_name, error):
         "updated_at": datetime.now(timezone.utc).isoformat(),
         "status": "error",
         "error": error,
+        "alerts": [],
     }
 
 

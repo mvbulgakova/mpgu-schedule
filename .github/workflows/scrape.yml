@@ -12,6 +12,7 @@ on:
 
 permissions:
   contents: write
+  issues: write
 
 jobs:
   scrape:
@@ -76,3 +77,36 @@ jobs:
           git commit -m "Update $(date -u '+%Y-%m-%d %H:%M UTC')"
           git push -u origin data
           echo "Done"
+
+      - name: Alert on parser anomalies
+        if: always()
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          ALERTS="${{ github.workspace }}/data-branch/meta/alerts.json"
+          [ -f "$ALERTS" ] || exit 0
+          COUNT=$(python3 -c "import json; print(len(json.load(open('$ALERTS'))))")
+          [ "$COUNT" -eq 0 ] && exit 0
+
+          BODY=$(python3 - <<'PYEOF'
+          import json, os
+          alerts = json.load(open(os.environ['ALERTS']))
+          lines = ["Скрапер обнаружил аномалии при обработке расписаний.\n"]
+          for a in alerts:
+              sev = "🔴" if a["severity"] == "high" else "🟡"
+              lines.append(f"## {sev} {a['institute_name']}")
+              lines.append(f"**Тип:** `{a['type']}`")
+              lines.append(f"{a['message']}")
+              lines.append("")
+          lines.append("---")
+          lines.append("*Создано автоматически GitHub Actions*")
+          print("\n".join(lines))
+          PYEOF
+          )
+
+          gh issue create \
+            --repo "$GH_REPO" \
+            --title "⚠ Парсер: аномалии в расписании ($(date -u '+%Y-%m-%d'))" \
+            --body "$BODY" \
+          || echo "Не удалось создать Issue (возможно, уже существует похожий)"
