@@ -22,6 +22,14 @@ class PDFParser(BaseParser):
         result = self._try_pdfplumber(path)
         if result.confidence >= CONFIDENCE_THRESHOLD:
             return result
+        # Принимаем разреженные расписания с реальными кодами групп (напр. магистратура)
+        if result.groups and all(g["name"] != "группа" for g in result.groups):
+            odd_total = sum(
+                sum(len(d) for d in g["schedule"]["odd_week"].values())
+                for g in result.groups
+            )
+            if odd_total > 0:
+                return result
         is_image_based = any("image-based" in w for w in result.warnings)
         accumulated_warnings.extend(result.warnings)
 
@@ -325,6 +333,10 @@ def _parse_mpgu_timetable_pages(tables: list[list[list]]) -> list[dict]:
     return result
 
 
+_SPLIT_TIME_START_RE = re.compile(r"^(\d{3,4})\s*[-–]\s*$")
+_SPLIT_TIME_END_RE = re.compile(r"^(\d{3,4})$")
+
+
 def _fill_mpgu_schedule_multi(
     table: list[list],
     schedules: dict[str, dict],
@@ -339,6 +351,8 @@ def _fill_mpgu_schedule_multi(
         day_acc = []
 
     current_time: tuple[str, str] | None = None
+    # partial_start: начало времени из split-row формата (e.g. '900 -' / '1030')
+    partial_start: str | None = None
     # pending: {(group_name, col_idx): [fragments]}
     pending: dict[tuple[str, int], list[str]] = {}
 
@@ -389,14 +403,32 @@ def _fill_mpgu_schedule_multi(
                         day_acc = []
                 # Если len>1 и не день — это, скорее всего, фрагмент (напр. 'ИК'), игнорируем
 
-        # Новый временной слот
-        parsed_time = _try_parse_time_cell(c1)
-        if parsed_time:
-            flush()
-            current_time = parsed_time
+        # Новый временной слот — три варианта: split-start, split-end, полное время
+        sm = _SPLIT_TIME_START_RE.match(c1) if c1 else None
+        em = _SPLIT_TIME_END_RE.match(c1) if (c1 and partial_start is not None) else None
 
-        # Собираем содержимое всех колонок с занятиями (col2+)
-        if current_day and current_time:
+        if sm:
+            # Начало split-time: сохраняем предыдущий слот и запоминаем начало
+            flush()
+            partial_start = sm.group(1).zfill(4)
+        elif em:
+            # Конец split-time: собираем полное время и активируем слот
+            combined = f"{partial_start}-{em.group(1)}"
+            parsed_time = _try_parse_time_cell(combined)
+            if parsed_time:
+                current_time = parsed_time
+            partial_start = None
+        else:
+            # Обычная строка: пробуем распарсить полное время из c1
+            parsed_time = _try_parse_time_cell(c1)
+            if parsed_time:
+                flush()
+                current_time = parsed_time
+                partial_start = None
+
+        # Собираем содержимое всех колонок с занятиями (col2+).
+        # Включаем строки с partial_start, чтобы не потерять фрагменты до получения end-time.
+        if current_day and (current_time is not None or partial_start is not None):
             for ci in range(2, len(row)):
                 cell = str(row[ci] or "").strip()
                 if cell and cell not in _SKIP_CELLS:
@@ -469,11 +501,16 @@ def _extract_timetable_groups(table: list[list]) -> tuple:
 
     Возвращает: ([(group_name, col_idx), ...], form, degree, year)
     """
-    GROUP_RE = re.compile(r"[А-ЯЁа-яёA-Za-z]{2,6}\d{2}-[А-ЯЁа-яёA-Za-z]{2,6}\d{4}")
+    # Допускаем пробелы вокруг дефиса (напр. 'ЗОГ34 - ГУМ2501')
+    GROUP_RE = re.compile(r"[А-ЯЁа-яёA-Za-z]{2,6}\d{2}\s*-\s*[А-ЯЁа-яёA-Za-z]{2,6}\d{4}")
     groups: list[tuple[str, int]] = []
     form = "full_time"
     degree = "bachelor"
     year = None
+
+    def _norm_group_name(raw: str) -> str:
+        """Нормализует код группы: убирает пробелы вокруг дефиса."""
+        return re.sub(r"\s*-\s*", "-", raw.strip())
 
     for row in table[:20]:
         for ci, cell in enumerate(row):
@@ -492,18 +529,22 @@ def _extract_timetable_groups(table: list[list]) -> tuple:
             m = re.search(r"(\d)\s+курс", tl)
             if m and year is None:
                 year = int(m.group(1))
-            if ci >= 2 and GROUP_RE.match(text):
-                name = text.split("\n")[0].strip()
-                if not any(n == name for n, _ in groups):
-                    groups.append((name, ci))
+            if ci >= 2:
+                # Ищем код группы: сначала с начала строки, затем вложенный (напр. '1 курс\nВZГ34-...')
+                gm = GROUP_RE.match(text) or GROUP_RE.search(text)
+                if gm:
+                    name = _norm_group_name(gm.group(0))
+                    if not any(n == name for n, _ in groups):
+                        groups.append((name, ci))
 
     if not groups:
-        # Запасной вариант: ищем любую ячейку с кодом группы
+        # Запасной вариант: ищем любую ячейку с кодом группы (без ограничения по ci)
         for row in table[:20]:
             for ci, cell in enumerate(row):
                 text = str(cell or "").strip()
-                if GROUP_RE.match(text):
-                    name = text.split("\n")[0].strip()
+                gm = GROUP_RE.search(text)
+                if gm:
+                    name = _norm_group_name(gm.group(0))
                     if not any(n == name for n, _ in groups):
                         groups.append((name, ci))
     if not groups:
