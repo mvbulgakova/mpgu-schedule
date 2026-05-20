@@ -1,11 +1,15 @@
 import base64
 import json
 import os
+import re
 from pathlib import Path
 
 import anthropic
 from pdf2image import convert_from_path
 from tenacity import retry, stop_after_attempt, wait_exponential
+
+# Регулярка для поиска JSON-объекта верхнего уровня в ответе
+_JSON_BLOCK_RE = re.compile(r'\{[\s\S]*\}', re.DOTALL)
 
 SYSTEM_PROMPT = """Ты — парсер расписания занятий российского университета.
 Тебе дают изображения страниц расписания МПГУ (Московский педагогический государственный университет).
@@ -101,10 +105,19 @@ class ClaudeClient:
 
         text = response.content[0].text.strip()
         # убираем markdown-обёртку если есть
-        if text.startswith("```"):
-            text = text.split("```")[1]
-            if text.startswith("json"):
-                text = text[4:]
+        if "```" in text:
+            # извлекаем содержимое между ```...```
+            parts = text.split("```")
+            for part in parts[1::2]:  # нечётные части — между ```
+                candidate = part.lstrip("json").strip()
+                try:
+                    return json.loads(candidate)
+                except json.JSONDecodeError:
+                    continue
+        # пробуем найти JSON-объект напрямую (может быть лишний текст вокруг)
+        m = _JSON_BLOCK_RE.search(text)
+        if m:
+            return json.loads(m.group(0))
         return json.loads(text)
 
 
