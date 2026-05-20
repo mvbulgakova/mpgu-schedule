@@ -82,6 +82,14 @@ async def process_institute(
         print(f"  Ошибка при получении ссылок: {e}")
         return _error_entry(inst_id, inst_name, str(e))
 
+    for sub in institute.get("sub_faculties", []):
+        try:
+            sub_links = await fetch_schedule_links(session, sub["schedule_url"])
+            links.extend(sub_links)
+            print(f"  sub_faculty '{sub['name']}': {len(sub_links)} ссылок")
+        except Exception as e:
+            print(f"  sub_faculty '{sub['name']}' ошибка: {e}")
+
     min_year = institute.get("link_min_year")
     if min_year:
         before = len(links)
