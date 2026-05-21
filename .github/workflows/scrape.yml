@@ -9,6 +9,11 @@ on:
         description: "ID конкретного института (пусто = все)"
         required: false
         default: ""
+      force_rescrape:
+        description: "Перепарсить все файлы заново (игнорировать кеш хешей)"
+        type: boolean
+        required: false
+        default: false
 
 permissions:
   contents: write
@@ -61,7 +66,7 @@ jobs:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           DATA_PATH: ${{ github.workspace }}/data-branch
-          CHANGED_ONLY: "false"
+          CHANGED_ONLY: ${{ github.event.inputs.force_rescrape == 'true' && 'false' || 'true' }}
           INSTITUTE_ID: ${{ github.event.inputs.institute_id }}
           PYTHONPATH: ${{ github.workspace }}/main-branch
         run: cd main-branch && python -m scraper.main
@@ -74,7 +79,22 @@ jobs:
           git remote set-url origin https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git
           git add -A
           git diff --staged --quiet && echo "Нет изменений" && exit 0
-          git commit -m "Update $(date -u '+%Y-%m-%d %H:%M UTC')"
+
+          SUMMARY=$(python3 - <<'PYEOF'
+          import json, pathlib
+          idx = pathlib.Path("meta/index.json")
+          if not idx.exists():
+              print("обновление данных")
+          else:
+              data = json.loads(idx.read_text())
+              institutes = data.get("institutes", [])
+              ok = [i for i in institutes if i.get("status") == "ok"]
+              total_groups = sum(i.get("groups_count", 0) for i in ok)
+              print(f"{len(ok)}/{len(institutes)} институтов, {total_groups} групп")
+          PYEOF
+          )
+
+          git commit -m "Scrape $(date -u '+%Y-%m-%d %H:%M UTC'): $SUMMARY"
           git push -u origin data
           echo "Done"
 
