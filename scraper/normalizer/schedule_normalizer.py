@@ -49,7 +49,8 @@ def normalize_lesson_type(raw: str) -> str:
 def normalize_time(raw: str) -> tuple[str, str] | None:
     """Возвращает (time_start, time_end) в формате HH:MM."""
     raw = raw.strip().replace(".", ":")
-    # формат "08:00-09:35" или "8:00 - 9:35"
+    # формат "08:00-09:35" или "8:00 - 9:35" или "09:00\n10:30" (времена на отдельных строках)
+    raw = re.sub(r"(\d{1,2}:\d{2})\n(\d{1,2}:\d{2})", r"\1-\2", raw)
     m = re.match(r"(\d{1,2}:\d{2})\s*[-–—]\s*(\d{1,2}:\d{2})", raw)
     if m:
         return _pad_time(m.group(1)), _pad_time(m.group(2))

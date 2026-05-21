@@ -4,6 +4,8 @@
       "id": "biology",
       "name": "Институт биологии и химии",
       "short_name": "ИБиХ",
+      "campus": "ИБХ",
+      "campus_address": "ул. Кибальчича, 6, корп. 1",
       "schedule_url": "https://mpgu.su/ob-mpgu/struktura/faculties/institut-biologii-i-himii/uchebnyiy-protsess/raspisanie-uchebnyih-zanyatiy/",
       "parser_type": "nextcloud",
       "url_path_variant": "uchebnyiy-protsess"
@@ -12,6 +14,8 @@
       "id": "childhood",
       "name": "Институт детства",
       "short_name": "ИД",
+      "campus": "КГФ",
+      "campus_address": "пр-т Вернадского, 88",
       "schedule_url": "https://mpgu.su/raspisanie-zanyatiy-instituta/",
       "parser_type": "pdf",
       "url_path_variant": "uchebnyiy-protsess",
@@ -29,6 +33,8 @@
         {
           "id": "music",
           "name": "Факультет музыкального искусства",
+          "campus": "ИИИ",
+          "campus_address": "Новоспасский пер., 3",
           "schedule_url": "https://mpgu.su/ob-mpgu/struktura/faculties/institut-detstva/uchebnyiy-protsess/raspisanie-uchebnyih-zanyatiy/"
         }
       ]
@@ -37,6 +43,8 @@
       "id": "philology",
       "name": "Институт филологии",
       "short_name": "ИФил",
+      "campus": "ИФил",
+      "campus_address": "ул. Малая Пироговская, 1 / пр-т Вернадского, 88",
       "schedule_url": "https://mpgu.su/ob-mpgu/struktura/faculties/institut-filologii/uchebnyiy-protsess/raspisanie-uchebnyih-zanyatiy/",
       "parser_type": "pdf",
       "url_path_variant": "uchebnyiy-protsess"
@@ -45,6 +53,8 @@
       "id": "physics",
       "name": "Институт физики, технологии и информационных систем",
       "short_name": "ИФТИС",
+      "campus": "ИФТИС",
+      "campus_address": "ул. Малая Пироговская, 29",
       "schedule_url": "https://mpgu.su/ob-mpgu/struktura/faculties/institut-fiziki/uchebnaya-deyatelnost/raspisanie-uchebnyih-zanyatiy/",
       "parser_type": "pdf",
       "url_path_variant": "uchebnaya-deyatelnost"
@@ -53,6 +63,8 @@
       "id": "sport",
       "name": "Институт физической культуры, спорта и здоровья",
       "short_name": "ИФКСиЗ",
+      "campus": "КГФ",
+      "campus_address": "пр-т Вернадского, 88",
       "schedule_url": "https://mpgu.su/ob-mpgu/struktura/faculties/institut-fizkultury/uchebnaya-deyatelnost/raspisanie-uchebnyih-zanyatiy/",
       "parser_type": "excel",
       "url_path_variant": "uchebnaya-deyatelnost"
@@ -61,6 +73,8 @@
       "id": "social",
       "name": "Институт социально-гуманитарного образования",
       "short_name": "ИСГО",
+      "campus": "КГФ",
+      "campus_address": "пр-т Вернадского, 88",
       "schedule_url": "https://mpgu.su/ob-mpgu/struktura/faculties/institut-sotsiolno-gumanitarnogo-obrazovania/uchebnyiy-protsess/raspisanie-uchebnyih-zanyatiy/",
       "parser_type": "gsheets",
       "fallback_parser_type": "pdf",
@@ -70,6 +84,8 @@
       "id": "geography",
       "name": "Географический факультет",
       "short_name": "ГФ",
+      "campus": "ГФ",
+      "campus_address": "ул. Кибальчича, 16",
       "schedule_url": "https://mpgu.su/ob-mpgu/struktura/faculties/geograficheskiy-fakultet/uchebnyiy-protsess/raspisanie-uchebnyih-zanyatiy/",
       "parser_type": "pdf",
       "url_path_variant": "uchebnyiy-protsess"
@@ -78,6 +94,8 @@
       "id": "history",
       "name": "Институт истории и политики",
       "short_name": "ИИиП",
+      "campus": "КГФ",
+      "campus_address": "пр-т Вернадского, 88",
       "schedule_url": "https://mpgu.su/ob-mpgu/struktura/faculties/institut-istorii-politiki/uchebnyiy-protsess/raspisanie-uchebnyih-zanyatiy/",
       "parser_type": "excel",
       "url_path_variant": "uchebnyiy-protsess"
@@ -86,6 +104,9 @@
       "id": "math",
       "name": "Институт математики и информатики",
       "short_name": "ИМиИ",
+      "campus": "ИМиИ",
+      "campus_address": "ул. Краснопрудная, 14",
+      "campus_note": "ИМиИ2 (ул. Гаврикова, 7/9) временно не используется — ремонт",
       "schedule_url": "https://mpgu.su/ob-mpgu/struktura/faculties/matematicheskiy-fakultet/uchebnyiy-protsess/raspisanie-uchebnyih-zanyatiy/",
       "parser_type": "pdf",
       "url_path_variant": "uchebnyiy-protsess"
@@ -94,6 +115,9 @@
       "id": "arts",
       "name": "Институт изящных искусств",
       "short_name": "ИИИ",
+      "campus": "ИИИ",
+      "campus_address": "Рязанский пр-т, 9",
+      "campus_note": "Факультет музыкального искусства: Новоспасский пер., 3",
       "schedule_url": "https://mpgu.su/ob-mpgu/struktura/faculties/institut-iskusstv/uchebnyiy-protsess/raspisanie-uchebnyih-zanyatiy/",
       "parser_type": "pdf",
       "url_path_variant": "uchebnyiy-protsess"
@@ -102,6 +126,8 @@
       "id": "preschool",
       "name": "Факультет дошкольной педагогики и психологии",
       "short_name": "ФДПиП",
+      "campus": "ФДПиП",
+      "campus_address": "Госпитальный Вал, 4",
       "schedule_url": "https://mpgu.su/ob-mpgu/struktura/faculties/fakultet-doshkolnoy-pedagogiki-i-psihologii-2/uchebnyiy-protsess/raspisanie-uchebnyih-zanyatiy/",
       "parser_type": "pdf",
       "url_path_variant": "uchebnyiy-protsess"
@@ -110,6 +136,8 @@
       "id": "pedagogy",
       "name": "Институт педагогики и психологии",
       "short_name": "ИПиП",
+      "campus": "ИПиП",
+      "campus_address": "Малый Сухаревский пер., 6",
       "schedule_url": "https://mpgu.su/ob-mpgu/struktura/faculties/fakultet-pedagogiki-i-psyhologii/uchebnyiy-protsess/raspisanie-uchebnyih-zanyatiy/",
       "parser_type": "gsheets",
       "fallback_parser_type": "nextcloud",
@@ -119,6 +147,8 @@
       "id": "languages",
       "name": "Институт иностранных языков",
       "short_name": "ИИЯ",
+      "campus": "КГФ",
+      "campus_address": "пр-т Вернадского, 88",
       "schedule_url": "https://mpgu.su/ob-mpgu/struktura/faculties/fakultet-inostrannyih-yazyikov-2/uchebnyiy-protsess/raspisanie-uchebnyih-zanyatiy/",
       "parser_type": "pdf",
       "fallback_parser_type": "gsheets",
@@ -128,6 +158,8 @@
       "id": "international",
       "name": "Институт международного образования",
       "short_name": "ИМО",
+      "campus": "КГФ",
+      "campus_address": "пр-т Вернадского, 88",
       "schedule_url": "https://mpgu.su/ob-mpgu/struktura/faculties/institut-mezhdunarodnogo-obrazovaniya/uchebnyiy-protsess/raspisanie-uchebnyih-zanyatiy/",
       "parser_type": "pdf",
       "url_path_variant": "uchebnyiy-protsess"
@@ -136,14 +168,19 @@
       "id": "journalism",
       "name": "Институт журналистики, коммуникаций и медиаобразования",
       "short_name": "ИЖКМ",
+      "campus": "ИЖКМ",
+      "campus_address": "Верхняя Радищевская, 16-18",
       "schedule_url": "https://mpgu.su/ob-mpgu/struktura/faculties/institut-zhurnalistiki-kommunikatsii-i-mediaobrazovaniya/uchebnyiy-protsess/raspisanie-uchebnyih-zanyatiy/",
       "parser_type": "pdf",
-      "url_path_variant": "uchebnyiy-protsess"
+      "url_path_variant": "uchebnyiy-protsess",
+      "link_min_year": 2024
     },
     {
       "id": "digital",
       "name": "Институт развития цифрового образования",
       "short_name": "ИРЦО",
+      "campus": "ИФТИС",
+      "campus_address": "ул. Усачева, 64",
       "schedule_url": "https://mpgu.su/ob-mpgu/struktura/faculties/institut-razvitiya-tsifrovogo-obrazovaniya/uchebnyiy-protsess/raspisanie-uchebnyih-zanyatiy/",
       "parser_type": "pdf",
       "url_path_variant": "uchebnyiy-protsess"

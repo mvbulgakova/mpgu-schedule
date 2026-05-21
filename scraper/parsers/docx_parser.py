@@ -87,9 +87,65 @@ def _parse_day_columns(table):
              "degree": "bachelor", "schedule": schedule}]
 
 
+def _parse_multi_group_cols(table):
+    """Handle tables where col0=day, col1=time, col2+=individual group schedules."""
+    if len(table) < 4:
+        return None
+    # Find the row containing group names in cols 2+
+    group_header_idx = None
+    for ri, row in enumerate(table[:10]):
+        found = any(
+            re.search(r"\d{2,3}\s*ГРУППА", (row[ci] if ci < len(row) else ""), re.I)
+            for ci in range(2, min(len(row), 12))
+        )
+        if found:
+            group_header_idx = ri
+            break
+    if group_header_idx is None:
+        return None
+    group_header = table[group_header_idx]
+    group_cols = {}  # col_idx -> name
+    for ci in range(2, len(group_header)):
+        cell = group_header[ci].strip() if ci < len(group_header) else ""
+        if cell:
+            group_cols[ci] = cell.split("\n")[0].strip().rstrip(":")
+    if not group_cols:
+        return None
+    schedules = {name: make_schedule_skeleton() for name in group_cols.values()}
+    for row in table[group_header_idx + 1:]:
+        day = normalize_day(row[0]) if row else None
+        if not day:
+            continue
+        times = normalize_time(row[1]) if len(row) > 1 else None
+        if not times:
+            continue
+        for ci, name in group_cols.items():
+            cell = row[ci].strip() if ci < len(row) else ""
+            if not cell:
+                continue
+            week_m = re.search(r"\b(числ[а-я]*|знам[а-я]*|н/|з/)\b", cell, re.I)
+            week_type = normalize_week_type(week_m.group(1)) if week_m else "both"
+            lesson_type = normalize_lesson_type(cell)
+            lesson = lesson_obj(None, times[0], times[1], cell, lesson_type, None, None)
+            if week_type in ("odd", "both"):
+                schedules[name]["odd_week"][day].append(lesson)
+            if week_type in ("even", "both"):
+                schedules[name]["even_week"][day].append({**lesson})
+    result = [
+        {"name": name, "year": None, "form": "full_time", "degree": "bachelor",
+         "schedule": schedules[name]}
+        for name in group_cols.values()
+        if any(schedules[name]["odd_week"][d] for d in schedules[name]["odd_week"])
+    ]
+    return result if result else None
+
+
 def _parse_flat(table):
     if len(table) < 2:
         return []
+    multi = _parse_multi_group_cols(table)
+    if multi is not None:
+        return multi
     header = [c.lower() for c in table[0]]
     col = {
         "day": _find_col(header, ["день"]),

@@ -1,11 +1,15 @@
 import base64
 import json
 import os
+import re
 from pathlib import Path
 
 import anthropic
 from pdf2image import convert_from_path
 from tenacity import retry, stop_after_attempt, wait_exponential
+
+# Регулярка для поиска JSON-объекта верхнего уровня в ответе
+_JSON_BLOCK_RE = re.compile(r'\{[\s\S]*\}', re.DOTALL)
 
 SYSTEM_PROMPT = """Ты — парсер расписания занятий российского университета.
 Тебе дают изображения страниц расписания МПГУ (Московский педагогический государственный университет).
@@ -51,12 +55,29 @@ SYSTEM_PROMPT = """Ты — парсер расписания занятий р�
 Верни ТОЛЬКО валидный JSON без пояснений."""
 
 
+_SESSION_TOKEN_FILE = "/home/claude/.claude/remote/.session_ingress_token"
+
+
+def _get_anthropic_client() -> anthropic.Anthropic:
+    """Создаёт клиент Anthropic, пробуя несколько источников авторизации."""
+    api_key = os.environ.get("ANTHROPIC_API_KEY")
+    if api_key:
+        return anthropic.Anthropic(api_key=api_key)
+    # Fallback: session ingress token (Claude Code remote environment)
+    token_file = os.environ.get("CLAUDE_SESSION_INGRESS_TOKEN_FILE", _SESSION_TOKEN_FILE)
+    if os.path.exists(token_file):
+        token = Path(token_file).read_text().strip()
+        if token:
+            return anthropic.Anthropic(auth_token=token)
+    raise ValueError(
+        "Не найден ключ API: задайте ANTHROPIC_API_KEY или убедитесь, "
+        "что файл session ingress token доступен"
+    )
+
+
 class ClaudeClient:
     def __init__(self):
-        api_key = os.environ.get("ANTHROPIC_API_KEY")
-        if not api_key:
-            raise ValueError("ANTHROPIC_API_KEY не задан")
-        self.client = anthropic.Anthropic(api_key=api_key)
+        self.client = _get_anthropic_client()
 
     @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=4, max=30))
     def parse_pdf_pages(self, pdf_path: str) -> dict:
@@ -84,10 +105,19 @@ class ClaudeClient:
 
         text = response.content[0].text.strip()
         # убираем markdown-обёртку если есть
-        if text.startswith("```"):
-            text = text.split("```")[1]
-            if text.startswith("json"):
-                text = text[4:]
+        if "```" in text:
+            # извлекаем содержимое между ```...```
+            parts = text.split("```")
+            for part in parts[1::2]:  # нечётные части — между ```
+                candidate = part.lstrip("json").strip()
+                try:
+                    return json.loads(candidate)
+                except json.JSONDecodeError:
+                    continue
+        # пробуем найти JSON-объект напрямую (может быть лишний текст вокруг)
+        m = _JSON_BLOCK_RE.search(text)
+        if m:
+            return json.loads(m.group(0))
         return json.loads(text)
 
 

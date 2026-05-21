@@ -47,6 +47,8 @@ export interface InstituteIndexEntry {
   id: string;
   name: string;
   short_name: string;
+  campus?: string;
+  campus_address?: string;
   groups_count: number;
   updated_at: string;
   status: "ok" | "error";

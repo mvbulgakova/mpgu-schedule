@@ -23,19 +23,20 @@ interface Props {
   day: DayKey;
   lessons: Lesson[];
   isToday?: boolean;
+  currentTime?: string; // "HH:MM", передаётся только для сегодняшнего дня
 }
 
-export default function DayCard({ day, lessons, isToday }: Props) {
+export default function DayCard({ day, lessons, isToday, currentTime }: Props) {
   const hasLessons = lessons.length > 0;
 
   return (
     <div className="min-w-0">
       <div className={`text-xs font-bold uppercase tracking-wider mb-2 ${
-        isToday ? "text-indigo-700" : "text-gray-400"
+        isToday ? "text-indigo-700 dark:text-indigo-400" : "text-gray-400 dark:text-gray-500"
       }`}>
         <span className="sm:hidden">{DAY_NAMES[day]}</span>
         <span className="hidden sm:inline">{DAY_NAMES_FULL[day]}</span>
-        {isToday && <span className="ml-1 text-indigo-500">●</span>}
+        {isToday && <span className="ml-1 text-indigo-500 dark:text-indigo-400">●</span>}
       </div>
 
       {hasLessons ? (
@@ -43,11 +44,20 @@ export default function DayCard({ day, lessons, isToday }: Props) {
           {lessons
             .sort((a, b) => (a.slot ?? 9) - (b.slot ?? 9))
             .map((lesson, i) => (
-              <LessonCard key={i} lesson={lesson} slot={lesson.slot ?? i + 1} />
+              <LessonCard
+                key={i}
+                lesson={lesson}
+                slot={lesson.slot ?? i + 1}
+                isNow={
+                  currentTime !== undefined &&
+                  lesson.time_start <= currentTime &&
+                  currentTime < lesson.time_end
+                }
+              />
             ))}
         </div>
       ) : (
-        <div className="text-xs text-gray-300 text-center py-4">—</div>
+        <div className="text-xs text-gray-300 dark:text-gray-600 text-center py-4">—</div>
       )}
     </div>
   );

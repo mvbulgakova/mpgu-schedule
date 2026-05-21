@@ -2,6 +2,7 @@
 import asyncio
 import json
 import os
+import re
 import sys
 import tempfile
 from datetime import datetime, timezone
@@ -14,13 +15,18 @@ load_dotenv()
 
 from scraper.fetchers.site_fetcher import fetch_schedule_links
 from scraper.fetchers.file_fetcher import fetch_file, check_changed, save_to_temp
-from scraper.parsers.pdf_parser import PDFParser
 from scraper.parsers.excel_parser import ExcelParser
 from scraper.parsers.gsheets_parser import GSheetsParser, gsheets_to_csv_url
 from scraper.parsers.nextcloud_parser import NextcloudParser, nextcloud_download_url
 from scraper.parsers.docx_parser import DocxParser
 from scraper.storage.git_storage import GitStorage
 from scraper.utils.hash_tracker import HashTracker, md5_of_bytes
+
+try:
+    from scraper.parsers.pdf_parser import PDFParser
+except ImportError as _pdf_import_err:
+    print(f"⚠ PDF парсер недоступен: {_pdf_import_err}", file=sys.stderr)
+    PDFParser = None  # type: ignore
 
 CONFIG_PATH = Path(__file__).parent / "config" / "institutes.json"
 DATA_PATH = os.environ.get("DATA_PATH", "./data")
@@ -37,13 +43,18 @@ def load_institutes() -> list[dict]:
 
 
 def get_parser(parser_type: str, config: dict):
-    return {
-        "pdf": PDFParser,
+    mapping = {
         "excel": ExcelParser,
         "gsheets": GSheetsParser,
         "nextcloud": NextcloudParser,
         "docx": DocxParser,
-    }.get(parser_type, PDFParser)(config)
+    }
+    if PDFParser is not None:
+        mapping["pdf"] = PDFParser
+    cls = mapping.get(parser_type) or mapping.get("pdf")
+    if cls is None:
+        raise RuntimeError(f"Парсер для типа '{parser_type}' недоступен")
+    return cls(config)
 
 
 async def process_institute(
@@ -60,12 +71,34 @@ async def process_institute(
     parser_type = institute.get("parser_type", "pdf")
     fallback_type = institute.get("fallback_parser_type")
 
+    # Запоминаем прежнее количество групп для детектирования аномалий
+    existing_before = storage.read_schedule(inst_id)
+    prev_count = len(existing_before.get("groups", [])) if existing_before else 0
+
     try:
         links = await fetch_schedule_links(session, schedule_url)
         print(f"  Найдено ссылок: {len(links)}")
     except Exception as e:
         print(f"  Ошибка при получении ссылок: {e}")
         return _error_entry(inst_id, inst_name, str(e))
+
+    for sub in institute.get("sub_faculties", []):
+        try:
+            sub_links = await fetch_schedule_links(session, sub["schedule_url"])
+            links.extend(sub_links)
+            print(f"  sub_faculty '{sub['name']}': {len(sub_links)} ссылок")
+        except Exception as e:
+            print(f"  sub_faculty '{sub['name']}' ошибка: {e}")
+
+    min_year = institute.get("link_min_year")
+    if min_year:
+        before = len(links)
+        links = [
+            lnk for lnk in links
+            if not re.findall(r'/(\d{4})/', lnk["url"])
+            or any(int(y) >= min_year for y in re.findall(r'/(\d{4})/', lnk["url"]))
+        ]
+        print(f"  Фильтр по году ≥{min_year}: {len(links)} из {before} ссылок")
 
     all_groups = []
     parser_used = parser_type
@@ -123,15 +156,21 @@ async def process_institute(
             parser = get_parser(actual_type, institute)
             result = await asyncio.to_thread(parser.parse, tmp_path)
 
-            print(f"  ✓ {result.parser_used} conf={result.confidence:.2f} "
-                  f"групп={len(result.groups)} [{url[-50:]}]")
-
-            all_groups.extend(result.groups)
-            parser_used = result.parser_used
-
-            if result.warnings:
+            is_auth_error = any("авторизации" in w or "HTML" in w for w in result.warnings)
+            if is_auth_error:
+                # не обновляем хеш — нужно попробовать снова в следующий раз
+                file_hashes.pop(link_key, None)
+                print(f"  ✗ недоступен (HTML/авторизация): {url[-50:]}")
                 for w in result.warnings:
                     print(f"    ⚠ {w}")
+            else:
+                print(f"  ✓ {result.parser_used} conf={result.confidence:.2f} "
+                      f"групп={len(result.groups)} [{url[-50:]}]")
+                all_groups.extend(result.groups)
+                parser_used = result.parser_used
+                if result.warnings:
+                    for w in result.warnings:
+                        print(f"    ⚠ {w}")
         except Exception as e:
             print(f"  ✗ Ошибка парсинга {url}: {e}")
         finally:
@@ -144,8 +183,33 @@ async def process_institute(
     for key, md5 in file_hashes.items():
         tracker.update(key, key.split(":", 1)[1], md5, 0, datetime.now(timezone.utc).isoformat())
 
+    # Детектирование аномалий: файлы изменились, но результат подозрительный
+    alerts = _detect_anomalies(inst_id, inst_name, all_groups, prev_count, file_hashes)
+    for alert in alerts:
+        print(f"  ⚠ АНОМАЛИЯ [{alert['type']}]: {alert['message']}")
+
     if not all_groups:
-        return _error_entry(inst_id, inst_name, "Группы не найдены")
+        existing = storage.read_schedule(inst_id)
+        if existing and existing.get("groups"):
+            print(f"  ↔ нет новых данных, используем кеш ({len(existing['groups'])} групп)")
+            entry = {
+                "id": inst_id,
+                "name": inst_name,
+                "short_name": institute.get("short_name", existing.get("short_name", "")),
+                "campus": institute.get("campus"),
+                "campus_address": institute.get("campus_address"),
+                "groups_count": len(existing["groups"]),
+                "updated_at": existing.get("updated_at", datetime.now(timezone.utc).isoformat()),
+                "status": "ok",
+                "parser_used": existing.get("parser_used", parser_type),
+            }
+            entry["alerts"] = alerts
+            return entry
+        err = _error_entry(inst_id, inst_name, "Группы не найдены")
+        err["alerts"] = alerts
+        return err
+
+    all_groups = _merge_duplicate_groups(all_groups)
 
     now = datetime.now(timezone.utc).isoformat()
     schedule_doc = {
@@ -163,10 +227,13 @@ async def process_institute(
         "id": inst_id,
         "name": inst_name,
         "short_name": institute.get("short_name", ""),
+        "campus": institute.get("campus"),
+        "campus_address": institute.get("campus_address"),
         "groups_count": len(all_groups),
         "updated_at": now,
         "status": "ok",
         "parser_used": parser_used,
+        "alerts": alerts,
     }
 
 
@@ -185,10 +252,12 @@ async def main():
         results = await asyncio.gather(*tasks, return_exceptions=True)
 
     index_entries = []
+    all_alerts = []
     for inst, result in zip(institutes, results):
         if isinstance(result, Exception):
             index_entries.append(_error_entry(inst["id"], inst["name"], str(result)))
         else:
+            all_alerts.extend(result.pop("alerts", []))
             index_entries.append(result)
 
     tracker.save()
@@ -199,15 +268,98 @@ async def main():
         "institutes": index_entries,
     })
 
+    # Пишем/удаляем файл аномалий
+    alerts_path = Path(DATA_PATH) / "meta" / "alerts.json"
+    if all_alerts:
+        alerts_path.write_text(
+            json.dumps(all_alerts, ensure_ascii=False, indent=2), encoding="utf-8"
+        )
+    elif alerts_path.exists():
+        alerts_path.unlink()
+
     ok = sum(1 for e in index_entries if e.get("status") == "ok")
     print(f"\n{'='*50}")
     print(f"Готово: {ok}/{len(index_entries)} институтов обработано успешно")
+    if all_alerts:
+        print(f"⚠ Аномалий: {len(all_alerts)} — проверьте meta/alerts.json")
 
 
 def _current_academic_year() -> str:
     now = datetime.now()
     year = now.year if now.month >= 9 else now.year - 1
     return f"{year}-{year + 1}"
+
+
+def _detect_anomalies(
+    inst_id: str,
+    inst_name: str,
+    new_groups: list,
+    prev_count: int,
+    file_hashes: dict,
+) -> list[dict]:
+    """Возвращает список аномалий, если файлы изменились, но результат подозрительный."""
+    alerts = []
+    changed = len(file_hashes)
+    if changed == 0:
+        return alerts  # файлы не менялись — нечего проверять
+
+    new_count = len(new_groups)
+
+    if new_count == 0 and prev_count > 0:
+        alerts.append({
+            "type": "parser_broken",
+            "severity": "high",
+            "institute_id": inst_id,
+            "institute_name": inst_name,
+            "message": (
+                f"После обновления {changed} файл(ов) парсер вернул 0 групп "
+                f"(раньше было {prev_count}). Возможно, изменился формат."
+            ),
+            "prev_count": prev_count,
+            "new_count": 0,
+            "changed_files": changed,
+        })
+    elif new_count > 0 and prev_count >= 10 and new_count < prev_count * 0.4:
+        alerts.append({
+            "type": "groups_dropped",
+            "severity": "medium",
+            "institute_id": inst_id,
+            "institute_name": inst_name,
+            "message": (
+                f"Количество групп резко сократилось: {prev_count} → {new_count} "
+                f"после обновления {changed} файл(ов)."
+            ),
+            "prev_count": prev_count,
+            "new_count": new_count,
+            "changed_files": changed,
+        })
+
+    return alerts
+
+
+def _merge_duplicate_groups(groups: list[dict]) -> list[dict]:
+    """Объединяет расписания групп с одинаковым именем из разных файлов.
+
+    Если одна и та же группа встречается в нескольких PDF/DOCX,
+    уроки объединяются (без дублей по time_start + subject).
+    """
+    merged: dict[str, dict] = {}
+    for g in groups:
+        name = g["name"]
+        if name not in merged:
+            merged[name] = g
+            continue
+        existing = merged[name]
+        for week in ("odd_week", "even_week"):
+            for day, lessons in g["schedule"][week].items():
+                target = existing["schedule"][week][day]
+                seen = {(l["time_start"], l["subject"]) for l in target}
+                for lesson in lessons:
+                    key = (lesson["time_start"], lesson["subject"])
+                    if key not in seen:
+                        target.append(lesson)
+                        seen.add(key)
+    return list(merged.values())
 
 
 def _error_entry(inst_id, inst_name, error):
@@ -218,6 +370,7 @@ def _error_entry(inst_id, inst_name, error):
         "updated_at": datetime.now(timezone.utc).isoformat(),
         "status": "error",
         "error": error,
+        "alerts": [],
     }
 
 

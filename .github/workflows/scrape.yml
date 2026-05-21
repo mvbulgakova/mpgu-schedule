@@ -12,6 +12,7 @@ on:
 
 permissions:
   contents: write
+  issues: write
 
 jobs:
   scrape:
@@ -38,8 +39,22 @@ jobs:
       - name: Install Python deps
         run: pip install -r main-branch/scraper/requirements.txt
 
-      - name: Prepare data dir
-        run: mkdir -p data-branch/meta data-branch/institutes
+      - name: Checkout data branch (preserve historical data)
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          REMOTE=https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git
+          if git ls-remote --exit-code --heads "$REMOTE" data 2>/dev/null; then
+            git clone --depth=1 --branch data "$REMOTE" data-branch
+          else
+            mkdir -p data-branch/meta data-branch/institutes
+            cd data-branch
+            git init -b data
+            git remote add origin "$REMOTE"
+          fi
+          cd data-branch
+          git config user.name "MPGU Schedule Bot"
+          git config user.email "bot@github-actions"
 
       - name: Run scraper
         env:
@@ -56,12 +71,42 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
         run: |
           cd data-branch
-          git init -b data
-          git config user.name "MPGU Schedule Bot"
-          git config user.email "bot@github-actions"
-          git remote add origin https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git
+          git remote set-url origin https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git
           git add -A
-          git diff --staged --quiet && echo "Нет данных" && exit 0
+          git diff --staged --quiet && echo "Нет изменений" && exit 0
           git commit -m "Update $(date -u '+%Y-%m-%d %H:%M UTC')"
-          git push origin HEAD:refs/heads/data --force
+          git push -u origin data
           echo "Done"
+
+      - name: Alert on parser anomalies
+        if: always()
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          ALERTS="${{ github.workspace }}/data-branch/meta/alerts.json"
+          [ -f "$ALERTS" ] || exit 0
+          COUNT=$(python3 -c "import json; print(len(json.load(open('$ALERTS'))))")
+          [ "$COUNT" -eq 0 ] && exit 0
+
+          BODY=$(python3 - <<'PYEOF'
+          import json, os
+          alerts = json.load(open(os.environ['ALERTS']))
+          lines = ["Скрапер обнаружил аномалии при обработке расписаний.\n"]
+          for a in alerts:
+              sev = "🔴" if a["severity"] == "high" else "🟡"
+              lines.append(f"## {sev} {a['institute_name']}")
+              lines.append(f"**Тип:** `{a['type']}`")
+              lines.append(f"{a['message']}")
+              lines.append("")
+          lines.append("---")
+          lines.append("*Создано автоматически GitHub Actions*")
+          print("\n".join(lines))
+          PYEOF
+          )
+
+          gh issue create \
+            --repo "$GH_REPO" \
+            --title "⚠ Парсер: аномалии в расписании ($(date -u '+%Y-%m-%d'))" \
+            --body "$BODY" \
+          || echo "Не удалось создать Issue (возможно, уже существует похожий)"

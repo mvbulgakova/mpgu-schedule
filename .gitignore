@@ -15,6 +15,11 @@ pwa/dist/
 *.tmp
 *.temp
 
+# Local scraper output (belongs in data branch, not feature branches)
+data/
+data-push/
+data-local/
+
 # OS
 .DS_Store
 Thumbs.db
