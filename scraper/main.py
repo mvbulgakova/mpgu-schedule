@@ -224,6 +224,7 @@ async def process_institute(
         err["alerts"] = alerts
         return err
 
+    all_groups = _filter_invalid_groups(all_groups)
     all_groups = _merge_duplicate_groups(all_groups)
 
     now = datetime.now(timezone.utc).isoformat()
@@ -350,6 +351,36 @@ def _detect_anomalies(
         })
 
     return alerts
+
+
+_DAY_NAMES_RU = {
+    "понедельник", "вторник", "среда", "четверг", "пятница", "суббота", "воскресенье",
+    "пн", "вт", "ср", "чт", "пт", "сб", "вс",
+}
+
+# Валидный код группы: 2+ буквы/цифры, обычно содержит дефис или цифры года (20XX)
+_VALID_GROUP_RE = re.compile(r"[А-ЯA-Z]{1,3}[А-ЯA-Z0-9]+-[А-ЯA-Z]{2,5}\d{4}", re.IGNORECASE)
+
+
+def _filter_invalid_groups(groups: list[dict]) -> list[dict]:
+    """Отфильтровывает группы с явно невалидными именами (дни недели, коды специальностей и т.п.)"""
+    result = []
+    for g in groups:
+        name = g["name"].strip()
+        # Дни недели
+        if name.lower() in _DAY_NAMES_RU:
+            print(f"  ✗ фильтр: невалидное имя группы {name!r}")
+            continue
+        # Чисто цифровой или слишком короткий
+        if len(name) < 4 or name.replace(".", "").replace(" ", "").isdigit():
+            print(f"  ✗ фильтр: невалидное имя группы {name!r}")
+            continue
+        # Код специальности вида "44.03.01" или "48.04.01"
+        if re.match(r"^\d{2}\.\d{2}\.\d{2}", name):
+            print(f"  ✗ фильтр: невалидное имя группы {name!r}")
+            continue
+        result.append(g)
+    return result
 
 
 def _merge_duplicate_groups(groups: list[dict]) -> list[dict]:
