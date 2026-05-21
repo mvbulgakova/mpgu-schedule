@@ -70,6 +70,14 @@ def _acquire_gemini_slot() -> None:
         time.sleep(wait_for)
 
 
+# Models tried in order; first one that succeeds wins
+_CANDIDATE_MODELS = [
+    "gemini-2.0-flash",
+    "gemini-2.0-flash-lite",
+    "gemini-2.5-flash",
+]
+
+
 class GeminiClient:
     def __init__(self):
         api_key = os.environ.get("GEMINI_API_KEY")
@@ -77,19 +85,32 @@ class GeminiClient:
             raise ValueError("GEMINI_API_KEY не задан")
         self.client = genai.Client(api_key=api_key)
 
-    @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=2, min=10, max=60))
     def parse_pdf(self, pdf_path: str) -> dict:
-        _acquire_gemini_slot()
-
         pdf_bytes = pathlib.Path(pdf_path).read_bytes()
+        last_err = None
+        for model in _CANDIDATE_MODELS:
+            try:
+                result = self._call(model, pdf_bytes)
+                return result
+            except Exception as e:
+                last_err = e
+                msg = str(e)
+                # Only retry next model on quota/permission issues; propagate others
+                if "RESOURCE_EXHAUSTED" in msg or "PERMISSION_DENIED" in msg or "NOT_FOUND" in msg:
+                    continue
+                raise
+        raise RuntimeError(f"Все Gemini-модели недоступны: {last_err}") from last_err
+
+    @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=2, min=10, max=60))
+    def _call(self, model: str, pdf_bytes: bytes) -> dict:
+        _acquire_gemini_slot()
         response = self.client.models.generate_content(
-            model="gemini-2.0-flash",
+            model=model,
             contents=[
                 types.Blob(mime_type="application/pdf", data=pdf_bytes),
                 SYSTEM_PROMPT + "\n\nРаспарси расписание из этого PDF.",
             ],
         )
-
         text = response.text.strip()
         if text.startswith("```"):
             text = text.split("```")[1]
