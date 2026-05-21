@@ -278,6 +278,16 @@ async def main():
 
     tracker.save()
     storage.write_hashes(json.loads(Path(hashes_path).read_text()) if Path(hashes_path).exists() else {})
+
+    # When running for a single institute, preserve the rest of the index
+    if INSTITUTE_FILTER:
+        existing = storage.read_index()
+        if existing:
+            merged = {e["id"]: e for e in existing.get("institutes", [])}
+            for entry in index_entries:
+                merged[entry["id"]] = entry
+            index_entries = list(merged.values())
+
     storage.write_index({
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "academic_year": _current_academic_year(),

@@ -22,6 +22,15 @@ class GitStorage:
         path = self.root / "institutes" / institute_id / "schedule.json"
         _write_json(path, data)
 
+    def read_index(self) -> dict | None:
+        path = self.root / "meta" / "index.json"
+        if path.exists():
+            try:
+                return json.loads(path.read_text(encoding="utf-8"))
+            except Exception:
+                return None
+        return None
+
     def write_index(self, index: dict):
         _write_json(self.root / "meta" / "index.json", index)
 
