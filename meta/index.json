@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-05-21T05:38:00.299915+00:00",
+  "generated_at": "2026-05-21T11:28:58.843248+00:00",
   "academic_year": "2025-2026",
   "institutes": [
     {
@@ -8,8 +8,8 @@
       "short_name": "ИИИ",
       "campus": "ИИИ",
       "campus_address": "Рязанский пр-т, 9",
-      "groups_count": 25,
-      "updated_at": "2026-05-20T20:58:13.054177+00:00",
+      "groups_count": 59,
+      "updated_at": "2026-05-21T11:28:23.508691+00:00",
       "status": "ok",
       "parser_used": "pdfplumber",
       "campus_note": "Факультет музыкального искусства: Новоспасский пер., 3"
@@ -41,12 +41,12 @@
       "id": "digital",
       "name": "Институт развития цифрового образования",
       "short_name": "ИРЦО",
-      "campus": "ИИИ",
-      "campus_address": "Рязанский пр-т, 9",
-      "groups_count": 25,
-      "updated_at": "2026-05-20T20:58:22.009710+00:00",
+      "campus": "ИФТИС",
+      "campus_address": "ул. Усачева, 64",
+      "groups_count": 6,
+      "updated_at": "2026-05-21T11:13:50.324630+00:00",
       "status": "ok",
-      "parser_used": "pdfplumber"
+      "parser_used": "nextcloud"
     },
     {
       "id": "geography",
@@ -181,6 +181,17 @@
       "updated_at": "2026-05-20T20:58:17.634311+00:00",
       "status": "ok",
       "parser_used": "excel"
+    },
+    {
+      "id": "teaching_development",
+      "name": "Институт профессионального развития педагогов",
+      "short_name": "ИПРП",
+      "campus": "ИФТИС",
+      "campus_address": "ул. Усачева, 64",
+      "groups_count": 6,
+      "updated_at": "2026-05-21T11:18:57.788579+00:00",
+      "status": "ok",
+      "parser_used": "nextcloud"
     }
   ]
 }
