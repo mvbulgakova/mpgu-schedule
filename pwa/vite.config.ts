@@ -26,6 +26,14 @@ export default defineConfig({
             },
           },
           {
+            urlPattern: new RegExp(`^${DATA_BASE_URL}/meta/teachers\\.json`),
+            handler: "StaleWhileRevalidate",
+            options: {
+              cacheName: "mpgu-teachers",
+              expiration: { maxAgeSeconds: 3600 },
+            },
+          },
+          {
             urlPattern: new RegExp(`^${DATA_BASE_URL}/institutes/`),
             handler: "CacheFirst",
             options: {

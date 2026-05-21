@@ -62,3 +62,28 @@ export interface ScheduleIndex {
   academic_year: string;
   institutes: InstituteIndexEntry[];
 }
+
+export interface TeacherLesson {
+  ii: string;   // institute_id
+  is: string;   // institute_short
+  g: string;    // group name
+  w: "odd_week" | "even_week";
+  d: DayKey;
+  sl: number | null; // slot
+  ts: string;   // time_start
+  te: string;   // time_end
+  s: string;    // subject
+  t: LessonType;
+  r: string | null; // room
+  sg: 1 | 2 | null; // subgroup
+}
+
+export interface TeacherEntry {
+  name: string;
+  lessons: TeacherLesson[];
+}
+
+export interface TeacherIndex {
+  generated_at: string;
+  teachers: TeacherEntry[];
+}

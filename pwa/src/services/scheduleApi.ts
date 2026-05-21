@@ -1,4 +1,4 @@
-import type { ScheduleIndex, InstituteSchedule } from "../types/schedule";
+import type { ScheduleIndex, InstituteSchedule, TeacherIndex } from "../types/schedule";
 
 declare const __DATA_BASE_URL__: string;
 
@@ -13,4 +13,5 @@ async function get<T>(path: string): Promise<T> {
 export const scheduleApi = {
   fetchIndex: () => get<ScheduleIndex>("meta/index.json"),
   fetchSchedule: (id: string) => get<InstituteSchedule>(`institutes/${id}/schedule.json`),
+  fetchTeachers: () => get<TeacherIndex>("meta/teachers.json"),
 };
