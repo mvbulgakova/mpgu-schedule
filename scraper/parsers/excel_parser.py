@@ -6,7 +6,7 @@ import openpyxl
 from scraper.parsers.base import BaseParser, ParseResult
 from scraper.normalizer.schedule_normalizer import (
     normalize_day, normalize_lesson_type, normalize_time,
-    make_schedule_skeleton, lesson_obj,
+    make_schedule_skeleton, lesson_obj, extract_subgroup, date_str_to_weekday,
 )
 
 
@@ -218,6 +218,7 @@ def _parse_lesson_cell(cell: str, t_start: str, t_end: str) -> dict | None:
     subject_line = lines[0]
     lesson_type = normalize_lesson_type(subject_line)
     subject = re.sub(r"\s*\([ПЛ][ЗКБР]\)", "", subject_line, flags=re.I).strip(" ,.")
+    subject, subgroup = extract_subgroup(subject)
 
     teacher = room = None
     for line in lines[1:]:
@@ -227,7 +228,7 @@ def _parse_lesson_cell(cell: str, t_start: str, t_end: str) -> dict | None:
         if teacher is None and re.search(r"\b(проф|доц|асс|ст\. пр|преп)\b", line, re.I):
             teacher = re.sub(r"\(ауд\.?[^)]*\)", "", line).strip().rstrip(",. ")
 
-    return lesson_obj(None, t_start, t_end, subject, lesson_type, teacher, room) if subject else None
+    return lesson_obj(None, t_start, t_end, subject, lesson_type, teacher, room, subgroup) if subject else None
 
 
 def _parse_multirow_lines(lines: list[str], t_start: str, t_end: str) -> dict | None:
@@ -261,14 +262,25 @@ def _parse_multirow_lines(lines: list[str], t_start: str, t_end: str) -> dict | 
 
     lesson_type = normalize_lesson_type(subject)
     subject = re.sub(r"\s*\([ПЛ][ЗКБР]\)", "", subject, flags=re.I).strip()
-    return lesson_obj(None, t_start, t_end, subject, lesson_type, teacher, room)
+    subject, subgroup = extract_subgroup(subject)
+    return lesson_obj(None, t_start, t_end, subject, lesson_type, teacher, room, subgroup)
 
 
 def _day_from_date_str(s: str) -> str | None:
-    """Extract day from '14.02.2026 (суббота)' → 'saturday'."""
+    """Extract day from '14.02.2026 (суббота)' or pure '14.02.2026' → 'saturday'."""
+    # Явное название дня в скобках
     m = re.search(r"\(([а-яёА-ЯЁ]+)\)", s)
     if m:
-        return normalize_day(m.group(1))
+        day = normalize_day(m.group(1))
+        if day:
+            return day
+    # Вычисляем по дате (ЗФО: даты без подписи дня)
+    dm = re.search(r"\b(\d{1,2}\.\d{2}\.(?:\d{4}|\d{2}))\b", s)
+    if dm:
+        return date_str_to_weekday(dm.group(1))
+    dm = re.search(r"\b(\d{1,2}\.\d{2})\b", s)
+    if dm:
+        return date_str_to_weekday(dm.group(1))
     return None
 
 

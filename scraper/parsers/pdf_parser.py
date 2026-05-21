@@ -9,6 +9,7 @@ from scraper.parsers.base import BaseParser, ParseResult
 from scraper.normalizer.schedule_normalizer import (
     normalize_day, normalize_lesson_type, normalize_time,
     normalize_week_type, make_schedule_skeleton, lesson_obj, TIME_SLOTS,
+    extract_subgroup,
 )
 
 CONFIDENCE_THRESHOLD = 0.65
@@ -24,11 +25,12 @@ class PDFParser(BaseParser):
             return result
         # Принимаем разреженные расписания с реальными кодами групп (напр. магистратура)
         if result.groups and all(g["name"] != "группа" for g in result.groups):
-            odd_total = sum(
-                sum(len(d) for d in g["schedule"]["odd_week"].values())
+            total = sum(
+                sum(len(d) for d in g["schedule"]["odd_week"].values()) +
+                sum(len(d) for d in g["schedule"]["even_week"].values())
                 for g in result.groups
             )
-            if odd_total > 0:
+            if total > 0:
                 return result
         is_image_based = any("image-based" in w for w in result.warnings)
         accumulated_warnings.extend(result.warnings)
@@ -353,7 +355,9 @@ def _parse_mpgu_timetable_pages(tables: list[list[list]]) -> list[dict]:
     result = []
     for name, col in group_cols:
         sched = schedules[name]
-        if any(sched["odd_week"][d] for d in sched["odd_week"]):
+        has_lessons = any(sched["odd_week"][d] for d in sched["odd_week"]) or \
+                      any(sched["even_week"][d] for d in sched["even_week"])
+        if has_lessons:
             result.append({"name": name, "year": year, "form": form,
                            "degree": degree, "schedule": sched})
     return result
@@ -361,6 +365,88 @@ def _parse_mpgu_timetable_pages(tables: list[list[list]]) -> list[dict]:
 
 _SPLIT_TIME_START_RE = re.compile(r"^(\d{3,4})\s*[-–]\s*$")
 _SPLIT_TIME_END_RE = re.compile(r"^(\d{3,4})$")
+
+# Маркеры чётной/нечётной недели на отдельной строке
+_WEEK_ODD_MARKER = re.compile(
+    r"^(?:числитель|числ\.?|нечётная|нечетная|нечёт\.?|нечет\.?|н/?)\s*$",
+    re.IGNORECASE,
+)
+_WEEK_EVEN_MARKER = re.compile(
+    r"^(?:знаменатель|знам\.?|чётная|четная|чёт\.?|чет\.?|з/?)\s*$",
+    re.IGNORECASE,
+)
+
+
+def _is_metadata_line(line: str) -> bool:
+    """True если строка — метаданные занятия (тип, преподаватель, аудитория, маркер недели)."""
+    s = line.strip()
+    if not s:
+        return True
+    if re.match(r"^\([А-ЯЁа-яёA-Za-z.]{2,4}\)$", s):
+        return True
+    if re.search(r"\b(проф|доц|ст\.?\s*преп|асс|преп)\b", s, re.I):
+        return True
+    if "//" in s:
+        return True
+    if re.search(r"(ауд\.?\s*\d|\d+\s+корп\.|спортзал|стадион)", s, re.I):
+        return True
+    if _WEEK_ODD_MARKER.match(s) or _WEEK_EVEN_MARKER.match(s):
+        return True
+    return False
+
+
+def _split_timetable_content(content: str) -> list[tuple[str, str]]:
+    """Делит контент ячейки на [(текст, тип_недели)] с учётом маркеров чётности.
+
+    Если в ячейке два занятия (числитель + знаменатель), возвращает два сегмента.
+    Если маркер один — возвращает один сегмент с нужным типом недели.
+    Без маркеров — [(content, 'both')].
+    """
+    lines = content.split("\n")
+    odd_pos: list[int] = []
+    even_pos: list[int] = []
+    for i, line in enumerate(lines):
+        s = line.strip()
+        if _WEEK_ODD_MARKER.match(s):
+            odd_pos.append(i)
+        elif _WEEK_EVEN_MARKER.match(s):
+            even_pos.append(i)
+
+    marker_set = set(odd_pos) | set(even_pos)
+
+    # Нет маркеров — оба типа недели
+    if not odd_pos and not even_pos:
+        return [(content, "both")]
+
+    # Только один тип маркера
+    if odd_pos and not even_pos:
+        clean = "\n".join(l for i, l in enumerate(lines) if i not in marker_set)
+        return [(clean.strip(), "odd")]
+    if even_pos and not odd_pos:
+        clean = "\n".join(l for i, l in enumerate(lines) if i not in marker_set)
+        return [(clean.strip(), "even")]
+
+    # Оба типа: пытаемся разбить на два занятия
+    all_markers = sorted([(p, "odd") for p in odd_pos] + [(p, "even") for p in even_pos])
+    m1_pos, week1 = all_markers[0]
+    m2_pos, week2 = all_markers[1]
+
+    # Ищем начало второго занятия: первая не-метаданная строка между m1 и m2
+    second_start = m1_pos + 1
+    for i in range(m1_pos + 1, m2_pos):
+        if lines[i].strip() and not _is_metadata_line(lines[i]):
+            second_start = i
+            break
+
+    part1 = "\n".join(l for i, l in enumerate(lines) if i < second_start and i not in marker_set)
+    part2 = "\n".join(l for i, l in enumerate(lines) if i >= second_start and i not in marker_set)
+
+    result = []
+    if part1.strip():
+        result.append((part1.strip(), week1))
+    if part2.strip():
+        result.append((part2.strip(), week2))
+    return result if result else [(content, "both")]
 
 
 def _fill_mpgu_schedule_multi(
@@ -393,10 +479,13 @@ def _fill_mpgu_schedule_multi(
             if sched is None:
                 continue
             content = "\n".join(frags)
-            lesson = _parse_timetable_cell(content, t_start, t_end, None)
-            if lesson:
-                sched["odd_week"][current_day].append(lesson)
-                sched["even_week"][current_day].append({**lesson})
+            for seg_content, week_type in _split_timetable_content(content):
+                lesson = _parse_timetable_cell(seg_content, t_start, t_end, None)
+                if lesson:
+                    if week_type in ("odd", "both"):
+                        sched["odd_week"][current_day].append(lesson)
+                    if week_type in ("even", "both"):
+                        sched["even_week"][current_day].append({**lesson})
         pending = {}
 
     for row in table:
@@ -514,7 +603,8 @@ def _parse_mpgu_timetable(table: list[list], data_started: bool = False) -> list
     if pending and current_day and current_time:
         _assign_timetable_lessons(schedule, current_day, current_time, pending)
 
-    has_lessons = any(schedule["odd_week"][d] for d in schedule["odd_week"])
+    has_lessons = any(schedule["odd_week"][d] for d in schedule["odd_week"]) or \
+                  any(schedule["even_week"][d] for d in schedule["even_week"])
     if not has_lessons:
         return []
 
@@ -607,6 +697,15 @@ def _parse_timetable_cell(content: str, t_start: str, t_end: str,
     lines = [l.strip() for l in content.split("\n") if l.strip()]
     if not lines:
         return None
+
+    # Извлекаем подгруппу из любой строки
+    if subgroup is None:
+        for i, line in enumerate(lines):
+            cleaned, sg = extract_subgroup(line)
+            if sg is not None:
+                subgroup = sg
+                lines[i] = cleaned
+                break
 
     subject = lines[0]
     lesson_type = "other"
@@ -838,12 +937,11 @@ def _compute_confidence(groups: list[dict]) -> float:
     if not groups:
         return 0.0
     total_lessons = sum(
-        sum(len(lessons) for day_lessons in g["schedule"]["odd_week"].values()
-            for lessons in [day_lessons])
+        sum(len(day_lessons) for day_lessons in g["schedule"]["odd_week"].values()) +
+        sum(len(day_lessons) for day_lessons in g["schedule"]["even_week"].values())
         for g in groups
     )
     if total_lessons == 0:
         return 0.1
-    # эвристика: больше 5 занятий в неделю → хорошая уверенность
-    confidence = min(1.0, total_lessons / 20)
+    confidence = min(1.0, total_lessons / 30)
     return round(confidence, 2)
