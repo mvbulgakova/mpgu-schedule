@@ -358,26 +358,33 @@ _DAY_NAMES_RU = {
     "пн", "вт", "ср", "чт", "пт", "сб", "вс",
 }
 
-# Валидный код группы: 2+ буквы/цифры, обычно содержит дефис или цифры года (20XX)
-_VALID_GROUP_RE = re.compile(r"[А-ЯA-Z]{1,3}[А-ЯA-Z0-9]+-[А-ЯA-Z]{2,5}\d{4}", re.IGNORECASE)
+# Слова, с которых начинаются заголовки секций, а не коды групп
+_SECTION_HEADER_STARTS = re.compile(
+    r"^(курс|семестр|расписание|группы|форма|очная|заочная|очно|бакалавр|магистр|специалитет)\b",
+    re.IGNORECASE,
+)
 
 
 def _filter_invalid_groups(groups: list[dict]) -> list[dict]:
-    """Отфильтровывает группы с явно невалидными именами (дни недели, коды специальностей и т.п.)"""
+    """Отфильтровывает группы с явно невалидными именами (дни недели, заголовки секций и т.п.)"""
     result = []
     for g in groups:
         name = g["name"].strip()
-        # Дни недели
+        reason = None
         if name.lower() in _DAY_NAMES_RU:
-            print(f"  ✗ фильтр: невалидное имя группы {name!r}")
-            continue
-        # Чисто цифровой или слишком короткий
-        if len(name) < 4 or name.replace(".", "").replace(" ", "").isdigit():
-            print(f"  ✗ фильтр: невалидное имя группы {name!r}")
-            continue
-        # Код специальности вида "44.03.01" или "48.04.01"
-        if re.match(r"^\d{2}\.\d{2}\.\d{2}", name):
-            print(f"  ✗ фильтр: невалидное имя группы {name!r}")
+            reason = "день недели"
+        elif len(name) < 4:
+            reason = "слишком короткое"
+        elif name.replace(".", "").replace(" ", "").isdigit():
+            reason = "только цифры"
+        elif re.match(r"^\d{2}\.\d{2}\.\d{2}", name):
+            reason = "код специальности"
+        elif len(name) > 40:
+            reason = "слишком длинное"
+        elif _SECTION_HEADER_STARTS.match(name):
+            reason = "заголовок секции"
+        if reason:
+            print(f"  ✗ фильтр [{reason}]: {name!r}")
             continue
         result.append(g)
     return result
