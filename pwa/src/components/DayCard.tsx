@@ -49,7 +49,12 @@ export default function DayCard({ day, lessons, isToday, currentTime, showFullNa
       {hasLessons ? (
         <div className="flex flex-col gap-2">
           {lessons
-            .sort((a, b) => (a.slot ?? 9) - (b.slot ?? 9))
+            .slice()
+            .sort((a, b) => {
+              const slotDiff = (a.slot ?? 99) - (b.slot ?? 99);
+              if (slotDiff !== 0) return slotDiff;
+              return (a.time_start ?? "").localeCompare(b.time_start ?? "");
+            })
             .map((lesson, i) => (
               <LessonCard
                 key={i}

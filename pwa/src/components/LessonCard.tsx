@@ -54,7 +54,20 @@ export default function LessonCard({ lesson, slot: _slot, isNow }: Props) {
           <span>{TYPE_LABELS[lesson.type]}</span>
         )}
         {lesson.teacher && <span>{lesson.teacher}</span>}
-        {lesson.room && <span>ауд. {lesson.room}</span>}
+        {lesson.room && (
+          /^https?:\/\/|zoom\.us|teams\.microsoft\.com|meet\.|webex\.|el\.mpgu\.su/.test(lesson.room) ? (
+            <a
+              href={lesson.room.startsWith("http") ? lesson.room : `https://${lesson.room}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline underline-offset-2"
+            >
+              🔗 онлайн
+            </a>
+          ) : (
+            <span>ауд. {lesson.room}</span>
+          )
+        )}
         {lesson.subgroup && <span>п/г {lesson.subgroup}</span>}
       </div>
     </div>
