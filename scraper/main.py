@@ -370,9 +370,12 @@ _DAY_NAMES_RU = {
 
 # Слова, с которых начинаются заголовки секций, а не коды групп
 _SECTION_HEADER_STARTS = re.compile(
-    r"^(курс|семестр|расписание|группы|форма|очная|заочная|очно|бакалавр|магистр|специалитет)\b",
+    r"^(курс|семестр|расписание|группы|форма|очная|заочная|очно|бакалавр|магистр|специалитет|направление|направленность)\b",
     re.IGNORECASE,
 )
+
+# Код специальности (44.03.01 и подобные) где угодно в строке
+_SPECIALTY_CODE = re.compile(r"\d{2}\.\d{2}\.\d{2}")
 
 
 def _filter_invalid_groups(groups: list[dict]) -> list[dict]:
@@ -387,7 +390,7 @@ def _filter_invalid_groups(groups: list[dict]) -> list[dict]:
             reason = "слишком короткое"
         elif name.replace(".", "").replace(" ", "").isdigit():
             reason = "только цифры"
-        elif re.match(r"^\d{2}\.\d{2}\.\d{2}", name):
+        elif _SPECIALTY_CODE.search(name):
             reason = "код специальности"
         elif len(name) > 40:
             reason = "слишком длинное"
