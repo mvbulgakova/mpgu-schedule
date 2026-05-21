@@ -52,6 +52,28 @@ SYSTEM_PROMPT = """Ты — парсер расписания занятий р�
 Если ячейка содержит занятия для разных подгрупп — создавай два объекта с subgroup: 1 и subgroup: 2.
 Верни ТОЛЬКО валидный JSON без пояснений."""
 
+def _extract_json(text: str) -> dict:
+    """Извлекает JSON из ответа модели — из markdown-блока или напрямую."""
+    text = text.strip()
+    # Убираем markdown-обёртку ```json ... ```
+    if "```" in text:
+        parts = text.split("```")
+        for part in parts:
+            part = part.strip()
+            if part.startswith("json"):
+                part = part[4:].strip()
+            try:
+                return json.loads(part)
+            except (json.JSONDecodeError, ValueError):
+                continue
+    # Ищем первый { ... } блок
+    start = text.find("{")
+    end = text.rfind("}")
+    if start != -1 and end != -1 and end > start:
+        return json.loads(text[start:end + 1])
+    return json.loads(text)
+
+
 # Fixed-interval rate limiter: 1 generate_content call every 5 s ≈ 12 RPM
 _slot_lock = threading.Lock()
 _next_call_at: float = 0.0
@@ -94,14 +116,10 @@ class GeminiClient:
                 return result
             except Exception as e:
                 last_err = e
-                msg = str(e)
-                # Only retry next model on quota/permission issues; propagate others
-                if "RESOURCE_EXHAUSTED" in msg or "PERMISSION_DENIED" in msg or "NOT_FOUND" in msg:
-                    continue
-                raise
+                continue  # always try next model
         raise RuntimeError(f"Все Gemini-модели недоступны: {last_err}") from last_err
 
-    @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=2, min=10, max=60))
+    @retry(stop=stop_after_attempt(2), wait=wait_exponential(multiplier=2, min=10, max=30))
     def _call(self, model: str, pdf_bytes: bytes) -> dict:
         _acquire_gemini_slot()
         response = self.client.models.generate_content(
@@ -111,9 +129,4 @@ class GeminiClient:
                 SYSTEM_PROMPT + "\n\nРаспарси расписание из этого PDF.",
             ],
         )
-        text = response.text.strip()
-        if text.startswith("```"):
-            text = text.split("```")[1]
-            if text.startswith("json"):
-                text = text[4:]
-        return json.loads(text)
+        return _extract_json(response.text)
