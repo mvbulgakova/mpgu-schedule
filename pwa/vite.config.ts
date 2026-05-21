@@ -4,7 +4,7 @@ import { VitePWA } from "vite-plugin-pwa";
 
 const DATA_BASE_URL =
   process.env.VITE_DATA_URL ||
-  "https://raw.githubusercontent.com/mvbulgakova/hyperbolic-geometry-app/data";
+  "https://raw.githubusercontent.com/mvbulgakova/mpgu-schedule/data";
 
 export default defineConfig({
   plugins: [
