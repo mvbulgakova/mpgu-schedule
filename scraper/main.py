@@ -18,6 +18,14 @@ from scraper.fetchers.file_fetcher import fetch_file, check_changed, save_to_tem
 from scraper.parsers.excel_parser import ExcelParser
 from scraper.parsers.gsheets_parser import GSheetsParser, gsheets_to_csv_url
 from scraper.parsers.nextcloud_parser import NextcloudParser, nextcloud_download_url
+from scraper.fetchers.site_fetcher import GDRIVE_FILE_PATTERN
+
+
+def gdrive_to_download_url(url: str) -> str:
+    m = GDRIVE_FILE_PATTERN.search(url)
+    if m:
+        return f"https://drive.google.com/uc?export=download&id={m.group(1)}"
+    return url
 from scraper.parsers.docx_parser import DocxParser
 from scraper.storage.git_storage import GitStorage
 from scraper.utils.hash_tracker import HashTracker, md5_of_bytes
@@ -126,6 +134,13 @@ async def process_institute(
                 content, md5 = await fetch_file(session, dl_url)
             except Exception as e:
                 print(f"  ✗ nextcloud {url}: {e}")
+                continue
+        elif actual_type == "pdf" and GDRIVE_FILE_PATTERN.search(url):
+            dl_url = gdrive_to_download_url(url)
+            try:
+                content, md5 = await fetch_file(session, dl_url)
+            except Exception as e:
+                print(f"  ✗ gdrive {url}: {e}")
                 continue
         else:
             try:

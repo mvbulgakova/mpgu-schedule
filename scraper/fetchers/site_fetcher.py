@@ -9,6 +9,7 @@ from tenacity import retry, stop_after_attempt, wait_exponential
 SCHEDULE_EXTENSIONS = {".pdf", ".xlsx", ".xls", ".docx", ".doc"}
 GSHEETS_PATTERN = re.compile(r"docs\.google\.com/spreadsheets")
 NEXTCLOUD_PATTERN = re.compile(r"oc\.mpgu\.su")
+GDRIVE_FILE_PATTERN = re.compile(r"drive\.google\.com/file/d/([a-zA-Z0-9_-]+)")
 
 HEADERS = {
     "User-Agent": (
@@ -58,6 +59,8 @@ def _classify_link(url: str) -> str | None:
         return "gsheets"
     if NEXTCLOUD_PATTERN.search(url):
         return "nextcloud"
+    if GDRIVE_FILE_PATTERN.search(url):
+        return "pdf"
 
     for ext in SCHEDULE_EXTENSIONS:
         if path.endswith(ext):
