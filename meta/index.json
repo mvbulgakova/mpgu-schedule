@@ -1,7 +1,161 @@
 {
-  "generated_at": "2026-05-21T12:26:36.008351+00:00",
+  "generated_at": "2026-05-21T12:29:57.152585+00:00",
   "academic_year": "2025-2026",
   "institutes": [
+    {
+      "id": "arts",
+      "name": "Институт изящных искусств",
+      "short_name": "ИИИ",
+      "campus": "ИИИ",
+      "campus_address": "Рязанский пр-т, 9",
+      "groups_count": 59,
+      "updated_at": "2026-05-21T11:28:23.508691+00:00",
+      "status": "ok",
+      "parser_used": "pdfplumber"
+    },
+    {
+      "id": "biology",
+      "name": "Институт биологии и химии",
+      "short_name": "ИБиХ",
+      "campus": "ИБХ",
+      "campus_address": "ул. Кибальчича, 6",
+      "groups_count": 35,
+      "updated_at": "2026-05-20T21:00:27.046655+00:00",
+      "status": "ok",
+      "parser_used": "nextcloud"
+    },
+    {
+      "id": "childhood",
+      "name": "Институт детства",
+      "short_name": "ИД",
+      "campus": "КГФ",
+      "campus_address": "пр-т Вернадского, 88",
+      "groups_count": 66,
+      "updated_at": "2026-05-20T22:16:02.881181+00:00",
+      "status": "ok",
+      "parser_used": "pdfplumber"
+    },
+    {
+      "id": "digital",
+      "name": "Институт развития цифрового образования",
+      "short_name": "ИРЦО",
+      "campus": "ИФТИС",
+      "campus_address": "ул. Усачева, 64",
+      "groups_count": 6,
+      "updated_at": "2026-05-21T11:13:50.324630+00:00",
+      "status": "ok",
+      "parser_used": "nextcloud"
+    },
+    {
+      "id": "geography",
+      "name": "Географический факультет",
+      "short_name": "ГФ",
+      "campus": "ГФ",
+      "campus_address": "ул. Кибальчича, 16",
+      "groups_count": 21,
+      "updated_at": "2026-05-20T20:58:29.954326+00:00",
+      "status": "ok",
+      "parser_used": "pdfplumber"
+    },
+    {
+      "id": "history",
+      "name": "Институт истории и политики",
+      "short_name": "ИИиП",
+      "campus": "КГФ",
+      "campus_address": "пр-т Вернадского, 88",
+      "groups_count": 56,
+      "updated_at": "2026-05-20T20:57:12.893322+00:00",
+      "status": "ok",
+      "parser_used": "excel"
+    },
+    {
+      "id": "international",
+      "name": "Институт международного образования",
+      "short_name": "ИМО",
+      "campus": "КГФ",
+      "campus_address": "пр-т Вернадского, 88",
+      "groups_count": 92,
+      "updated_at": "2026-05-20T22:40:31.273592+00:00",
+      "status": "ok",
+      "parser_used": "claude"
+    },
+    {
+      "id": "journalism",
+      "name": "Институт журналистики, коммуникаций и медиаобразования",
+      "short_name": "ИЖКМ",
+      "campus": "ИЖКМ",
+      "campus_address": "Верхняя Радищевская, 16-18",
+      "groups_count": 64,
+      "updated_at": "2026-05-20T21:04:40.729701+00:00",
+      "status": "ok",
+      "parser_used": "pdfplumber"
+    },
+    {
+      "id": "languages",
+      "name": "Институт иностранных языков",
+      "short_name": "ИИЯ",
+      "campus": "КГФ",
+      "campus_address": "пр-т Вернадского, 88",
+      "groups_count": 2,
+      "updated_at": "2026-05-20T21:03:02.578348+00:00",
+      "status": "ok",
+      "parser_used": "gemini"
+    },
+    {
+      "id": "math",
+      "name": "Институт математики и информатики",
+      "short_name": "ИМиИ",
+      "campus": "ИМиИ",
+      "campus_address": "ул. Краснопрудная, 14",
+      "groups_count": 21,
+      "updated_at": "2026-05-20T20:59:12.083203+00:00",
+      "status": "ok",
+      "parser_used": "gemini"
+    },
+    {
+      "id": "pedagogy",
+      "name": "Институт педагогики и психологии",
+      "short_name": "ИПиП",
+      "campus": "ИПиП",
+      "campus_address": "Малый Сухаревский пер., 6",
+      "groups_count": 59,
+      "updated_at": "2026-05-21T12:14:07.549594+00:00",
+      "status": "ok",
+      "parser_used": "claude"
+    },
+    {
+      "id": "philology",
+      "name": "Институт филологии",
+      "short_name": "ИФил",
+      "campus": "ИФил",
+      "campus_address": "ул. Малая Пироговская, 1 / пр-т Вернадского, 88",
+      "groups_count": 79,
+      "updated_at": "2026-05-20T21:01:22.876571+00:00",
+      "status": "ok",
+      "parser_used": "gemini"
+    },
+    {
+      "id": "physics",
+      "name": "Институт физики, технологии и информационных систем",
+      "short_name": "ИФТИС",
+      "campus": "ИФТИС",
+      "campus_address": "ул. Малая Пироговская, 29",
+      "groups_count": 16,
+      "updated_at": "2026-05-20T20:58:30.375048+00:00",
+      "status": "ok",
+      "parser_used": "gemini"
+    },
+    {
+      "id": "preschool",
+      "name": "Факультет дошкольной педагогики и психологии",
+      "short_name": "ФДПиП",
+      "campus": "ФДПиП",
+      "campus_address": "Госпитальный Вал, 4",
+      "groups_count": 2,
+      "updated_at": "2026-05-20T20:59:00.792141+00:00",
+      "status": "ok",
+      "parser_used": "gemini"
+    },
     {
       "id": "social",
       "name": "Институт социально-гуманитарного образования",
@@ -12,6 +166,28 @@
       "updated_at": "2026-05-21T12:26:35.970281+00:00",
       "status": "ok",
       "parser_used": "pdfplumber"
+    },
+    {
+      "id": "sport",
+      "name": "Институт физической культуры, спорта и здоровья",
+      "short_name": "ИФКСиЗ",
+      "campus": "КГФ",
+      "campus_address": "пр-т Вернадского, 88",
+      "groups_count": 39,
+      "updated_at": "2026-05-20T20:58:17.634311+00:00",
+      "status": "ok",
+      "parser_used": "excel"
+    },
+    {
+      "id": "teaching_development",
+      "name": "Институт профессионального развития педагогов",
+      "short_name": "ИПРП",
+      "campus": "ИФТИС",
+      "campus_address": "ул. Усачева, 64",
+      "groups_count": 6,
+      "updated_at": "2026-05-21T11:18:57.788579+00:00",
+      "status": "ok",
+      "parser_used": "nextcloud"
     }
   ]
 }
