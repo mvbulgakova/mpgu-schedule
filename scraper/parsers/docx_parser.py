@@ -10,6 +10,89 @@ from scraper.normalizer.schedule_normalizer import (
     normalize_week_type, make_schedule_skeleton, lesson_obj,
 )
 
+# Аббревиатуры типов занятий в скобках (как в ИПиП DOCX)
+_TYPE_ABBR = {
+    "лк": "lecture",
+    "лек": "lecture",
+    "пз": "practice",
+    "прак": "practice",
+    "лаб": "lab",
+    "лб": "lab",
+    "см": "seminar",
+    "сем": "seminar",
+    "семинар": "seminar",
+}
+
+# Ключевые слова должностей преподавателей
+_TEACHER_PREFIXES = re.compile(
+    r"^(доцент|проф\.|профессор|ст\.\s*преподаватель|ст\.преп\.|преподаватель|"
+    r"асс\.|ассистент|доц\.|зав\.|академик|ст\.?\s*преп\.?)",
+    re.IGNORECASE,
+)
+
+
+def _parse_multiline_cell(cell_text: str) -> dict:
+    """Разбирает многострочный текст ячейки на поля subject/type/teacher/room/notes.
+
+    Формат ИПиП:
+      Строка 0: Название предмета (ТИП)
+      Строка 1: Должность Фамилия И.О. [, Должность Фамилия И.О.]
+      Строка 2+: Ауд. N[,M] или Каб. N
+      Остальные: заметки (даты и т.п.)
+    """
+    lines = [l.strip() for l in cell_text.split("\n") if l.strip()]
+    if not lines:
+        return {"subject": "", "type": "other", "teacher": None, "room": None, "notes": ""}
+
+    # --- Строка 0: предмет + тип в скобках ---
+    subject_line = lines[0]
+    lesson_type = "other"
+    m = re.search(r"\(([^)]+)\)\s*$", subject_line)
+    if m:
+        abbr = m.group(1).strip().lower()
+        if abbr in _TYPE_ABBR:
+            lesson_type = _TYPE_ABBR[abbr]
+            subject_line = subject_line[: m.start()].strip()
+        else:
+            # попробуем normalize_lesson_type как запасной вариант
+            guessed = normalize_lesson_type(abbr)
+            if guessed != "other":
+                lesson_type = guessed
+                subject_line = subject_line[: m.start()].strip()
+
+    subject = subject_line
+
+    teacher = None
+    room = None
+    note_parts = []
+
+    for line in lines[1:]:
+        # Проверка на аудиторию/кабинет
+        if re.match(r"^(ауд|АУД|Ауд|каб|Каб|КАБ)\.?\s*\d", line) or re.match(
+            r"^(ауд|АУД|Ауд|каб|Каб|КАБ)\.", line, re.IGNORECASE
+        ):
+            # "Ауд. 36,35" → "36,35"
+            room_val = re.sub(r"^(ауд|каб)\.?\s*", "", line, flags=re.IGNORECASE).strip()
+            room = room_val if room_val else None
+            continue
+
+        # Проверка на преподавателя
+        if _TEACHER_PREFIXES.match(line):
+            teacher = line
+            continue
+
+        # Остальное — заметки
+        note_parts.append(line)
+
+    notes = "; ".join(note_parts)
+    return {
+        "subject": subject,
+        "type": lesson_type,
+        "teacher": teacher,
+        "room": room,
+        "notes": notes,
+    }
+
 
 class DocxParser(BaseParser):
     def parse(self, source: str | bytes) -> ParseResult:
@@ -71,11 +154,23 @@ def _parse_day_columns(table):
                 continue
             week_m = re.search(r"\b(числ[а-я]*|знам[а-я]*|н/|з/)\b", cell, re.I)
             week_type = normalize_week_type(week_m.group(1)) if week_m else "both"
-            lesson_type = normalize_lesson_type(cell)
-            clean = re.sub(r"\bлек\b|\bпрактика\b|\bпр\b|\bлаб\b|\bсеминар\b", "", cell, flags=re.I).strip()
-            room_m = re.search(r"[\wА-Яа-я]-?\d{2,4}", clean)
-            room = room_m.group(0) if room_m else None
-            lesson = lesson_obj(None, current_time[0], current_time[1], clean, lesson_type, None, room)
+
+            if "\n" in cell:
+                parsed = _parse_multiline_cell(cell)
+                lesson_type = parsed["type"]
+                clean = parsed["subject"]
+                teacher = parsed["teacher"]
+                room = parsed["room"]
+                notes = parsed["notes"]
+            else:
+                lesson_type = normalize_lesson_type(cell)
+                clean = re.sub(r"\bлек\b|\bпрактика\b|\bпр\b|\bлаб\b|\bсеминар\b", "", cell, flags=re.I).strip()
+                room_m = re.search(r"[\wА-Яа-я]-?\d{2,4}", clean)
+                room = room_m.group(0) if room_m else None
+                teacher = None
+                notes = ""
+
+            lesson = lesson_obj(None, current_time[0], current_time[1], clean, lesson_type, teacher, room, notes=notes)
             if week_type in ("odd", "both"):
                 schedule["odd_week"][day].append(lesson)
             if week_type in ("even", "both"):
@@ -125,8 +220,22 @@ def _parse_multi_group_cols(table):
                 continue
             week_m = re.search(r"\b(числ[а-я]*|знам[а-я]*|н/|з/)\b", cell, re.I)
             week_type = normalize_week_type(week_m.group(1)) if week_m else "both"
-            lesson_type = normalize_lesson_type(cell)
-            lesson = lesson_obj(None, times[0], times[1], cell, lesson_type, None, None)
+
+            if "\n" in cell:
+                parsed = _parse_multiline_cell(cell)
+                lesson_type = parsed["type"]
+                subject = parsed["subject"]
+                teacher = parsed["teacher"]
+                room = parsed["room"]
+                notes = parsed["notes"]
+            else:
+                lesson_type = normalize_lesson_type(cell)
+                subject = cell
+                teacher = None
+                room = None
+                notes = ""
+
+            lesson = lesson_obj(None, times[0], times[1], subject, lesson_type, teacher, room, notes=notes)
             if week_type in ("odd", "both"):
                 schedules[name]["odd_week"][day].append(lesson)
             if week_type in ("even", "both"):
@@ -164,9 +273,27 @@ def _parse_flat(table):
         times = normalize_time(_get(row, col["time"]) or "")
         if not times:
             continue
-        subject = _get(row, col["subject"]) or ""
-        lesson = lesson_obj(None, times[0], times[1], subject, "other",
-                            _get(row, col["teacher"]), _get(row, col["room"]))
+        raw_subject = _get(row, col["subject"]) or ""
+        raw_teacher = _get(row, col["teacher"])
+        raw_room = _get(row, col["room"])
+
+        # Если предмет содержит переносы строк — парсим многострочный формат ИПиП
+        if "\n" in raw_subject:
+            parsed = _parse_multiline_cell(raw_subject)
+            subject = parsed["subject"]
+            lesson_type = parsed["type"]
+            teacher = raw_teacher or parsed["teacher"]
+            room = raw_room or parsed["room"]
+            notes = parsed["notes"]
+        else:
+            subject = raw_subject
+            lesson_type = normalize_lesson_type(raw_subject) if raw_subject else "other"
+            teacher = raw_teacher
+            room = raw_room
+            notes = ""
+
+        lesson = lesson_obj(None, times[0], times[1], subject, lesson_type,
+                            teacher, room, notes=notes)
         schedule["odd_week"][day].append(lesson)
         schedule["even_week"][day].append({**lesson})
     return [{"name": "группа", "year": None, "form": "full_time",
