@@ -108,6 +108,17 @@ async def process_institute(
         ]
         print(f"  Фильтр по году ≥{min_year}: {len(links)} из {before} ссылок")
 
+    # Дедупликация по URL (один и тот же файл может появиться из main + sub_faculty)
+    seen_urls: set[str] = set()
+    deduped: list[dict] = []
+    for lnk in links:
+        if lnk["url"] not in seen_urls:
+            seen_urls.add(lnk["url"])
+            deduped.append(lnk)
+    if len(deduped) < len(links):
+        print(f"  Дедупликация: {len(links) - len(deduped)} дублей убрано")
+    links = deduped
+
     all_groups = []
     parser_used = parser_type
     file_hashes: dict[str, str] = {}
