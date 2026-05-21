@@ -7,6 +7,7 @@ const DATA_BASE_URL =
   "https://raw.githubusercontent.com/mvbulgakova/mpgu-schedule/data";
 
 export default defineConfig({
+  base: process.env.VITE_BASE_URL ?? "/",
   plugins: [
     react(),
     VitePWA({
