@@ -20,35 +20,29 @@ permissions:
   issues: write
 
 jobs:
+  compute-matrix:
+    runs-on: ubuntu-latest
+    outputs:
+      institutes: ${{ steps.set.outputs.institutes }}
+    steps:
+      - id: set
+        run: |
+          FILTER="${{ github.event.inputs.institute_id }}"
+          ALL='["biology","childhood","philology","physics","sport","social","geography","history","math","arts","preschool","pedagogy","languages","international","journalism","teaching_development","digital"]'
+          if [ -n "$FILTER" ]; then
+            echo "institutes=[\"$FILTER\"]" >> "$GITHUB_OUTPUT"
+          else
+            echo "institutes=$ALL" >> "$GITHUB_OUTPUT"
+          fi
+
   scrape:
+    needs: compute-matrix
     runs-on: ubuntu-latest
     timeout-minutes: 25
     strategy:
       fail-fast: false
       matrix:
-        institute_id:
-          - biology
-          - childhood
-          - philology
-          - physics
-          - sport
-          - social
-          - geography
-          - history
-          - math
-          - arts
-          - preschool
-          - pedagogy
-          - languages
-          - international
-          - journalism
-          - teaching_development
-          - digital
-    # When institute_id is specified, run only that job; otherwise run all
-    if: >-
-      github.event_name != 'workflow_dispatch' ||
-      github.event.inputs.institute_id == '' ||
-      github.event.inputs.institute_id == matrix.institute_id
+        institute_id: ${{ fromJson(needs.compute-matrix.outputs.institutes) }}
 
     steps:
       - name: Checkout main (code)
