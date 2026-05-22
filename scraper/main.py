@@ -315,8 +315,15 @@ async def main():
 
     if not SKIP_TEACHERS:
         _build_teacher_index(storage)
+        teachers_db = Path(DATA_PATH) / "meta" / "teachers.json"
+        if teachers_db.exists():
+            print("\n[TEACHERS] Строим расписания преподавателей …")
+            try:
+                from scraper.build_teacher_schedules import build as build_teacher_schedules
+                build_teacher_schedules(DATA_PATH)
+            except Exception as e:
+                print(f"  ⚠ Ошибка построения расписаний преподавателей: {e}")
 
-    # Пишем/удаляем файл аномалий
     alerts_path = Path(DATA_PATH) / "meta" / "alerts.json"
     if all_alerts:
         alerts_path.write_text(
@@ -330,16 +337,6 @@ async def main():
     print(f"Готово: {ok}/{len(index_entries)} институтов обработано успешно")
     if all_alerts:
         print(f"⚠ Аномалий: {len(all_alerts)} — проверьте meta/alerts.json")
-
-    # Build per-teacher schedule files if teacher DB exists
-    teachers_db = Path(DATA_PATH) / "meta" / "teachers.json"
-    if teachers_db.exists():
-        print("\n[TEACHERS] Строим расписания преподавателей …")
-        try:
-            from scraper.build_teacher_schedules import build as build_teacher_schedules
-            build_teacher_schedules(DATA_PATH)
-        except Exception as e:
-            print(f"  ⚠ Ошибка построения расписаний преподавателей: {e}")
 
 
 def _current_academic_year() -> str:
