@@ -31,10 +31,15 @@ function ScheduleApp() {
   const darkMode = useAppStore((s) => s.darkMode);
   const toggleDarkMode = useAppStore((s) => s.toggleDarkMode);
 
-  const { data: index, isLoading: indexLoading } = useIndex();
+  const { data: index, isLoading: indexLoading, isError: indexError, refetch: refetchIndex } = useIndex();
   const cachedIndex = useOfflineCache("index", index);
 
-  const { data: scheduleData, isLoading: schedLoading } = useInstituteSchedule(instituteId);
+  const {
+    data: scheduleData,
+    isLoading: schedLoading,
+    isError: schedError,
+    refetch: refetchSchedule,
+  } = useInstituteSchedule(instituteId);
   const cachedSchedule = useOfflineCache(`schedule:${instituteId}`, scheduleData);
 
   const group = cachedSchedule?.groups.find((g) => g.name === groupName);
@@ -121,8 +126,20 @@ function ScheduleApp() {
         )}
 
         {!indexLoading && !cachedIndex && (
-          <div className="p-6 text-center text-gray-500 dark:text-gray-400 text-sm">
-            Не удалось загрузить данные. Проверьте соединение.
+          <div className="p-8 flex flex-col items-center gap-4 text-center">
+            <div className="text-gray-400 dark:text-gray-500 text-sm">
+              {indexError
+                ? "Не удалось загрузить данные. Проверьте соединение."
+                : "Нет данных."}
+            </div>
+            {indexError && (
+              <button
+                onClick={() => refetchIndex()}
+                className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg transition-colors"
+              >
+                Попробовать снова
+              </button>
+            )}
           </div>
         )}
 
@@ -135,6 +152,19 @@ function ScheduleApp() {
             {schedLoading && !cachedSchedule && (
               <div className="flex justify-center items-center h-40 text-gray-400 dark:text-gray-500 text-sm">
                 Загрузка групп...
+              </div>
+            )}
+            {!schedLoading && schedError && !cachedSchedule && (
+              <div className="p-8 flex flex-col items-center gap-4 text-center">
+                <div className="text-gray-400 dark:text-gray-500 text-sm">
+                  Не удалось загрузить расписание.
+                </div>
+                <button
+                  onClick={() => refetchSchedule()}
+                  className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg transition-colors"
+                >
+                  Попробовать снова
+                </button>
               </div>
             )}
             {cachedSchedule && (
