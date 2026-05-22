@@ -51,3 +51,14 @@ export function useGroupSchedule(
     refetchOnReconnect: true,
   });
 }
+
+export function useInstituteExams(instituteId: string | null) {
+  return useQuery({
+    queryKey: ["exams", instituteId],
+    queryFn: () => scheduleApi.fetchExams(instituteId!),
+    enabled: !!instituteId,
+    staleTime: 6 * 60 * 60 * 1000,
+    refetchOnReconnect: true,
+    retry: 1,
+  });
+}

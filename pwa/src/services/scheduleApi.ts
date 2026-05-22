@@ -4,6 +4,7 @@ import type {
   Group,
   TeachersIndex,
   TeacherScheduleDoc,
+  InstituteExams,
 } from "../types/schedule";
 
 declare const __DATA_BASE_URL__: string;
@@ -47,4 +48,6 @@ export const scheduleApi = {
   fetchTeachersIndex: () => get<TeachersIndex>("meta/teachers.json"),
   fetchTeacherSchedule: (slug: string) =>
     get<TeacherScheduleDoc>(`teachers/${slug}.json`),
+  fetchExams: (id: string) =>
+    get<InstituteExams>(`institutes/${id}/exams.json`),
 };

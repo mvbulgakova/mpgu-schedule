@@ -74,6 +74,29 @@ export interface ScheduleIndex {
 }
 
 // ──────────────────────────────────────────────
+// Exam / session types
+// ──────────────────────────────────────────────
+
+export type ExamType = "exam" | "credit" | "unknown";
+
+export interface ExamEntry {
+  date: string;          // "YYYY-MM-DD"
+  time_start: string;    // "HH:MM"
+  time_end: string | null;
+  subject: string;
+  type: ExamType;
+  teacher: string | null;
+  room: string | null;
+  groups: string[];
+}
+
+export interface InstituteExams {
+  institute_id: string;
+  updated_at: string;
+  entries: ExamEntry[];
+}
+
+// ──────────────────────────────────────────────
 // Teacher types
 // ──────────────────────────────────────────────
 

@@ -7,6 +7,7 @@ import {
   useGroupSchedule,
   useTeachersIndex,
   useTeacherSchedule,
+  useInstituteExams,
 } from "./hooks/useSchedule";
 import { useOfflineCache } from "./hooks/useOfflineCache";
 import { useNotifications } from "./hooks/useNotifications";
@@ -16,6 +17,7 @@ import WeekSchedule from "./components/WeekSchedule";
 import NotificationSettings from "./components/NotificationSettings";
 import TeacherSearch from "./components/TeacherSearch";
 import TeacherScheduleView from "./components/TeacherScheduleView";
+import ExamScheduleView from "./components/ExamScheduleView";
 import type { TeacherMeta } from "./types/schedule";
 import { format, getISOWeek } from "date-fns";
 import { ru } from "date-fns/locale";
@@ -70,12 +72,17 @@ function ScheduleApp() {
   const [showNotifSettings, setShowNotifSettings] = useState(false);
   const [showTeacherSearch, setShowTeacherSearch] = useState(false);
   const [selectedTeacher, setSelectedTeacher] = useState<TeacherMeta | null>(null);
+  const [activeTab, setActiveTab] = useState<"schedule" | "exams">("schedule");
 
   const { data: teachersData } = useTeachersIndex();
   const {
     data: teacherScheduleData,
     isLoading: teacherScheduleLoading,
   } = useTeacherSchedule(selectedTeacher?.staff_slug ?? null);
+
+  const { data: examsData } = useInstituteExams(
+    groupMeta && !selectedTeacher ? instituteId : null
+  );
 
   useNotifications(cachedGroup?.schedule);
 
@@ -337,24 +344,63 @@ function ScheduleApp() {
             )}
             {cachedGroup && (
               <>
-                <div className="flex items-center justify-between px-4 py-2 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
-                  <span className="text-xs text-gray-500 dark:text-gray-400">
-                    {format(today, "EEEE, d MMMM", { locale: ru })} · {weekNum} неделя
-                  </span>
-                  <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
-                    showEvenWeek === isCurrentWeekEven
-                      ? "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400"
-                      : "bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400"
-                  }`}>
-                    {showEvenWeek ? "чётная" : "нечётная"}{showEvenWeek === isCurrentWeekEven ? " (сейчас)" : ""}
-                  </span>
+                {/* Tab bar */}
+                <div className="flex border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+                  <button
+                    onClick={() => setActiveTab("schedule")}
+                    className={`flex-1 py-2.5 text-sm font-medium transition-colors ${
+                      activeTab === "schedule"
+                        ? "text-indigo-600 dark:text-indigo-400 border-b-2 border-indigo-600 dark:border-indigo-400"
+                        : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+                    }`}
+                  >
+                    Расписание
+                  </button>
+                  <button
+                    onClick={() => setActiveTab("exams")}
+                    className={`flex-1 py-2.5 text-sm font-medium transition-colors ${
+                      activeTab === "exams"
+                        ? "text-indigo-600 dark:text-indigo-400 border-b-2 border-indigo-600 dark:border-indigo-400"
+                        : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+                    }`}
+                  >
+                    Сессия
+                  </button>
                 </div>
-                <WeekSchedule schedule={cachedGroup.schedule} showEvenWeek={showEvenWeek} />
-                <div className="text-center text-xs text-gray-300 dark:text-gray-600 py-4">
-                  Обновлено: {cachedManifest?.updated_at
-                    ? format(new Date(cachedManifest.updated_at), "d MMM HH:mm", { locale: ru })
-                    : "—"}
-                </div>
+
+                {activeTab === "schedule" && (
+                  <>
+                    <div className="flex items-center justify-between px-4 py-2 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+                      <span className="text-xs text-gray-500 dark:text-gray-400">
+                        {format(today, "EEEE, d MMMM", { locale: ru })} · {weekNum} неделя
+                      </span>
+                      <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
+                        showEvenWeek === isCurrentWeekEven
+                          ? "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400"
+                          : "bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400"
+                      }`}>
+                        {showEvenWeek ? "чётная" : "нечётная"}{showEvenWeek === isCurrentWeekEven ? " (сейчас)" : ""}
+                      </span>
+                    </div>
+                    <WeekSchedule schedule={cachedGroup.schedule} showEvenWeek={showEvenWeek} />
+                    <div className="text-center text-xs text-gray-300 dark:text-gray-600 py-4">
+                      Обновлено: {cachedManifest?.updated_at
+                        ? format(new Date(cachedManifest.updated_at), "d MMM HH:mm", { locale: ru })
+                        : "—"}
+                    </div>
+                  </>
+                )}
+
+                {activeTab === "exams" && (
+                  examsData
+                    ? <ExamScheduleView entries={examsData.entries} groupName={groupName!} />
+                    : (
+                      <div className="flex flex-col items-center justify-center h-40 text-gray-400 dark:text-gray-500 text-sm gap-2">
+                        <span className="text-3xl">📭</span>
+                        <span>Данные о сессии недоступны</span>
+                      </div>
+                    )
+                )}
               </>
             )}
           </>
