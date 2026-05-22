@@ -110,7 +110,7 @@ class TeacherCrawler:
             staff_slug = m.group(1).rstrip("/")
             if staff_slug in self._seen_staff:
                 continue
-            name_text = a.get_text(strip=True)
+            name_text = " ".join(a.get_text(" ", strip=True).split())
             if not name_text or len(name_text.split()) < 2:
                 continue
             self._seen_staff.add(staff_slug)
