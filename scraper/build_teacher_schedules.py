@@ -16,6 +16,7 @@ Run standalone:
 import json
 import logging
 import os
+import re
 from collections import defaultdict
 from pathlib import Path
 
@@ -24,6 +25,17 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from scraper.teachers.normalizer import match_teacher, match_key, parse_name
+
+# Strip trailing room numbers and date lists that bleed into teacher names in PDFs,
+# e.g. "доц. И.С.Гусейнова ауд.802" or "проф. Гусев Д.А. 19.02, 05.03"
+_ROOM_RE = re.compile(r"\s*\(?ауд\.?\s*[\w\d/\\-]+\)?", re.IGNORECASE)
+_DATE_SUFFIX_RE = re.compile(r"\s*,?\s*\d{1,2}\.\d{2}(?:\.\d{2,4})?(?:\s*,\s*\d{1,2}\.\d{2}(?:\.\d{2,4})?)*\s*$")
+
+
+def _clean_teacher_abbr(raw: str) -> str:
+    s = _ROOM_RE.sub("", raw)
+    s = _DATE_SUFFIX_RE.sub("", s)
+    return s.strip().rstrip(",").strip()
 
 log = logging.getLogger(__name__)
 
@@ -86,11 +98,12 @@ def build(data_path: str) -> None:
                         # Teacher not in DB (no кафедра page, or name mismatch)
                         key_abbr = teacher_abbr.strip()
                         if key_abbr not in unknown_names:
-                            parsed = parse_name(key_abbr)
+                            clean_abbr = _clean_teacher_abbr(key_abbr)
+                            parsed = parse_name(clean_abbr)
                             unknown_names[key_abbr] = {
-                                "staff_slug": "_unknown_" + match_key(key_abbr),
-                                "full_name": key_abbr,
-                                "abbreviated": parsed["abbreviated"] or key_abbr,
+                                "staff_slug": "_unknown_" + match_key(clean_abbr),
+                                "full_name": clean_abbr,
+                                "abbreviated": parsed["abbreviated"] or clean_abbr,
                                 "last": parsed["last"],
                                 "first": parsed["first"],
                                 "patronymic": parsed["patronymic"],
