@@ -79,6 +79,22 @@ class GitStorage:
     def write_hashes(self, hashes: dict):
         _write_json(self.root / "meta" / "hashes.json", hashes)
 
+    def write_teachers_index(self, doc: dict):
+        _write_json(self.root / "meta" / "teachers.json", doc)
+
+    def write_teacher_schedule(self, staff_slug: str, doc: dict):
+        out_dir = self.root / "teachers"
+        out_dir.mkdir(parents=True, exist_ok=True)
+        _write_json(out_dir / f"{staff_slug}.json", doc)
+
+    def remove_stale_teacher_files(self, current_slugs: set[str]):
+        teachers_dir = self.root / "teachers"
+        if not teachers_dir.exists():
+            return
+        for f in teachers_dir.glob("*.json"):
+            if f.stem not in current_slugs:
+                f.unlink()
+
     def commit_and_push(self, message: str):
         _git(self.root, ["config", "user.name", "MPGU Schedule Bot"])
         _git(self.root, ["config", "user.email", "bot@github-actions"])

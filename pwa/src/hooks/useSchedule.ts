@@ -1,6 +1,25 @@
 import { useQuery } from "@tanstack/react-query";
 import { scheduleApi } from "../services/scheduleApi";
 
+export function useTeachersIndex() {
+  return useQuery({
+    queryKey: ["teachers-index"],
+    queryFn: scheduleApi.fetchTeachersIndex,
+    staleTime: 24 * 60 * 60 * 1000,
+    refetchOnReconnect: true,
+  });
+}
+
+export function useTeacherSchedule(slug: string | null) {
+  return useQuery({
+    queryKey: ["teacher", slug],
+    queryFn: () => scheduleApi.fetchTeacherSchedule(slug!),
+    enabled: !!slug,
+    staleTime: 6 * 60 * 60 * 1000,
+    refetchOnReconnect: true,
+  });
+}
+
 export function useIndex() {
   return useQuery({
     queryKey: ["index"],

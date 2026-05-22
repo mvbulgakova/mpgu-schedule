@@ -72,3 +72,43 @@ export interface ScheduleIndex {
   academic_year: string;
   institutes: InstituteIndexEntry[];
 }
+
+// ──────────────────────────────────────────────
+// Teacher types
+// ──────────────────────────────────────────────
+
+export interface TeacherMeta {
+  id: number;
+  staff_slug: string;
+  full_name: string;
+  last: string;
+  first: string;
+  patronymic: string;
+  abbreviated: string;
+  position: string;
+  institute_id: string;
+  kafedra_name: string;
+  has_schedule?: boolean;
+}
+
+export interface TeachersIndex {
+  generated_at: string;
+  count: number;
+  teachers: TeacherMeta[];
+}
+
+export interface TeacherLesson extends Omit<Lesson, "teacher"> {
+  institute_id: string;
+  group_name: string;
+}
+
+export type TeacherDaySchedule = Record<DayKey, TeacherLesson[]>;
+
+export interface TeacherWeekSchedule {
+  odd_week: TeacherDaySchedule;
+  even_week: TeacherDaySchedule;
+}
+
+export interface TeacherScheduleDoc extends TeacherMeta {
+  schedule: TeacherWeekSchedule;
+}

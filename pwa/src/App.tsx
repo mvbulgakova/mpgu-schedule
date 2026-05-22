@@ -1,13 +1,22 @@
 import { useEffect, useState } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useAppStore } from "./store";
-import { useIndex, useInstituteManifest, useGroupSchedule } from "./hooks/useSchedule";
+import {
+  useIndex,
+  useInstituteManifest,
+  useGroupSchedule,
+  useTeachersIndex,
+  useTeacherSchedule,
+} from "./hooks/useSchedule";
 import { useOfflineCache } from "./hooks/useOfflineCache";
 import { useNotifications } from "./hooks/useNotifications";
 import InstituteSelector from "./components/InstituteSelector";
 import GroupSelector from "./components/GroupSelector";
 import WeekSchedule from "./components/WeekSchedule";
 import NotificationSettings from "./components/NotificationSettings";
+import TeacherSearch from "./components/TeacherSearch";
+import TeacherScheduleView from "./components/TeacherScheduleView";
+import type { TeacherMeta } from "./types/schedule";
 import { format, getISOWeek } from "date-fns";
 import { ru } from "date-fns/locale";
 
@@ -59,6 +68,14 @@ function ScheduleApp() {
   const setWeek = useAppStore((s) => s.setWeek);
 
   const [showNotifSettings, setShowNotifSettings] = useState(false);
+  const [showTeacherSearch, setShowTeacherSearch] = useState(false);
+  const [selectedTeacher, setSelectedTeacher] = useState<TeacherMeta | null>(null);
+
+  const { data: teachersData } = useTeachersIndex();
+  const {
+    data: teacherScheduleData,
+    isLoading: teacherScheduleLoading,
+  } = useTeacherSchedule(selectedTeacher?.staff_slug ?? null);
 
   useNotifications(cachedGroup?.schedule);
 
@@ -86,9 +103,17 @@ function ScheduleApp() {
       {/* Header */}
       <header className="bg-indigo-800 text-white px-4 py-3 flex items-center justify-between sticky top-0 z-10 shadow-md">
         <div className="flex items-center gap-2">
-          {(instituteId || groupName) && (
+          {(instituteId || groupName || selectedTeacher) && (
             <button
-              onClick={() => groupName ? setGroup("") : setInstitute("")}
+              onClick={() => {
+                if (selectedTeacher) {
+                  setSelectedTeacher(null);
+                } else if (groupName) {
+                  setGroup("");
+                } else {
+                  setInstitute("");
+                }
+              }}
               className="text-indigo-200 hover:text-white text-lg leading-none mr-1"
             >
               ←
@@ -96,12 +121,16 @@ function ScheduleApp() {
           )}
           <div>
             <div className="font-bold text-base leading-tight">Расписание МПГУ</div>
-            {cachedManifest && (
+            {selectedTeacher ? (
+              <div className="text-indigo-300 text-xs truncate max-w-[200px]">
+                {selectedTeacher.abbreviated || selectedTeacher.full_name}
+              </div>
+            ) : cachedManifest ? (
               <div className="text-indigo-300 text-xs">
                 {cachedManifest.short_name || cachedManifest.institute_name}
                 {groupName && ` · ${groupName}`}
               </div>
-            )}
+            ) : null}
           </div>
         </div>
 
@@ -114,7 +143,17 @@ function ScheduleApp() {
             {darkMode ? "☀️" : "🌙"}
           </button>
 
-          {groupMeta && (
+          {teachersData && !selectedTeacher && (
+            <button
+              onClick={() => setShowTeacherSearch(true)}
+              className="text-xs bg-indigo-700 hover:bg-indigo-600 rounded-lg px-2.5 py-1.5 border border-indigo-600"
+              aria-label="Поиск преподавателя"
+            >
+              🔍
+            </button>
+          )}
+
+          {groupMeta && !selectedTeacher && (
             <>
               <button
                 onClick={() => setShowNotifSettings(true)}
@@ -132,11 +171,49 @@ function ScheduleApp() {
               </button>
             </>
           )}
+
+          {selectedTeacher && (
+            <button
+              onClick={toggleWeek}
+              className="text-xs bg-indigo-700 hover:bg-indigo-600 rounded-lg px-3 py-1.5 border border-indigo-600"
+            >
+              {showEvenWeek ? "Чётная" : "Нечётная"}
+              <span className="text-indigo-400 ml-1">/ сменить</span>
+            </button>
+          )}
         </div>
       </header>
 
       {showNotifSettings && (
         <NotificationSettings onClose={() => setShowNotifSettings(false)} />
+      )}
+
+      {showTeacherSearch && teachersData && (
+        <div className="fixed inset-0 z-20 flex items-end sm:items-center justify-center">
+          <div className="absolute inset-0 bg-black/40" onClick={() => setShowTeacherSearch(false)} />
+          <div className="relative w-full sm:max-w-sm bg-white dark:bg-gray-800 rounded-t-2xl sm:rounded-2xl shadow-xl max-h-[80vh] flex flex-col">
+            <div className="flex items-center justify-between px-5 pt-4 pb-2 border-b border-gray-100 dark:border-gray-700">
+              <h2 className="font-semibold text-gray-800 dark:text-gray-100 text-sm">
+                Преподаватели
+              </h2>
+              <button
+                onClick={() => setShowTeacherSearch(false)}
+                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-xl leading-none"
+              >
+                ×
+              </button>
+            </div>
+            <div className="overflow-y-auto flex-1">
+              <TeacherSearch
+                teachers={teachersData.teachers}
+                onSelect={(t) => {
+                  setSelectedTeacher(t);
+                  setShowTeacherSearch(false);
+                }}
+              />
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Offline notice */}
@@ -179,11 +256,11 @@ function ScheduleApp() {
           </div>
         )}
 
-        {cachedIndex && !instituteId && (
+        {!selectedTeacher && cachedIndex && !instituteId && (
           <InstituteSelector institutes={cachedIndex.institutes} />
         )}
 
-        {cachedIndex && instituteId && !groupName && (
+        {!selectedTeacher && cachedIndex && instituteId && !groupName && (
           <>
             {manifestLoading && !cachedManifest && (
               <div className="flex justify-center items-center h-40 text-gray-400 dark:text-gray-500 text-sm">
@@ -209,7 +286,36 @@ function ScheduleApp() {
           </>
         )}
 
-        {groupMeta && (
+        {/* Teacher schedule view */}
+        {selectedTeacher && (
+          <>
+            <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+              <div className="font-medium text-sm text-gray-900 dark:text-gray-100">
+                {selectedTeacher.full_name || selectedTeacher.abbreviated}
+              </div>
+              {(selectedTeacher.position || selectedTeacher.kafedra_name) && (
+                <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                  {[selectedTeacher.position, selectedTeacher.kafedra_name]
+                    .filter(Boolean)
+                    .join(" · ")}
+                </div>
+              )}
+            </div>
+            {teacherScheduleLoading && (
+              <div className="flex justify-center items-center h-40 text-gray-400 dark:text-gray-500 text-sm">
+                Загрузка расписания…
+              </div>
+            )}
+            {teacherScheduleData && (
+              <TeacherScheduleView
+                schedule={teacherScheduleData.schedule}
+                showEvenWeek={showEvenWeek}
+              />
+            )}
+          </>
+        )}
+
+        {!selectedTeacher && groupMeta && (
           <>
             {groupLoading && !cachedGroup && (
               <div className="flex justify-center items-center h-40 text-gray-400 dark:text-gray-500 text-sm">

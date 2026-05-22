@@ -1,4 +1,10 @@
-import type { ScheduleIndex, InstituteManifest, Group } from "../types/schedule";
+import type {
+  ScheduleIndex,
+  InstituteManifest,
+  Group,
+  TeachersIndex,
+  TeacherScheduleDoc,
+} from "../types/schedule";
 
 declare const __DATA_BASE_URL__: string;
 declare const __DATA_FALLBACK_URL__: string;
@@ -38,4 +44,7 @@ export const scheduleApi = {
     get<InstituteManifest>(`institutes/${id}/schedule.json`),
   fetchGroup: (id: string, file: string) =>
     get<Group>(`institutes/${id}/groups/${file}.json`),
+  fetchTeachersIndex: () => get<TeachersIndex>("meta/teachers.json"),
+  fetchTeacherSchedule: (slug: string) =>
+    get<TeacherScheduleDoc>(`teachers/${slug}.json`),
 };
