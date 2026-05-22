@@ -138,11 +138,15 @@ class PDFParser(BaseParser):
 
             groups = _parse_tables(all_tables)
 
-            # Если >60% занятий сконцентрировано в одном дне — скорее всего
-            # не удалось распознать вертикальные заголовки дней (MPGU-формат).
+            # Если дни не распознаны (вертикальный текст в MPGU-формате) —
+            # выводим дни из повторений временных слотов и парсим повторно.
             if _is_day_distribution_skewed(groups):
+                fixed = _inject_days_from_time_sequence(all_tables)
+                groups = _parse_tables(fixed)
+
+            if not groups:
                 return ParseResult(groups=[], parser_used="tesseract", confidence=0.0,
-                                   warnings=["Tesseract: нераспознаны вертикальные заголовки дней"])
+                                   warnings=["Tesseract: не удалось извлечь расписание"])
 
             confidence = _compute_confidence(groups)
             return ParseResult(groups=groups, parser_used="tesseract", confidence=confidence)
@@ -184,73 +188,192 @@ class PDFParser(BaseParser):
 # ── helpers ───────────────────────────────────────────────────────────────────
 
 def _ocr_image_to_tables(img) -> list[list[list[str]]]:
-    """Конвертирует PIL-изображение в список таблиц через Tesseract TSV.
+    """Конвертирует PIL-изображение в список таблиц через OpenCV + Tesseract.
 
-    Tesseract возвращает каждое слово с координатами (left, top, width, height).
-    Реконструируем таблицу: группируем слова в строки по Y-позиции,
-    затем в колонки по X-позиции.
+    Алгоритм:
+    1. OpenCV морфология → находим горизонтальные и вертикальные линии таблицы
+    2. Проецируем линии → получаем координаты строк и столбцов (с фильтром шума)
+    3. OCR каждой ячейки индивидуально (--psm 6)
+    4. Для ячеек первого столбца, у которых height >> width (вертикальный текст),
+       дополнительно пробуем поворот на 90° — это читает слова вида «Понедельник»
+       написанные вертикально в merged-ячейках MPGU-расписаний
     """
+    import cv2
+    import numpy as np
     import pytesseract
-    import pandas as pd
 
-    tsv = pytesseract.image_to_data(
-        img, lang="rus+eng",
-        config="--psm 6 --oem 1",
-        output_type=pytesseract.Output.DATAFRAME,
-    )
-    # Оставляем только распознанные слова с уверенностью > 0
-    tsv = tsv[(tsv["conf"] > 0) & (tsv["text"].notna())]
-    tsv = tsv[tsv["text"].str.strip() != ""]
-    if tsv.empty:
+    img_np = np.array(img.convert("RGB"))
+    gray = cv2.cvtColor(img_np, cv2.COLOR_RGB2GRAY)
+    _, bw = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
+    h_img, w_img = bw.shape
+
+    # ── детекция линий ────────────────────────────────────────────────────────
+    h_kern = cv2.getStructuringElement(cv2.MORPH_RECT, (w_img // 15, 1))
+    v_kern = cv2.getStructuringElement(cv2.MORPH_RECT, (1, h_img // 20))
+    h_lines = cv2.morphologyEx(bw, cv2.MORPH_OPEN, h_kern, iterations=2)
+    v_lines = cv2.morphologyEx(bw, cv2.MORPH_OPEN, v_kern, iterations=2)
+
+    row_ys = _merge_close_coords(_projection_peaks(h_lines.sum(axis=1)), min_gap=25)
+    col_xs = _merge_close_coords(_projection_peaks(v_lines.sum(axis=0)), min_gap=25)
+
+    if len(row_ys) < 3 or len(col_xs) < 2:
         return []
 
-    # --- Группировка слов в строки ---
-    # Два слова в одной строке, если их вертикальные центры различаются < ROW_TOL
-    ROW_TOL = 12  # пикселей при DPI=200
-    tsv = tsv.sort_values("top").reset_index(drop=True)
-    row_ids = []
-    current_row = 0
-    prev_center = None
-    for _, word in tsv.iterrows():
-        center = word["top"] + word["height"] / 2
-        if prev_center is None or abs(center - prev_center) > ROW_TOL:
-            current_row += 1
-            prev_center = center
-        row_ids.append(current_row)
-    tsv["row_id"] = row_ids
+    # ── OCR каждой ячейки ────────────────────────────────────────────────────
+    n_rows = len(row_ys) - 1
+    n_cols = len(col_xs) - 1
+    table: list[list[str]] = [[""] * n_cols for _ in range(n_rows)]
 
-    # --- Определяем границы колонок ---
-    # Строим гистограмму X-начал слов; «провалы» между кластерами = границы колонок.
-    all_lefts = sorted(tsv["left"].tolist())
-    col_breaks = _find_column_breaks(all_lefts, gap_threshold=20)
+    for ri in range(n_rows):
+        y1, y2 = row_ys[ri] + 2, row_ys[ri + 1] - 2
+        if y2 <= y1 + 4:
+            continue
+        for ci in range(n_cols):
+            x1, x2 = col_xs[ci] + 2, col_xs[ci + 1] - 2
+            if x2 <= x1 + 4:
+                continue
+            cell_img = gray[y1:y2, x1:x2]
 
-    def col_of(left_px: int) -> int:
-        for ci, brk in enumerate(col_breaks):
-            if left_px < brk:
-                return ci
-        return len(col_breaks)
+            cell_h, cell_w = cell_img.shape
+            text = _ocr_cell(cell_img)
 
-    # --- Заполняем сетку ---
-    n_cols = len(col_breaks) + 1
-    grid: dict[tuple[int, int], list[str]] = {}
-    for _, word in tsv.iterrows():
-        r = int(word["row_id"])
-        c = col_of(int(word["left"]))
-        grid.setdefault((r, c), []).append(str(word["text"]).strip())
+            # Для первого столбца с высокими узкими ячейками — пробуем поворот
+            # (вертикальный текст «Понедельник», «Вторник» в MPGU-таблицах)
+            if ci == 0 and cell_h > cell_w * 1.5 and not text.strip():
+                rotated = cv2.rotate(cell_img, cv2.ROTATE_90_COUNTERCLOCKWISE)
+                text_rot = _ocr_cell(rotated)
+                if text_rot.strip():
+                    text = text_rot
 
-    if not grid:
-        return []
+            table[ri][ci] = text.strip()
 
-    max_row = max(k[0] for k in grid)
-    table: list[list[str]] = []
-    for r in range(1, max_row + 1):
-        row = [" ".join(grid.get((r, c), [])) for c in range(n_cols)]
-        if any(cell.strip() for cell in row):
-            table.append(row)
-
+    # Убираем полностью пустые строки
+    table = [row for row in table if any(c.strip() for c in row)]
     if len(table) < 3:
         return []
     return [table]
+
+
+def _ocr_cell(cell_img) -> str:
+    """OCR одной ячейки с лёгкой предобработкой."""
+    import cv2
+    import numpy as np
+    import pytesseract
+
+    if cell_img.size == 0:
+        return ""
+    # Увеличиваем маленькие ячейки для лучшего OCR
+    h, w = cell_img.shape[:2]
+    if h < 40 or w < 40:
+        scale = max(40 / h, 40 / w, 1.0)
+        cell_img = cv2.resize(cell_img, None, fx=scale, fy=scale,
+                              interpolation=cv2.INTER_CUBIC)
+    # Адаптивная бинаризация улучшает читаемость при неравномерном освещении
+    cell_bin = cv2.adaptiveThreshold(
+        cell_img, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
+        cv2.THRESH_BINARY, 11, 2,
+    )
+    text = pytesseract.image_to_string(
+        cell_bin, lang="rus+eng",
+        config="--psm 6 --oem 1",
+    )
+    return text.replace("\n", " ").strip()
+
+
+def _projection_peaks(proj, min_val: int = 3000) -> list[int]:
+    """Возвращает координаты центров «пиков» на проекции (суммарный сигнал линий)."""
+    coords = []
+    in_peak = False
+    start = 0
+    for i, v in enumerate(proj):
+        if v > min_val and not in_peak:
+            in_peak = True
+            start = i
+        elif v <= min_val and in_peak:
+            in_peak = False
+            coords.append((start + i) // 2)
+    if in_peak:
+        coords.append((start + len(proj)) // 2)
+    return coords
+
+
+def _merge_close_coords(coords: list[int], min_gap: int) -> list[int]:
+    """Сливает координаты линий, которые ближе min_gap друг к другу."""
+    if not coords:
+        return []
+    merged = [coords[0]]
+    for c in coords[1:]:
+        if c - merged[-1] < min_gap:
+            merged[-1] = (merged[-1] + c) // 2
+        else:
+            merged.append(c)
+    return merged
+
+
+_OCR_DAYS = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday"]
+
+
+def _inject_days_from_time_sequence(tables: list[list[list[str]]]) -> list[list[list[str]]]:
+    """Заполняет столбец дней, используя повторения временных слотов.
+
+    В MPGU-расписании каждый день начинается с тех же временных слотов
+    (09:00-10:30, 10:40-12:10, ...). Когда одно и то же время встречается
+    повторно — значит, началась следующий день.
+
+    Это позволяет обходиться без OCR вертикального текста в столбце дней.
+    """
+    fixed = []
+    for table in tables:
+        if len(table) < 3:
+            fixed.append(table)
+            continue
+
+        # Ищем столбец со временем (содержит больше всего валидных временных строк)
+        time_col = _find_time_col(table)
+        if time_col is None:
+            fixed.append(table)
+            continue
+
+        # Заполняем столбец 0 именами дней на основе повторений времени
+        seen_times: set[str] = set()
+        day_idx = 0
+        new_table = [row[:] for row in table]
+
+        for ri, row in enumerate(new_table):
+            cell = str(row[time_col]).strip() if time_col < len(row) else ""
+            t = normalize_time(cell)
+            if not t:
+                continue
+            time_key = t[0]  # "09:00"
+
+            if time_key in seen_times:
+                # Временной слот повторяется — перешли к следующему дню
+                day_idx = min(day_idx + 1, len(_OCR_DAYS) - 1)
+                seen_times = {time_key}
+            else:
+                seen_times.add(time_key)
+
+            # Записываем день в первый столбец если он пустой или нечитаемый
+            if len(new_table[ri]) > 0:
+                existing = normalize_day(str(new_table[ri][0]))
+                if not existing:
+                    new_table[ri][0] = _OCR_DAYS[day_idx]
+
+        fixed.append(new_table)
+    return fixed
+
+
+def _find_time_col(table: list[list[str]]) -> int | None:
+    """Возвращает индекс столбца с наибольшим количеством временных значений."""
+    if not table:
+        return None
+    n_cols = max(len(row) for row in table)
+    best_col, best_count = None, 0
+    for ci in range(min(n_cols, 4)):  # время обычно в первых 4 столбцах
+        count = sum(1 for row in table if ci < len(row) and normalize_time(str(row[ci])))
+        if count > best_count:
+            best_count, best_col = count, ci
+    return best_col if best_count >= 2 else None
 
 
 def _is_day_distribution_skewed(groups: list[dict], threshold: float = 0.6) -> bool:
@@ -264,19 +387,6 @@ def _is_day_distribution_skewed(groups: list[dict], threshold: float = 0.6) -> b
     if total < 4:
         return False
     return max(day_counts.values()) / total > threshold
-
-
-def _find_column_breaks(lefts: list[int], gap_threshold: int) -> list[int]:
-    """Возвращает X-координаты границ между колонками."""
-    if not lefts:
-        return []
-    breaks = []
-    prev = lefts[0]
-    for x in lefts[1:]:
-        if x - prev > gap_threshold:
-            breaks.append((prev + x) // 2)
-        prev = x
-    return breaks
 
 
 def _bytes_to_tmp(data: bytes, ext: str) -> str:
