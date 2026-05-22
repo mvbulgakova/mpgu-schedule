@@ -49,6 +49,7 @@ export default function DayCard({ day, lessons, isToday, currentTime, showFullNa
       {hasLessons ? (
         <div className="flex flex-col gap-2">
           {lessons
+            .filter((lesson) => lesson.subject?.trim())
             .slice()
             .sort((a, b) => {
               const slotDiff = (a.slot ?? 99) - (b.slot ?? 99);
