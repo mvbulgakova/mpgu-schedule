@@ -92,6 +92,23 @@ def _is_stale_link(url: str) -> bool:
     return bool(m and int(m.group(1)) < _MIN_YEAR)
 
 
+_URL_GROUP_RE = re.compile(
+    r"[А-ЯЁA-Za-zа-яё]{2,4}\d{2}-[А-ЯЁA-Za-zа-яё]{2,4}\d{4}"
+)
+
+
+def _group_from_url(url: str) -> str | None:
+    """
+    Extract a group code from the URL filename.
+    Works for URLs like …/BVO_1_kurs_VOK34-MDE2501.pdf → 'VOK34-MDE2501'
+    or …/2-курс-БОК34-МДЭ2401.pdf → 'БОК34-МДЭ2401'.
+    Returns None for hash-named files or URLs with no embedded group code.
+    """
+    stem = url.split("?")[0].rsplit("/", 1)[-1].rsplit(".", 1)[0]
+    m = _URL_GROUP_RE.search(stem)
+    return m.group(0).upper() if m else None
+
+
 def derive_exam_urls(schedule_url: str) -> list[str]:
     """Derive exam and credit session URLs from the regular schedule URL."""
     matched_slug = next(
@@ -156,6 +173,14 @@ async def process_institute(
 
             try:
                 entries = parse_exam_bytes(content, hint_ext=hint_ext)
+                # For OCR entries that have no group (scanned per-group PDFs),
+                # fall back to extracting the group code from the filename.
+                if entries and any(not e.groups for e in entries):
+                    grp = _group_from_url(url)
+                    if grp:
+                        for e in entries:
+                            if not e.groups:
+                                e.groups = [grp]
                 log.info("  [%s] %s → %d entries", inst_id, url[-50:], len(entries))
                 all_entries.extend(entries)
             except Exception as e:

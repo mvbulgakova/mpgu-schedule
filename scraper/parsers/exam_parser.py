@@ -111,7 +111,11 @@ def _parse_cell_content(lines: list[str]) -> dict | None:
             m = re.search(r"ауд\.?\s*([\d\w/\\-]+)", line, re.I)
             if m:
                 room = m.group(1)
-        elif re.search(r"\b(проф|доц|ст\.?\s*пр|асс|преп)[.\s]", line, re.I):
+        elif re.search(
+            r"\b(проф|доц|ст\.?\s*пр|асс|преп)[.\s]"
+            r"|\b(профессор|доцент|преподаватель|старший\s+преподаватель)\b",
+            line, re.I,
+        ):
             teacher = line
         elif re.search(r"[А-ЯЁ][а-яё]+\s+[А-ЯЁ]\.[А-ЯЁ]\.", line):
             teacher = line
@@ -572,6 +576,47 @@ def _clean_group_name(name: str) -> str:
 _OCR_MAX_PAGES = 2      # skip OCR for PDFs longer than this (scanned single-page exams OK)
 _OCR_PAGE_TIMEOUT = 30  # seconds per page before giving up
 
+# Latin characters that Tesseract confuses with Cyrillic lookalikes.
+# Only uppercase matters because we normalize to uppercase before matching.
+_LATIN_TO_CYR = str.maketrans("HCOAEPBXKM", "НСОАЕРВХКМ")
+
+# Group code pattern that tolerates OCR artifact З (Cyrillic Ze) instead of
+# digit 3: e.g. "ВОКЗ4-МДЭ2501" is "ВОК34-МДЭ2501" after cleanup.
+_OCR_GROUP_RE = re.compile(r"[А-ЯЁA-Z]{2,4}[\dЗ]{2}-[А-ЯЁA-Z]{2,4}\d{4}")
+
+# Exam trigger: word-bounded so «ЭКЗАМЕНАЦИОННОЙ» does not fire.
+# Applied to _norm_ocr() output, so Latin lookalikes (KOHC → КОНС) are
+# already replaced before this regex runs.
+_OCR_EXAM_KW = re.compile(
+    r"\bЗАЧЁТ\b|\bЗАЧЕТ\b|\bЭКЗАМЕН\b|\bЗАЧ\b|\bЭКЗ\b|\bКОНС\b"
+)
+
+
+def _norm_ocr(text: str) -> str:
+    """Upper-case and replace Latin lookalikes with Cyrillic for trigger matching."""
+    return text.upper().translate(_LATIN_TO_CYR)
+
+
+_OCR_TABLE_HEADER_RE = re.compile(
+    r"дата\s*\|?\s*время|день\s+недели|№\s*п/п|\|\s*время\s*\|",
+    re.IGNORECASE,
+)
+
+
+def _clean_ocr_line(line: str) -> str:
+    """
+    Strip leading OCR garbage from a line.
+    Rotated-cell text (dates, row labels) often bleeds into the adjacent content
+    cell as a short garbled prefix: 'ЕЯ ТЕОРИЯ…', '58 ЦИФРОВЫЕ…', 'x 28 ТЕОРИЯ…'.
+    Pattern: one or more groups of (short uppercase blob OR non-alpha noise)
+    followed by whitespace, anchored at the start.
+
+    Returns empty string for table-header fragments ('дата | Время …').
+    """
+    if _OCR_TABLE_HEADER_RE.search(line):
+        return ""
+    return re.sub(r"^(?:(?:[\W\d]+|[А-ЯЁA-Z]{1,2})\s+)+", "", line)
+
 
 def _parse_pdf_ocr(path: str) -> list[ExamEntry]:
     """Fallback: Tesseract OCR for image-based exam schedule PDFs."""
@@ -595,6 +640,10 @@ def _parse_pdf_ocr(path: str) -> list[ExamEntry]:
     entries: list[ExamEntry] = []
     images = convert_from_path(path, dpi=150)  # 150 dpi: 4× faster than 200
 
+    # Thread group code across pages: the cover page often has the group in the
+    # header while subsequent pages carry the actual exam rows.
+    ocr_group: str | None = None
+
     for img in images:
         try:
             text = pytesseract.image_to_string(
@@ -606,20 +655,40 @@ def _parse_pdf_ocr(path: str) -> list[ExamEntry]:
         except RuntimeError:
             log.warning("OCR timeout on page in %s, skipping", path)
             continue
-        page_entries = _parse_ocr_text(text)
+        page_entries = _parse_ocr_text(text, ocr_group=ocr_group)
+        # Carry forward the first group code found on any page
+        if not ocr_group and page_entries and page_entries[0].groups:
+            ocr_group = page_entries[0].groups[0]
+        # Back-fill earlier entries on the same page that got no group
+        for e in page_entries:
+            if not e.groups and ocr_group:
+                e.groups = [ocr_group]
         entries.extend(page_entries)
 
     return entries
 
 
-def _parse_ocr_text(text: str) -> list[ExamEntry]:
+def _parse_ocr_text(text: str, ocr_group: str | None = None) -> list[ExamEntry]:
     """
     Parse exam entries from raw OCR text.
-    Looks for date patterns followed by subject / type / teacher / room.
+
+    ocr_group: pre-extracted group code (passed from _parse_pdf_ocr so it
+    is available across all pages of the same document).
     """
     entries: list[ExamEntry] = []
     lines = [ln.strip() for ln in text.splitlines() if ln.strip()]
-    cur_date = None
+
+    # Try to extract group code from this page's text if not already known.
+    # _norm_ocr replaces Latin lookalikes, then _OCR_GROUP_RE finds the code.
+    # Digit 3 is sometimes OCR'd as Cyrillic З — strip it back after match.
+    if not ocr_group:
+        m = _OCR_GROUP_RE.search(_norm_ocr(text))
+        if m:
+            parts = m.group(0).upper().split("-", 1)
+            parts[0] = parts[0].replace("З", "3")
+            ocr_group = "-".join(parts)
+
+    cur_date: str | None = None
 
     i = 0
     while i < len(lines):
@@ -628,12 +697,37 @@ def _parse_ocr_text(text: str) -> list[ExamEntry]:
         if date:
             cur_date = date
 
-        # Detect exam/credit lines
-        if cur_date and re.search(r"ЗАЧЁТ|ЗАЧЕТ|ЭКЗАМЕН", line.upper()):
-            entry_lines = lines[max(0, i - 2): i + 4]
+        # Match both full-word keywords and inline abbreviations (ЭКЗ., КОНС., ЗАЧ.).
+        # _norm_ocr handles mixed-script OCR artifacts: KOHC → КОНС, etc.
+        if cur_date and _OCR_EXAM_KW.search(_norm_ocr(line)):
+            # 1 line back for multi-line subject; 3 lines forward for time/teacher/room.
+            # Smaller window prevents bleeding into the next exam entry.
+            raw_window = lines[max(0, i - 1): i + 4]
+            # Strip leading OCR garbage (garbled rotated-cell text) from each line,
+            # and drop lines with fewer than 3 alpha chars (pure noise like "5a", "= 12").
+            entry_lines = [
+                _clean_ocr_line(l)
+                for l in raw_window
+                if len(re.findall(r"[А-ЯЁа-яёA-Za-z]", l)) >= 3
+            ]
+            if not entry_lines:
+                i += 1
+                continue
             content = _parse_cell_content(entry_lines)
             if content:
-                time_match = re.search(r"(\d{2}[.:]\d{2})", " ".join(entry_lines))
+                # Re-check type on normalised subject to handle OCR Latin/Cyrillic
+                # confusion (e.g. KOHC not caught by _parse_cell_content's regex).
+                if content["type"] == "unknown":
+                    ns = _norm_ocr(content["subject"])
+                    if re.search(r"\bЭКЗАМЕН\b|\bЭКЗ\b", ns):
+                        content["type"] = "exam"
+                    elif re.search(r"\bЗАЧЁТ\b|\bЗАЧЕТ\b|\bЗАЧ\b", ns):
+                        content["type"] = "credit"
+                    elif re.search(r"\bКОНС\b|\bКОНСУЛЬТАЦ\b", ns):
+                        content["type"] = "exam"
+                # Search time in the raw (unfiltered) window so we don't miss
+                # lines like "= 12.00 a" that were filtered out by alpha count.
+                time_match = re.search(r"(\d{2}[.:]\d{2})", " ".join(raw_window))
                 time_start = time_match.group(1).replace(".", ":") if time_match else ""
                 entries.append(ExamEntry(
                     date=cur_date,
@@ -643,7 +737,7 @@ def _parse_ocr_text(text: str) -> list[ExamEntry]:
                     type=content["type"],
                     teacher=content["teacher"],
                     room=content["room"],
-                    groups=[],
+                    groups=[ocr_group] if ocr_group else [],
                 ))
         i += 1
 
