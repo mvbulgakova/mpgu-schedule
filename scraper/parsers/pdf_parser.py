@@ -8,7 +8,7 @@ import pdfplumber
 from scraper.parsers.base import BaseParser, ParseResult
 from scraper.normalizer.schedule_normalizer import (
     normalize_day, normalize_lesson_type, normalize_time,
-    normalize_week_type, make_schedule_skeleton, lesson_obj, TIME_SLOTS,
+    normalize_week_type, normalize_subgroup, make_schedule_skeleton, lesson_obj, TIME_SLOTS,
 )
 
 CONFIDENCE_THRESHOLD = 0.65
@@ -612,11 +612,16 @@ def _parse_timetable_cell(content: str, t_start: str, t_end: str,
     lesson_type = "other"
     teacher: str | None = None
     room: str | None = None
+    detected_subgroup: int | None = subgroup
 
     TYPE_MAP = {"лк": "lecture", "пз": "practice", "лаб": "lab", "лб": "lab",
                 "сем": "seminar", "сем.": "seminar"}
 
     for line in lines:
+        # Detect subgroup from text (e.g., "п/г 1", "подгруппа 2")
+        if detected_subgroup is None:
+            detected_subgroup = normalize_subgroup(line)
+        
         # Тип занятия в скобках
         m = re.search(r"\(([А-ЯЁA-Zа-яёa-z.]{2,4})\)", line)
         if m:
@@ -654,7 +659,7 @@ def _parse_timetable_cell(content: str, t_start: str, t_end: str,
     if not subject:
         return None
 
-    return lesson_obj(None, t_start, t_end, subject, lesson_type, teacher, room, subgroup)
+    return lesson_obj(None, t_start, t_end, subject, lesson_type, teacher, room, detected_subgroup)
 
 
 def _fmt_time(hhmm: str) -> str:

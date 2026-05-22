@@ -1,30 +1,36 @@
+```
+# Python
 __pycache__/
 *.pyc
 *.pyo
+*.pyd
+
+# Dependencies
 .venv/
 venv/
-*.egg-info/
+env/
 .env
 .env.local
+.env.*
 
-# Node
-node_modules/
-pwa/dist/
-
-# temp files
+# Logs and temp files
+*.log
 *.tmp
-*.temp
 
-# Local scraper output (belongs in data branch, not feature branches)
-data/
-data-push/
-data-local/
-
-# OS
-.DS_Store
-Thumbs.db
-
-# IDE
+# Editors
 .vscode/
 .idea/
-.claude/
+*.swp
+*.swo
+
+# Build and distribution
+dist/
+build/
+.coverage
+coverage/
+htmlcov/
+
+# OS generated files
+.DS_Store
+Thumbs.db
+```
