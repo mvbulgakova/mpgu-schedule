@@ -1,10 +1,9 @@
-import type { ScheduleIndex, InstituteSchedule } from "../types/schedule";
+import type { ScheduleIndex, InstituteManifest, Group } from "../types/schedule";
 
 declare const __DATA_BASE_URL__: string;
 declare const __DATA_FALLBACK_URL__: string;
 
 const PRIMARY = __DATA_BASE_URL__;
-// Fallback пустая строка означает, что резервный URL не настроен
 const FALLBACK = __DATA_FALLBACK_URL__;
 
 async function fetchUrl(url: string): Promise<Response> {
@@ -15,7 +14,6 @@ async function fetchUrl(url: string): Promise<Response> {
 
 async function get<T>(path: string): Promise<T> {
   const primaryUrl = `${PRIMARY}/${path}`;
-
   try {
     const res = await fetchUrl(primaryUrl);
     return res.json() as Promise<T>;
@@ -23,8 +21,6 @@ async function get<T>(path: string): Promise<T> {
     if (!FALLBACK || FALLBACK === PRIMARY) {
       throw new Error(`Не удалось загрузить ${path}: ${primaryErr}`);
     }
-
-    // Пробуем резервный URL (напрямую raw.githubusercontent.com)
     try {
       const res = await fetchUrl(`${FALLBACK}/${path}`);
       return res.json() as Promise<T>;
@@ -38,6 +34,8 @@ async function get<T>(path: string): Promise<T> {
 
 export const scheduleApi = {
   fetchIndex: () => get<ScheduleIndex>("meta/index.json"),
-  fetchSchedule: (id: string) =>
-    get<InstituteSchedule>(`institutes/${id}/schedule.json`),
+  fetchManifest: (id: string) =>
+    get<InstituteManifest>(`institutes/${id}/schedule.json`),
+  fetchGroup: (id: string, file: string) =>
+    get<Group>(`institutes/${id}/groups/${file}.json`),
 };

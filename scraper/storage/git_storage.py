@@ -1,8 +1,16 @@
 """Запись JSON-данных в data-ветку репозитория."""
 import json
 import os
+import re
 import subprocess
 from pathlib import Path
+
+
+def _safe_filename(name: str) -> str:
+    """Преобразует имя группы в безопасное имя файла."""
+    safe = re.sub(r"[^\w\-]", "_", name, flags=re.UNICODE)
+    safe = re.sub(r"_+", "_", safe).strip("_")
+    return safe or "group"
 
 
 class GitStorage:
@@ -10,6 +18,7 @@ class GitStorage:
         self.root = Path(data_path)
 
     def read_schedule(self, institute_id: str) -> dict | None:
+        """Читает манифест (список групп без расписаний)."""
         path = self.root / "institutes" / institute_id / "schedule.json"
         if path.exists():
             try:
@@ -19,8 +28,40 @@ class GitStorage:
         return None
 
     def write_schedule(self, institute_id: str, data: dict):
-        path = self.root / "institutes" / institute_id / "schedule.json"
-        _write_json(path, data)
+        """Записывает лёгкий манифест + отдельный файл на каждую группу.
+
+        Структура:
+          institutes/{id}/schedule.json        — манифест (без schedule в группах)
+          institutes/{id}/groups/{name}.json   — расписание одной группы
+        """
+        groups = data.get("groups", [])
+        groups_dir = self.root / "institutes" / institute_id / "groups"
+        groups_dir.mkdir(parents=True, exist_ok=True)
+
+        current_files: set[str] = set()
+        manifest_groups: list[dict] = []
+
+        for group in groups:
+            filename = _safe_filename(group["name"])
+            current_files.add(filename + ".json")
+            _write_json(groups_dir / (filename + ".json"), group)
+            manifest_groups.append({
+                "name": group["name"],
+                "file": filename,
+                "year": group.get("year"),
+                "form": group.get("form"),
+                "degree": group.get("degree"),
+            })
+
+        # Удаляем файлы групп которых больше нет
+        for f in groups_dir.iterdir():
+            if f.suffix == ".json" and f.name not in current_files:
+                f.unlink()
+
+        # Манифест без поля groups[*].schedule
+        manifest = {k: v for k, v in data.items() if k != "groups"}
+        manifest["groups"] = manifest_groups
+        _write_json(self.root / "institutes" / institute_id / "schedule.json", manifest)
 
     def read_index(self) -> dict | None:
         path = self.root / "meta" / "index.json"

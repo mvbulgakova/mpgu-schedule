@@ -1,9 +1,9 @@
 import { useState, useMemo } from "react";
-import type { Group } from "../types/schedule";
+import type { GroupMeta } from "../types/schedule";
 import { useAppStore } from "../store";
 
 interface Props {
-  groups: Group[];
+  groups: GroupMeta[];
 }
 
 const DEGREE_LABELS: Record<string, string> = {
@@ -20,14 +20,14 @@ const FORM_LABELS: Record<string, string> = {
 
 const DEGREE_ORDER = ["bachelor", "specialist", "master"];
 
-function GroupButton({
+function GroupMetaButton({
   g,
   selected,
   pinned,
   onSelect,
   onPin,
 }: {
-  g: Group;
+  g: GroupMeta;
   selected: boolean;
   pinned: boolean;
   onSelect: () => void;
@@ -70,7 +70,7 @@ function GroupButton({
   );
 }
 
-export default function GroupSelector({ groups }: Props) {
+export default function GroupMetaSelector({ groups }: Props) {
   const setGroup = useAppStore((s) => s.setGroup);
   const selected = useAppStore((s) => s.selectedGroupName);
   const back = useAppStore((s) => s.setInstitute);
@@ -88,7 +88,7 @@ export default function GroupSelector({ groups }: Props) {
 
   const byDegree = useMemo(
     () =>
-      filtered.reduce<Record<string, Group[]>>((acc, g) => {
+      filtered.reduce<Record<string, GroupMeta[]>>((acc, g) => {
         const key = g.degree ?? "bachelor";
         (acc[key] ??= []).push(g);
         return acc;
@@ -96,11 +96,11 @@ export default function GroupSelector({ groups }: Props) {
     [filtered]
   );
 
-  const pinnedGroupObjects = useMemo(
+  const pinnedGroupMetaObjects = useMemo(
     () =>
       pinnedGroups
         .map((name) => groups.find((g) => g.name === name))
-        .filter((g): g is Group => g !== undefined),
+        .filter((g): g is GroupMeta => g !== undefined),
     [groups, pinnedGroups]
   );
 
@@ -152,14 +152,14 @@ export default function GroupSelector({ groups }: Props) {
       )}
 
       {/* Pinned groups block */}
-      {!q && pinnedGroupObjects.length > 0 && (
+      {!q && pinnedGroupMetaObjects.length > 0 && (
         <div className="mb-4">
           <div className="text-xs font-bold text-gray-400 dark:text-gray-500 mb-2 uppercase flex items-center gap-1">
             <span>⭐</span> Закреплённые
           </div>
           <div className="grid grid-cols-2 gap-2">
-            {pinnedGroupObjects.map((g) => (
-              <GroupButton
+            {pinnedGroupMetaObjects.map((g) => (
+              <GroupMetaButton
                 key={g.name}
                 g={g}
                 selected={selected === g.name}
@@ -181,7 +181,7 @@ export default function GroupSelector({ groups }: Props) {
             {byDegree[degree]
               .sort((a, b) => (a.year ?? 0) - (b.year ?? 0) || a.name.localeCompare(b.name))
               .map((g) => (
-                <GroupButton
+                <GroupMetaButton
                   key={g.name}
                   g={g}
                   selected={selected === g.name}

@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useAppStore } from "./store";
-import { useIndex, useInstituteSchedule } from "./hooks/useSchedule";
+import { useIndex, useInstituteManifest, useGroupSchedule } from "./hooks/useSchedule";
 import { useOfflineCache } from "./hooks/useOfflineCache";
 import InstituteSelector from "./components/InstituteSelector";
 import GroupSelector from "./components/GroupSelector";
@@ -35,14 +35,22 @@ function ScheduleApp() {
   const cachedIndex = useOfflineCache("index", index);
 
   const {
-    data: scheduleData,
-    isLoading: schedLoading,
-    isError: schedError,
-    refetch: refetchSchedule,
-  } = useInstituteSchedule(instituteId);
-  const cachedSchedule = useOfflineCache(`schedule:${instituteId}`, scheduleData);
+    data: manifestData,
+    isLoading: manifestLoading,
+    isError: manifestError,
+    refetch: refetchManifest,
+  } = useInstituteManifest(instituteId);
+  const cachedManifest = useOfflineCache(`manifest:${instituteId}`, manifestData);
 
-  const group = cachedSchedule?.groups.find((g) => g.name === groupName);
+  const groupMeta = cachedManifest?.groups.find((g) => g.name === groupName);
+
+  const {
+    data: groupData,
+    isLoading: groupLoading,
+    isError: groupError,
+    refetch: refetchGroup,
+  } = useGroupSchedule(instituteId, groupMeta?.file ?? null);
+  const cachedGroup = useOfflineCache(`group:${instituteId}:${groupName}`, groupData);
 
   const setWeek = useAppStore((s) => s.setWeek);
 
@@ -80,9 +88,9 @@ function ScheduleApp() {
           )}
           <div>
             <div className="font-bold text-base leading-tight">Расписание МПГУ</div>
-            {cachedSchedule && (
+            {cachedManifest && (
               <div className="text-indigo-300 text-xs">
-                {cachedSchedule.short_name || cachedSchedule.institute_name}
+                {cachedManifest.short_name || cachedManifest.institute_name}
                 {groupName && ` · ${groupName}`}
               </div>
             )}
@@ -98,7 +106,7 @@ function ScheduleApp() {
             {darkMode ? "☀️" : "🌙"}
           </button>
 
-          {group && (
+          {groupMeta && (
             <button
               onClick={toggleWeek}
               className="text-xs bg-indigo-700 hover:bg-indigo-600 rounded-lg px-3 py-1.5 border border-indigo-600"
@@ -149,50 +157,72 @@ function ScheduleApp() {
 
         {cachedIndex && instituteId && !groupName && (
           <>
-            {schedLoading && !cachedSchedule && (
+            {manifestLoading && !cachedManifest && (
               <div className="flex justify-center items-center h-40 text-gray-400 dark:text-gray-500 text-sm">
                 Загрузка групп...
               </div>
             )}
-            {!schedLoading && schedError && !cachedSchedule && (
+            {!manifestLoading && manifestError && !cachedManifest && (
               <div className="p-8 flex flex-col items-center gap-4 text-center">
                 <div className="text-gray-400 dark:text-gray-500 text-sm">
-                  Не удалось загрузить расписание.
+                  Не удалось загрузить список групп.
                 </div>
                 <button
-                  onClick={() => refetchSchedule()}
+                  onClick={() => refetchManifest()}
                   className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg transition-colors"
                 >
                   Попробовать снова
                 </button>
               </div>
             )}
-            {cachedSchedule && (
-              <GroupSelector groups={cachedSchedule.groups} />
+            {cachedManifest && (
+              <GroupSelector groups={cachedManifest.groups} />
             )}
           </>
         )}
 
-        {group && (
+        {groupMeta && (
           <>
-            <div className="flex items-center justify-between px-4 py-2 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
-              <span className="text-xs text-gray-500 dark:text-gray-400">
-                {format(today, "EEEE, d MMMM", { locale: ru })} · {weekNum} неделя
-              </span>
-              <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
-                showEvenWeek === isCurrentWeekEven
-                  ? "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400"
-                  : "bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400"
-              }`}>
-                {showEvenWeek ? "чётная" : "нечётная"}{showEvenWeek === isCurrentWeekEven ? " (сейчас)" : ""}
-              </span>
-            </div>
-            <WeekSchedule schedule={group.schedule} showEvenWeek={showEvenWeek} />
-            <div className="text-center text-xs text-gray-300 dark:text-gray-600 py-4">
-              Обновлено: {cachedSchedule?.updated_at
-                ? format(new Date(cachedSchedule.updated_at), "d MMM HH:mm", { locale: ru })
-                : "—"}
-            </div>
+            {groupLoading && !cachedGroup && (
+              <div className="flex justify-center items-center h-40 text-gray-400 dark:text-gray-500 text-sm">
+                Загрузка расписания...
+              </div>
+            )}
+            {!groupLoading && groupError && !cachedGroup && (
+              <div className="p-8 flex flex-col items-center gap-4 text-center">
+                <div className="text-gray-400 dark:text-gray-500 text-sm">
+                  Не удалось загрузить расписание группы.
+                </div>
+                <button
+                  onClick={() => refetchGroup()}
+                  className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg transition-colors"
+                >
+                  Попробовать снова
+                </button>
+              </div>
+            )}
+            {cachedGroup && (
+              <>
+                <div className="flex items-center justify-between px-4 py-2 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+                  <span className="text-xs text-gray-500 dark:text-gray-400">
+                    {format(today, "EEEE, d MMMM", { locale: ru })} · {weekNum} неделя
+                  </span>
+                  <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
+                    showEvenWeek === isCurrentWeekEven
+                      ? "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400"
+                      : "bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400"
+                  }`}>
+                    {showEvenWeek ? "чётная" : "нечётная"}{showEvenWeek === isCurrentWeekEven ? " (сейчас)" : ""}
+                  </span>
+                </div>
+                <WeekSchedule schedule={cachedGroup.schedule} showEvenWeek={showEvenWeek} />
+                <div className="text-center text-xs text-gray-300 dark:text-gray-600 py-4">
+                  Обновлено: {cachedManifest?.updated_at
+                    ? format(new Date(cachedManifest.updated_at), "d MMM HH:mm", { locale: ru })
+                    : "—"}
+                </div>
+              </>
+            )}
           </>
         )}
       </main>

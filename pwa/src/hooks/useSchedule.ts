@@ -6,15 +6,28 @@ export function useIndex() {
     queryKey: ["index"],
     queryFn: scheduleApi.fetchIndex,
     staleTime: 60 * 60 * 1000,
-    refetchOnReconnect: true,   // авто-повтор при восстановлении сети
+    refetchOnReconnect: true,
   });
 }
 
-export function useInstituteSchedule(instituteId: string | null) {
+export function useInstituteManifest(instituteId: string | null) {
   return useQuery({
-    queryKey: ["schedule", instituteId],
-    queryFn: () => scheduleApi.fetchSchedule(instituteId!),
+    queryKey: ["manifest", instituteId],
+    queryFn: () => scheduleApi.fetchManifest(instituteId!),
     enabled: !!instituteId,
+    staleTime: 60 * 60 * 1000,
+    refetchOnReconnect: true,
+  });
+}
+
+export function useGroupSchedule(
+  instituteId: string | null,
+  groupFile: string | null
+) {
+  return useQuery({
+    queryKey: ["group", instituteId, groupFile],
+    queryFn: () => scheduleApi.fetchGroup(instituteId!, groupFile!),
+    enabled: !!instituteId && !!groupFile,
     staleTime: 6 * 60 * 60 * 1000,
     refetchOnReconnect: true,
   });

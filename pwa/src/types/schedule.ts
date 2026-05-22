@@ -33,14 +33,23 @@ export interface Group {
   schedule: WeekSchedule;
 }
 
-export interface InstituteSchedule {
+// Лёгкий манифест института (без данных расписания)
+export interface GroupMeta {
+  name: string;
+  file: string;        // имя файла без .json в groups/
+  year: number | null;
+  form: StudyForm;
+  degree: Degree;
+}
+
+export interface InstituteManifest {
   institute_id: string;
   institute_name: string;
   short_name: string;
   academic_year: string;
   updated_at: string;
   parser_used: string;
-  groups: Group[];
+  groups: GroupMeta[];
 }
 
 export interface InstituteIndexEntry {
