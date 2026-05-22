@@ -2,16 +2,16 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import { VitePWA } from "vite-plugin-pwa";
 
-// Прямой URL на GitHub (используется как fallback)
+// jsDelivr — бесплатный CDN с узлами в России, зеркалирует GitHub автоматически
+const JSDELIVR = `https://cdn.jsdelivr.net/gh/mvbulgakova/mpgu-schedule@data`;
+
+// raw.githubusercontent.com — резервный (может блокироваться)
 const GITHUB_RAW = `https://raw.githubusercontent.com/mvbulgakova/mpgu-schedule/data`;
 
-// Если задан VITE_PROXY_URL (Cloudflare Worker или иной прокси) — он становится
-// основным источником данных, а GitHub raw — резервным.
-// Если прокси не задан — данные читаются напрямую с GitHub.
-const DATA_BASE_URL = process.env.VITE_PROXY_URL || GITHUB_RAW;
-const DATA_FALLBACK_URL = process.env.VITE_PROXY_URL ? GITHUB_RAW : "";
+// Позволяет переопределить основной URL через env (например, Cloudflare Worker)
+const DATA_BASE_URL = process.env.VITE_PROXY_URL || JSDELIVR;
+const DATA_FALLBACK_URL = DATA_BASE_URL !== GITHUB_RAW ? GITHUB_RAW : "";
 
-// Паттерны для Workbox: нужно покрыть оба URL
 const dataPatterns = [DATA_BASE_URL, ...(DATA_FALLBACK_URL ? [DATA_FALLBACK_URL] : [])];
 
 function escapeRegex(s: string) {
@@ -25,7 +25,7 @@ export default defineConfig({
     VitePWA({
       registerType: "autoUpdate",
       includeAssets: ["icons/*.png", "icons/*.svg"],
-      manifest: false, // используем свой public/manifest.json
+      manifest: false,
       workbox: {
         globPatterns: ["**/*.{js,css,html,ico,png,svg}"],
         runtimeCaching: [
@@ -42,7 +42,7 @@ export default defineConfig({
             handler: "CacheFirst" as const,
             options: {
               cacheName: "mpgu-schedules",
-              expiration: { maxAgeSeconds: 21600 }, // 6 часов
+              expiration: { maxAgeSeconds: 21600 },
             },
           })),
         ],
