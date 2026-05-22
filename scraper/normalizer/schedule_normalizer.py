@@ -59,6 +59,28 @@ def _split_room_teacher(room: str | None, teacher: str | None) -> tuple[str | No
     return room, teacher
 
 
+def normalize_subgroup(text: str) -> int | None:
+    """Извлекает номер подгруппы из текста занятия.
+    
+    Поддерживаемые форматы:
+    - п/г 1, п/г2, п/г.1
+    - подгруппа 1, подгруппа2
+    - (1), (2) в контексте разделения
+    """
+    text_lower = text.lower()
+    
+    # Check for subgroup 1 first (before 2) to avoid false positives on "п/г2"
+    if re.search(r'п/г\s*\.?\s*1|подгруппа\s*1|\(1\)', text_lower):
+        return 1
+    # For subgroup 2, also match simple (2) without requiring boundary
+    if re.search(r'п/г\s*\.?\s*2|подгруппа\s*2|\(2\)', text_lower):
+        return 2
+    if re.search(r'п/г\s*\.?\s*3|подгруппа\s*3|\(3\)', text_lower):
+        return 3
+    
+    return None
+
+
 def normalize_day(raw: str) -> str | None:
     key = raw.strip().lower().rstrip(".")
     return DAY_NAMES.get(key)

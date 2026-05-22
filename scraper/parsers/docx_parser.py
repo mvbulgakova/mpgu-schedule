@@ -7,7 +7,7 @@ from docx.table import Table
 from scraper.parsers.base import BaseParser, ParseResult
 from scraper.normalizer.schedule_normalizer import (
     normalize_day, normalize_lesson_type, normalize_time,
-    normalize_week_type, make_schedule_skeleton, lesson_obj,
+    normalize_week_type, normalize_subgroup, make_schedule_skeleton, lesson_obj,
 )
 
 # Аббревиатуры типов занятий в скобках (как в ИПиП DOCX)
@@ -155,6 +155,7 @@ def _parse_day_columns(table):
             week_m = re.search(r"\b(числ[а-я]*|знам[а-я]*|н/|з/)\b", cell, re.I)
             week_type = normalize_week_type(week_m.group(1)) if week_m else "both"
 
+            subgroup = None
             if "\n" in cell:
                 parsed = _parse_multiline_cell(cell)
                 lesson_type = parsed["type"]
@@ -162,6 +163,7 @@ def _parse_day_columns(table):
                 teacher = parsed["teacher"]
                 room = parsed["room"]
                 notes = parsed["notes"]
+                subgroup = parsed.get("subgroup")
             else:
                 lesson_type = normalize_lesson_type(cell)
                 clean = re.sub(r"\bлек\b|\bпрактика\b|\bпр\b|\bлаб\b|\bсеминар\b", "", cell, flags=re.I).strip()
@@ -169,8 +171,10 @@ def _parse_day_columns(table):
                 room = room_m.group(0) if room_m else None
                 teacher = None
                 notes = ""
+                # Try to detect subgroup even in single-line cells
+                subgroup = normalize_subgroup(cell)
 
-            lesson = lesson_obj(None, current_time[0], current_time[1], clean, lesson_type, teacher, room, notes=notes)
+            lesson = lesson_obj(None, current_time[0], current_time[1], clean, lesson_type, teacher, room, notes=notes, subgroup=subgroup)
             if week_type in ("odd", "both"):
                 schedule["odd_week"][day].append(lesson)
             if week_type in ("even", "both"):
