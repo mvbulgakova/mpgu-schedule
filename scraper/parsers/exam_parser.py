@@ -571,13 +571,139 @@ def _parse_excel_sheet(ws) -> list[ExamEntry]:
     return entries
 
 
+# ─── DOCX parser ─────────────────────────────────────────────────────────────
+
+def _parse_docx(path: str) -> list[ExamEntry]:
+    try:
+        from docx import Document
+    except ImportError:
+        log.warning("python-docx not available")
+        return []
+
+    try:
+        doc = Document(path)
+    except Exception as e:
+        log.warning("Cannot open DOCX %s: %s", path, e)
+        return []
+
+    entries: list[ExamEntry] = []
+    for table in doc.tables:
+        rows = _extract_docx_rows(table)
+        entries.extend(_parse_docx_exam_table(rows))
+    return entries
+
+
+def _extract_docx_rows(table) -> list[list[str]]:
+    """Extract rows, collapsing merged cells to their text value."""
+    rows = []
+    for row in table.rows:
+        rows.append([cell.text.strip() for cell in row.cells])
+    return rows
+
+
+def _parse_docx_exam_table(rows: list[list[str]]) -> list[ExamEntry]:
+    if not rows:
+        return []
+
+    # Find header row with group name codes like "АА34-ГРП2501"
+    header_row_idx: int | None = None
+    group_col_map: list[tuple[int, str]] = []
+
+    for ri, row in enumerate(rows[:15]):
+        grps = [
+            (ci, c) for ci, c in enumerate(row)
+            if re.search(r"[А-ЯЁ]{2,}\d{2}", c) and len(c) < 80
+        ]
+        if grps:
+            header_row_idx = ri
+            group_col_map = _dedup_group_cols(grps)
+            break
+
+    if header_row_idx is None:
+        return []
+
+    entries: list[ExamEntry] = []
+    cur_date: str | None = None
+    cur_time: str | None = None
+    # Track per-column previous text to detect merged cells
+    prev_row: list[str] = []
+
+    for row in rows[header_row_idx + 1:]:
+        # Detect new date/time in non-group columns
+        group_cols = {ci for ci, _ in group_col_map}
+        for ci, cell in enumerate(row):
+            if not cell or ci in group_cols:
+                continue
+            # Skip if this is a merged cell repeat
+            if prev_row and ci < len(prev_row) and cell == prev_row[ci]:
+                continue
+            date = _parse_date_text(cell)
+            if date:
+                cur_date = date
+            m = re.search(r"(\d{1,2})[.:](\d{2})\s*[-—]\s*(\d{1,2})[.:](\d{2})", cell)
+            if m:
+                cur_time = (
+                    f"{int(m.group(1)):02d}:{m.group(2)}"
+                    f"-{int(m.group(3)):02d}:{m.group(4)}"
+                )
+
+        if not cur_date:
+            prev_row = row
+            continue
+
+        time_start, time_end = _split_time(cur_time)
+
+        for col_idx, group_name in group_col_map:
+            if col_idx >= len(row):
+                continue
+            cell = row[col_idx]
+            if not cell:
+                continue
+            # Skip merged-cell repeats in group columns too
+            if prev_row and col_idx < len(prev_row) and cell == prev_row[col_idx]:
+                continue
+            lines = [ln.strip() for ln in cell.split("\n") if ln.strip()]
+            content = _parse_cell_content(lines)
+            if content:
+                entries.append(ExamEntry(
+                    date=cur_date,
+                    time_start=time_start or "",
+                    time_end=time_end,
+                    subject=content["subject"],
+                    type=content["type"],
+                    teacher=content["teacher"],
+                    room=content["room"],
+                    groups=[_clean_group_name(group_name)],
+                ))
+
+        prev_row = row
+
+    return entries
+
+
+def _dedup_group_cols(
+    group_col_map: list[tuple[int, str]],
+) -> list[tuple[int, str]]:
+    """Remove duplicate group names (merged header cells) keeping first occurrence."""
+    seen: set[str] = set()
+    result = []
+    for col_idx, name in group_col_map:
+        clean = _clean_group_name(name)
+        if clean not in seen:
+            seen.add(clean)
+            result.append((col_idx, name))
+    return result
+
+
 # ─── Public API ──────────────────────────────────────────────────────────────
 
 def parse_exam_file(path: str) -> list[ExamEntry]:
-    """Parse exam/credit schedule from a PDF or Excel file."""
+    """Parse exam/credit schedule from a PDF, Excel, or DOCX file."""
     ext = Path(path).suffix.lower()
     if ext in {".xlsx", ".xls"}:
         return _parse_excel(path)
+    elif ext == ".docx":
+        return _parse_docx(path)
     else:
         return _parse_pdf(path)
 

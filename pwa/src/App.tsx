@@ -18,6 +18,7 @@ import NotificationSettings from "./components/NotificationSettings";
 import TeacherSearch from "./components/TeacherSearch";
 import TeacherScheduleView from "./components/TeacherScheduleView";
 import ExamScheduleView from "./components/ExamScheduleView";
+import UpcomingExamBanner from "./components/UpcomingExamBanner";
 import type { TeacherMeta } from "./types/schedule";
 import { format, getISOWeek } from "date-fns";
 import { ru } from "date-fns/locale";
@@ -345,31 +346,56 @@ function ScheduleApp() {
             {cachedGroup && (
               <>
                 {/* Tab bar */}
-                <div className="flex border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
-                  <button
-                    onClick={() => setActiveTab("schedule")}
-                    className={`flex-1 py-2.5 text-sm font-medium transition-colors ${
-                      activeTab === "schedule"
-                        ? "text-indigo-600 dark:text-indigo-400 border-b-2 border-indigo-600 dark:border-indigo-400"
-                        : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
-                    }`}
-                  >
-                    Расписание
-                  </button>
-                  <button
-                    onClick={() => setActiveTab("exams")}
-                    className={`flex-1 py-2.5 text-sm font-medium transition-colors ${
-                      activeTab === "exams"
-                        ? "text-indigo-600 dark:text-indigo-400 border-b-2 border-indigo-600 dark:border-indigo-400"
-                        : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
-                    }`}
-                  >
-                    Сессия
-                  </button>
-                </div>
+                {(() => {
+                  const upcomingCount = examsData
+                    ? examsData.entries.filter((e) => {
+                        if (!e.groups.includes(groupName!)) return false;
+                        const days = Math.ceil(
+                          (new Date(e.date).getTime() - Date.now()) / 86400000
+                        );
+                        return days >= 0 && days <= 30;
+                      }).length
+                    : 0;
+                  return (
+                    <div className="flex border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+                      <button
+                        onClick={() => setActiveTab("schedule")}
+                        className={`flex-1 py-2.5 text-sm font-medium transition-colors ${
+                          activeTab === "schedule"
+                            ? "text-indigo-600 dark:text-indigo-400 border-b-2 border-indigo-600 dark:border-indigo-400"
+                            : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+                        }`}
+                      >
+                        Расписание
+                      </button>
+                      <button
+                        onClick={() => setActiveTab("exams")}
+                        className={`flex-1 py-2.5 text-sm font-medium transition-colors relative ${
+                          activeTab === "exams"
+                            ? "text-indigo-600 dark:text-indigo-400 border-b-2 border-indigo-600 dark:border-indigo-400"
+                            : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+                        }`}
+                      >
+                        Сессия
+                        {upcomingCount > 0 && (
+                          <span className="ml-1.5 inline-flex items-center justify-center w-4 h-4 text-[10px] font-bold rounded-full bg-orange-500 text-white">
+                            {upcomingCount}
+                          </span>
+                        )}
+                      </button>
+                    </div>
+                  );
+                })()}
 
                 {activeTab === "schedule" && (
                   <>
+                    {examsData && groupName && (
+                      <UpcomingExamBanner
+                        entries={examsData.entries}
+                        groupName={groupName}
+                        onViewExams={() => setActiveTab("exams")}
+                      />
+                    )}
                     <div className="flex items-center justify-between px-4 py-2 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
                       <span className="text-xs text-gray-500 dark:text-gray-400">
                         {format(today, "EEEE, d MMMM", { locale: ru })} · {weekNum} неделя
