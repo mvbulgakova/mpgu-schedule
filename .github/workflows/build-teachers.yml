@@ -1,0 +1,49 @@
+name: Build Teacher Database
+
+on:
+  workflow_dispatch:      # manual trigger
+  schedule:
+    - cron: "0 3 * * 1"  # every Monday at 03:00 UTC
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code branch
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Checkout data branch
+        uses: actions/checkout@v4
+        with:
+          ref: data
+          path: data
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          pip install aiohttp beautifulsoup4 lxml tenacity python-dotenv
+
+      - name: Crawl teacher database
+        run: |
+          python -m scraper.build_teachers --data-path ./data
+        env:
+          DATA_PATH: ./data
+
+      - name: Commit and push to data branch
+        run: |
+          cd data
+          git config user.name "MPGU Schedule Bot"
+          git config user.email "bot@github-actions"
+          git add meta/teachers.json
+          git diff --staged --quiet && echo "No changes" && exit 0
+          git commit -m "chore: update teacher database [skip ci]"
+          git push origin data

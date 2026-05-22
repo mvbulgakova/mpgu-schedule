@@ -1,6 +1,6 @@
 """Приводит сырые данные парсеров к единой схеме."""
 import re
-from datetime import datetime
+from datetime import datetime, date as date_type
 
 DAY_NAMES = {
     "понедельник": "monday", "пн": "monday", "пон": "monday",
@@ -32,6 +32,63 @@ TIME_SLOTS = {
 
 WEEK_ODD = {"числитель", "числ", "н", "н/", "над", "нечётная", "нечетная", "i", "1"}
 WEEK_EVEN = {"знаменатель", "знам", "з", "з/", "под", "чётная", "четная", "ii", "2"}
+
+_TEACHER_TITLE_RE = re.compile(
+    r"((?:проф|доц|ст\.?\s*преп|асс|преп)\.?\s+[А-ЯЁ][а-яё]+(?:\s+[А-ЯЁ]\.[А-ЯЁ]\.?)?)",
+    re.IGNORECASE,
+)
+
+
+def _split_room_teacher(room: str | None, teacher: str | None) -> tuple[str | None, str | None]:
+    """If room contains an academic title + name, extract teacher and leave only room number."""
+    if not room:
+        return room, teacher
+    m = _TEACHER_TITLE_RE.search(room)
+    if not m:
+        return room, teacher
+    if teacher is None:
+        teacher = m.group(1).strip().rstrip(",. ")
+    remainder = (room[: m.start()] + room[m.end() :]).strip(" ,")
+    aud = re.search(r"ауд\.?\s*(\S+)", remainder, re.I)
+    if aud:
+        room = aud.group(0).strip()
+    else:
+        num = re.search(r"\b\d{2,}\b", remainder)
+        room = num.group(0) if num else None
+    return room, teacher
+
+
+# Подгруппы: (п/г 1), (1 п/г), (подгр. 2), (подгруппа 2)
+_SUBGROUP_RE = re.compile(
+    r"\(\s*(?:п[/.]?\s*г\.?|подгр(?:уппа)?\.?)\s*(\d+)\s*\)"
+    r"|\(\s*(\d+)\s*[-–]?\s*(?:я\s*)?(?:п[/.]?\s*г\.?|подгр(?:уппа)?\.?)\s*\)",
+    re.IGNORECASE,
+)
+
+
+def extract_subgroup(text: str) -> tuple[str, int | None]:
+    """Вытаскивает номер подгруппы из текста; возвращает (очищенный текст, номер или None)."""
+    m = _SUBGROUP_RE.search(text)
+    if not m:
+        return text, None
+    sg = int(m.group(1) or m.group(2))
+    cleaned = (text[: m.start()] + text[m.end() :]).strip(" ,.")
+    return cleaned, sg
+
+
+def date_str_to_weekday(s: str) -> str | None:
+    """Конвертирует строку даты 'DD.MM.YYYY', 'DD.MM.YY' или 'DD.MM' в день недели."""
+    s = s.strip()
+    for fmt in ("%d.%m.%Y", "%d.%m.%y", "%d.%m"):
+        try:
+            dt = datetime.strptime(s, fmt)
+            if fmt == "%d.%m":
+                dt = dt.replace(year=datetime.now().year)
+            days = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
+            return days[dt.weekday()]
+        except ValueError:
+            continue
+    return None
 
 
 def normalize_day(raw: str) -> str | None:

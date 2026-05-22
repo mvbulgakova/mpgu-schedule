@@ -24,9 +24,10 @@ interface Props {
   lessons: Lesson[];
   isToday?: boolean;
   currentTime?: string; // "HH:MM", передаётся только для сегодняшнего дня
+  showFullName?: boolean; // force full day name (used in mobile single-day view)
 }
 
-export default function DayCard({ day, lessons, isToday, currentTime }: Props) {
+export default function DayCard({ day, lessons, isToday, currentTime, showFullName }: Props) {
   const hasLessons = lessons.length > 0;
 
   return (
@@ -34,15 +35,27 @@ export default function DayCard({ day, lessons, isToday, currentTime }: Props) {
       <div className={`text-xs font-bold uppercase tracking-wider mb-2 ${
         isToday ? "text-indigo-700 dark:text-indigo-400" : "text-gray-400 dark:text-gray-500"
       }`}>
-        <span className="sm:hidden">{DAY_NAMES[day]}</span>
-        <span className="hidden sm:inline">{DAY_NAMES_FULL[day]}</span>
+        {showFullName ? (
+          <span>{DAY_NAMES_FULL[day]}</span>
+        ) : (
+          <>
+            <span className="sm:hidden">{DAY_NAMES[day]}</span>
+            <span className="hidden sm:inline">{DAY_NAMES_FULL[day]}</span>
+          </>
+        )}
         {isToday && <span className="ml-1 text-indigo-500 dark:text-indigo-400">●</span>}
       </div>
 
       {hasLessons ? (
         <div className="flex flex-col gap-2">
           {lessons
-            .sort((a, b) => (a.slot ?? 9) - (b.slot ?? 9))
+            .filter((lesson) => lesson.subject?.trim())
+            .slice()
+            .sort((a, b) => {
+              const slotDiff = (a.slot ?? 99) - (b.slot ?? 99);
+              if (slotDiff !== 0) return slotDiff;
+              return (a.time_start ?? "").localeCompare(b.time_start ?? "");
+            })
             .map((lesson, i) => (
               <LessonCard
                 key={i}

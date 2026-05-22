@@ -1,4 +1,5 @@
 import type { Lesson } from "../types/schedule";
+import type { ReactNode } from "react";
 import clsx from "clsx";
 
 const TYPE_COLORS: Record<string, string> = {
@@ -26,9 +27,10 @@ interface Props {
   lesson: Lesson;
   slot: number;
   isNow?: boolean;
+  badge?: ReactNode;
 }
 
-export default function LessonCard({ lesson, slot: _slot, isNow }: Props) {
+export default function LessonCard({ lesson, slot: _slot, isNow, badge }: Props) {
   const colors = isNow
     ? "bg-indigo-50 dark:bg-indigo-900/40 border-indigo-400 dark:border-indigo-600 text-indigo-900 dark:text-indigo-100 ring-2 ring-indigo-300 dark:ring-indigo-700"
     : (TYPE_COLORS[lesson.type] ?? TYPE_COLORS.other);
@@ -49,12 +51,28 @@ export default function LessonCard({ lesson, slot: _slot, isNow }: Props) {
         </div>
       </div>
 
+      {badge && <div className="mt-1">{badge}</div>}
+
       <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-1 text-xs opacity-80">
         {lesson.type !== "other" && (
           <span>{TYPE_LABELS[lesson.type]}</span>
         )}
         {lesson.teacher && <span>{lesson.teacher}</span>}
-        {lesson.room && <span>ауд. {lesson.room}</span>}
+        {lesson.notes && <span className="italic opacity-60">{lesson.notes}</span>}
+        {lesson.room && (
+          /^https?:\/\/|zoom\.us|teams\.microsoft\.com|meet\.|webex\.|el\.mpgu\.su/.test(lesson.room) ? (
+            <a
+              href={lesson.room.startsWith("http") ? lesson.room : `https://${lesson.room}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline underline-offset-2"
+            >
+              🔗 онлайн
+            </a>
+          ) : (
+            <span>ауд. {lesson.room}</span>
+          )
+        )}
         {lesson.subgroup && <span>п/г {lesson.subgroup}</span>}
       </div>
     </div>

@@ -9,15 +9,40 @@ on:
         description: "ID конкретного института (пусто = все)"
         required: false
         default: ""
+      force_rescrape:
+        description: "Перепарсить все файлы заново (игнорировать кеш хешей)"
+        type: boolean
+        required: false
+        default: false
 
 permissions:
   contents: write
   issues: write
 
 jobs:
-  scrape:
+  compute-matrix:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    outputs:
+      institutes: ${{ steps.set.outputs.institutes }}
+    steps:
+      - id: set
+        run: |
+          FILTER="${{ github.event.inputs.institute_id }}"
+          ALL='["biology","childhood","philology","physics","sport","social","geography","history","math","arts","preschool","pedagogy","languages","international","journalism","teaching_development","digital"]'
+          if [ -n "$FILTER" ]; then
+            echo "institutes=[\"$FILTER\"]" >> "$GITHUB_OUTPUT"
+          else
+            echo "institutes=$ALL" >> "$GITHUB_OUTPUT"
+          fi
+
+  scrape:
+    needs: compute-matrix
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        institute_id: ${{ fromJson(needs.compute-matrix.outputs.institutes) }}
 
     steps:
       - name: Checkout main (code)
@@ -34,12 +59,12 @@ jobs:
           cache-dependency-path: main-branch/scraper/requirements.txt
 
       - name: Install system deps
-        run: sudo apt-get update -q && sudo apt-get install -y ghostscript poppler-utils
+        run: sudo apt-get update -q && sudo apt-get install -y ghostscript poppler-utils tesseract-ocr tesseract-ocr-rus libgl1
 
       - name: Install Python deps
         run: pip install -r main-branch/scraper/requirements.txt
 
-      - name: Checkout data branch (preserve historical data)
+      - name: Checkout data branch
         env:
           GITHUB_TOKEN: ${{ github.token }}
         run: |
@@ -61,8 +86,9 @@ jobs:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           DATA_PATH: ${{ github.workspace }}/data-branch
-          CHANGED_ONLY: "false"
-          INSTITUTE_ID: ${{ github.event.inputs.institute_id }}
+          CHANGED_ONLY: ${{ github.event.inputs.force_rescrape == 'true' && 'false' || 'true' }}
+          INSTITUTE_ID: ${{ matrix.institute_id }}
+          SKIP_TEACHERS: "true"
           PYTHONPATH: ${{ github.workspace }}/main-branch
         run: cd main-branch && python -m scraper.main
 
@@ -74,9 +100,58 @@ jobs:
           git remote set-url origin https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git
           git add -A
           git diff --staged --quiet && echo "Нет изменений" && exit 0
-          git commit -m "Update $(date -u '+%Y-%m-%d %H:%M UTC')"
-          git push -u origin data
-          echo "Done"
+          git commit -m "Scrape ${{ matrix.institute_id }} $(date -u '+%Y-%m-%d %H:%M UTC')"
+
+          # Script to merge our institute entry into the rebased index.json
+          cat > /tmp/merge_idx.py << 'PYEOF'
+import json, pathlib, sys, subprocess
+inst_id = sys.argv[1] if len(sys.argv) > 1 else ""
+idx = pathlib.Path("meta/index.json")
+if not idx.exists() or not inst_id:
+    sys.exit(0)
+try:
+    our_raw = subprocess.check_output(["git", "show", "REBASE_HEAD:meta/index.json"])
+    our_data = json.loads(our_raw)
+    our_entry = next((e for e in our_data.get("institutes", []) if e["id"] == inst_id), None)
+except Exception as ex:
+    sys.stderr.write(f"Warning: could not read our index entry: {ex}\n")
+    sys.exit(0)
+if our_entry is None:
+    sys.exit(0)
+data = json.loads(idx.read_text())
+merged = {e["id"]: e for e in data.get("institutes", [])}
+merged[inst_id] = our_entry
+data["institutes"] = list(merged.values())
+idx.write_text(json.dumps(data, ensure_ascii=False, indent=2))
+print(f"Merged {inst_id} entry into index.json")
+PYEOF
+
+          for i in 1 2 3 4 5; do
+            git push origin data && echo "Pushed OK" && exit 0
+            echo "Конфликт при пуше, ребейз (попытка $i)..."
+            git pull --rebase origin data || {
+              # Resolve meta/index.json: take origin's version, apply our entry on top
+              if git diff --name-only --diff-filter=U | grep -q "meta/index.json"; then
+                git checkout --ours -- meta/index.json
+                python3 /tmp/merge_idx.py "${{ matrix.institute_id }}"
+                git add -- meta/index.json
+              fi
+              # Resolve meta/hashes.json: keep our version (prefer our updated hashes)
+              if git diff --name-only --diff-filter=U | grep -q "meta/hashes.json"; then
+                git checkout --theirs -- meta/hashes.json
+                git add -- meta/hashes.json
+              fi
+              # Resolve any remaining conflicts by keeping our version
+              UNMERGED=$(git diff --name-only --diff-filter=U)
+              if [ -n "$UNMERGED" ]; then
+                echo "$UNMERGED" | xargs git checkout --theirs --
+                echo "$UNMERGED" | xargs git add
+              fi
+              GIT_EDITOR=true git rebase --continue
+            }
+            sleep $((i * 4))
+          done
+          echo "Все попытки пуша провалились" && exit 1
 
       - name: Alert on parser anomalies
         if: always()
@@ -107,6 +182,62 @@ jobs:
 
           gh issue create \
             --repo "$GH_REPO" \
-            --title "⚠ Парсер: аномалии в расписании ($(date -u '+%Y-%m-%d'))" \
+            --title "⚠ Парсер: аномалии (${{ matrix.institute_id }}, $(date -u '+%Y-%m-%d'))" \
             --body "$BODY" \
-          || echo "Не удалось создать Issue (возможно, уже существует похожий)"
+          || echo "Не удалось создать Issue"
+
+  build-teachers:
+    needs: scrape
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout main (code)
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          path: main-branch
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: main-branch/scraper/requirements.txt
+
+      - name: Install Python deps
+        run: pip install -r main-branch/scraper/requirements.txt
+
+      - name: Checkout data branch
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          REMOTE=https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git
+          git clone --depth=1 --branch data "$REMOTE" data-branch
+          cd data-branch
+          git config user.name "MPGU Schedule Bot"
+          git config user.email "bot@github-actions"
+
+      - name: Rebuild teachers index
+        env:
+          DATA_PATH: ${{ github.workspace }}/data-branch
+          TEACHERS_ONLY: "true"
+          PYTHONPATH: ${{ github.workspace }}/main-branch
+        run: cd main-branch && python -m scraper.main
+
+      - name: Push teachers index
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          cd data-branch
+          git remote set-url origin https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git
+          git add meta/teachers.json teachers/ 2>/dev/null || git add meta/teachers.json
+          git diff --staged --quiet && echo "No changes" && exit 0
+          git commit -m "Rebuild teachers index $(date -u '+%Y-%m-%d %H:%M UTC')"
+          for i in 1 2 3; do
+            git push origin data && echo "Pushed OK" && exit 0
+            git pull --rebase origin data
+            sleep $((i * 2))
+          done
+          echo "Push failed" && exit 1
