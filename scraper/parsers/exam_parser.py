@@ -150,9 +150,14 @@ def _parse_pdf(path: str) -> list[ExamEntry]:
         return []
 
     entries: list[ExamEntry] = []
+    # Thread group X-ranges across pages: some PDFs (e.g. philology) put the
+    # group header only on page 2; subsequent data pages need the inherited ranges.
+    inherited_x_ranges: list[tuple[float, float, str]] = []
     with pdfplumber.open(path) as pdf:
         for page in pdf.pages:
-            page_entries = _extract_page(page)
+            page_entries, page_x_ranges = _extract_page(page, inherited_x_ranges)
+            if page_x_ranges:
+                inherited_x_ranges = page_x_ranges
             entries.extend(page_entries)
 
     # If text extraction failed (scanned PDF), try Tesseract
@@ -162,14 +167,22 @@ def _parse_pdf(path: str) -> list[ExamEntry]:
     return entries
 
 
-def _extract_page(page) -> list[ExamEntry]:
+def _extract_page(
+    page,
+    inherited_group_x_ranges: list[tuple[float, float, str]] | None = None,
+) -> tuple[list[ExamEntry], list[tuple[float, float, str]]]:
+    """
+    Returns (entries, group_x_ranges).
+    group_x_ranges is non-empty when this page has a group header row; the
+    caller threads it into subsequent pages that lack their own header.
+    """
     ts = {"vertical_strategy": "lines", "horizontal_strategy": "lines"}
     try:
         finders = list(page.find_tables(ts))
     except Exception:
-        return []
+        return [], []
     if not finders:
-        return []
+        return [], []
 
     tables = [(f.bbox, f.extract()) for f in finders]
 
@@ -181,11 +194,22 @@ def _extract_page(page) -> list[ExamEntry]:
     for ti, (bbox, table) in enumerate(tables):
         for ri, row in enumerate(table):
             cells = [str(c or "").strip() for c in row]
+            # Standard Cyrillic group codes like БОИ35-ИПЛ2402
             grps = [
                 (ci, c) for ci, c in enumerate(cells)
                 if re.search(r"[А-ЯЁ]{2,}\d{2}", c) and len(c) < 60
             ]
-            if len(grps) >= 1:
+            if not grps:
+                # Numeric group codes (philology-style: "101", "102" …).
+                # Require ≥3 matches per row to avoid false positives from
+                # dates, room numbers, etc.
+                numeric_grps = [
+                    (ci, c) for ci, c in enumerate(cells)
+                    if re.match(r"^\d{3,4}$", c)
+                ]
+                if len(numeric_grps) >= 3:
+                    grps = numeric_grps
+            if grps:
                 main_idx = ti
                 header_row_idx = ri
                 group_col_map = grps
@@ -194,7 +218,11 @@ def _extract_page(page) -> list[ExamEntry]:
             break
 
     if main_idx is None or not group_col_map:
-        return []
+        # No group header on this page — fall back to inherited X ranges if
+        # available (e.g. philology data pages 3-10 after the header on page 2)
+        if inherited_group_x_ranges:
+            return _extract_with_inherited_x(page, tables, inherited_group_x_ranges), []
+        return [], []
 
     main_bbox, main_table = tables[main_idx]
 
@@ -228,15 +256,19 @@ def _extract_page(page) -> list[ExamEntry]:
         main_table, header_row_idx, group_col_map, row_meta
     )
 
-    # ── Step 4: extract exam content from overflow sub-tables ──
+    # ── Step 4: build X-ranges once, share with sub-table extractor ──
+    group_x_ranges = _get_group_x_ranges(page, group_col_map, main_bbox)
+
+    # ── Step 5: extract exam content from overflow sub-tables ──
     # Sub-tables are positioned within the grid; match by Y-overlap to row_meta
     entries_from_sub = _entries_from_sub_tables(
         tables, main_idx, main_bbox, main_table, header_row_idx,
-        group_col_map, row_meta, page
+        group_col_map, row_meta, page, group_x_ranges,
     )
 
     # Merge, prefer sub-table entries (they have full content)
-    return entries_from_sub if entries_from_sub else entries_from_main
+    entries = entries_from_sub if entries_from_sub else entries_from_main
+    return entries, group_x_ranges
 
 
 def _entries_from_main_table(
@@ -293,12 +325,14 @@ def _entries_from_sub_tables(
     group_col_map: list[tuple[int, str]],
     row_meta: dict[int, dict],
     page,
+    group_x_ranges: list[tuple[float, float, str]] | None = None,
 ) -> list[ExamEntry]:
     """
     Match sub-tables to (group, date, time) by spatial position.
     """
-    # Get group column x-ranges from page words
-    group_x_ranges = _get_group_x_ranges(page, group_col_map, main_bbox)
+    # Accept pre-computed ranges from _extract_page to avoid duplicate work
+    if group_x_ranges is None:
+        group_x_ranges = _get_group_x_ranges(page, group_col_map, main_bbox)
     if not group_x_ranges:
         return []
 
@@ -364,12 +398,20 @@ def _get_group_x_ranges(page, group_col_map, main_bbox) -> list[tuple[float, flo
     main_x0, main_y0, main_x1, main_y1 = main_bbox
     header_y_max = main_y0 + 100
 
-    group_code_re = re.compile(r"[А-ЯЁA-Z]{2,}\d{2}")
-    # Collect all group-code words in the header area, sorted by x
-    header_group_words = sorted(
-        [w for w in words if group_code_re.search(w["text"]) and w["top"] <= header_y_max],
-        key=lambda w: w["x0"],
-    )
+    # Choose regex based on whether the map uses numeric codes (philology-style)
+    is_numeric = all(re.match(r"^\d{3,4}$", name) for _, name in group_col_map)
+    if is_numeric:
+        group_code_re = re.compile(r"^\d{3,4}$")
+        header_group_words = sorted(
+            [w for w in words if group_code_re.match(w["text"]) and w["top"] <= header_y_max],
+            key=lambda w: w["x0"],
+        )
+    else:
+        group_code_re = re.compile(r"[А-ЯЁA-Z]{2,}\d{2}")
+        header_group_words = sorted(
+            [w for w in words if group_code_re.search(w["text"]) and w["top"] <= header_y_max],
+            key=lambda w: w["x0"],
+        )
 
     # Sort groups by column index (left-to-right order)
     sorted_groups = sorted(group_col_map, key=lambda x: x[0])
@@ -417,6 +459,84 @@ def _get_row_y_ranges(
     return ranges
 
 
+def _extract_with_inherited_x(
+    page,
+    tables: list[tuple],
+    group_x_ranges: list[tuple[float, float, str]],
+) -> list[ExamEntry]:
+    """
+    Extract entries from pages that lack a group header row.
+
+    Used for philology-style PDFs where the group header (numeric codes 101-111)
+    only appears on page 2, while pages 3-10 are pure data pages with the same
+    physical column layout.  We estimate each column's X-center from the table
+    bounding box and map it to the nearest inherited group X-range.
+    """
+    entries: list[ExamEntry] = []
+    for bbox, table in tables:
+        if not table:
+            continue
+        tbl_x0, tbl_y0, tbl_x1, tbl_y1 = bbox
+        n_cols = max((len(r) for r in table), default=0)
+        if n_cols < 3:
+            continue
+
+        col_width = (tbl_x1 - tbl_x0) / n_cols
+        cur_date: str | None = None
+        cur_time: str | None = None
+
+        for row in table:
+            cells = [str(c or "").strip() for c in row]
+
+            # First two columns carry date/time (vertical or plain text)
+            for ci in range(min(2, len(cells))):
+                cell = cells[ci]
+                if not cell:
+                    continue
+                if "\n" in cell and len(cell) < 100:
+                    kind, val = _decode_vertical(cell)
+                    if kind == "date":
+                        cur_date = val
+                    elif kind == "time":
+                        cur_time = val
+                else:
+                    date = _parse_date_text(cell)
+                    if date:
+                        cur_date = date
+                    m = re.search(r"(\d{2})[.:](\d{2})\s*[-—]\s*(\d{2})[.:](\d{2})", cell)
+                    if m:
+                        cur_time = f"{m.group(1)}:{m.group(2)}-{m.group(3)}:{m.group(4)}"
+
+            if not cur_date:
+                continue
+
+            time_start, time_end = _split_time(cur_time)
+
+            for ci in range(2, len(cells)):
+                cell = cells[ci]
+                if not cell or len(cell) < 3:
+                    continue
+                col_cx = tbl_x0 + (ci + 0.5) * col_width
+                group_name = _find_group_for_x(col_cx, group_x_ranges)
+                if not group_name:
+                    continue
+                content = _parse_cell_content(cell.split("\n"))
+                if not content:
+                    continue
+                entries.append(ExamEntry(
+                    date=cur_date,
+                    time_start=time_start or "",
+                    time_end=time_end,
+                    subject=content["subject"],
+                    type=content["type"],
+                    teacher=content["teacher"],
+                    room=content["room"],
+                    groups=[_clean_group_name(group_name)],
+                ))
+
+    return entries
+
+
 def _find_group_for_x(cx: float, group_x_ranges) -> str | None:
     best_overlap = 0
     best_group = None
@@ -449,7 +569,7 @@ def _clean_group_name(name: str) -> str:
 
 # ─── OCR fallback for scanned PDFs ───────────────────────────────────────────
 
-_OCR_MAX_PAGES = 0      # 0 = skip OCR entirely (too slow for batch runs)
+_OCR_MAX_PAGES = 2      # skip OCR for PDFs longer than this (scanned single-page exams OK)
 _OCR_PAGE_TIMEOUT = 30  # seconds per page before giving up
 
 
