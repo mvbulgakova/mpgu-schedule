@@ -313,17 +313,7 @@ async def main():
         "institutes": index_entries,
     })
 
-    if not SKIP_TEACHERS:
-        _build_teacher_index(storage)
-        teachers_db = Path(DATA_PATH) / "meta" / "teachers.json"
-        if teachers_db.exists():
-            print("\n[TEACHERS] Строим расписания преподавателей …")
-            try:
-                from scraper.build_teacher_schedules import build as build_teacher_schedules
-                build_teacher_schedules(DATA_PATH)
-            except Exception as e:
-                print(f"  ⚠ Ошибка построения расписаний преподавателей: {e}")
-
+    # Пишем/удаляем файл аномалий
     alerts_path = Path(DATA_PATH) / "meta" / "alerts.json"
     if all_alerts:
         alerts_path.write_text(
@@ -337,6 +327,16 @@ async def main():
     print(f"Готово: {ok}/{len(index_entries)} институтов обработано успешно")
     if all_alerts:
         print(f"⚠ Аномалий: {len(all_alerts)} — проверьте meta/alerts.json")
+
+    # Build per-teacher schedule files if teacher DB exists (skip in matrix scrape jobs)
+    teachers_db = Path(DATA_PATH) / "meta" / "teachers.json"
+    if teachers_db.exists() and not SKIP_TEACHERS:
+        print("\n[TEACHERS] Строим расписания преподавателей …")
+        try:
+            from scraper.build_teacher_schedules import build as build_teacher_schedules
+            build_teacher_schedules(DATA_PATH)
+        except Exception as e:
+            print(f"  ⚠ Ошибка построения расписаний преподавателей: {e}")
 
 
 def _current_academic_year() -> str:
@@ -555,5 +555,18 @@ def _build_teacher_index(storage) -> None:
     print(f"  Индекс преподавателей: {len(teacher_list)} чел.")
 
 
-if __name__ == "__main__":
+def _entry():
+    if TEACHERS_ONLY:
+        teachers_db = Path(DATA_PATH) / "meta" / "teachers.json"
+        if not teachers_db.exists():
+            print("[SKIP] teachers.json not found — run build_teachers first")
+            return
+        print("[TEACHERS_ONLY] Rebuilding per-teacher schedule files …")
+        from scraper.build_teacher_schedules import build as build_teacher_schedules
+        build_teacher_schedules(DATA_PATH)
+        return
     asyncio.run(main())
+
+
+if __name__ == "__main__":
+    _entry()

@@ -102,10 +102,53 @@ jobs:
           git diff --staged --quiet && echo "Нет изменений" && exit 0
           git commit -m "Scrape ${{ matrix.institute_id }} $(date -u '+%Y-%m-%d %H:%M UTC')"
 
+          # Script to merge our institute entry into the rebased index.json
+          cat > /tmp/merge_idx.py << 'PYEOF'
+import json, pathlib, sys, subprocess
+inst_id = sys.argv[1] if len(sys.argv) > 1 else ""
+idx = pathlib.Path("meta/index.json")
+if not idx.exists() or not inst_id:
+    sys.exit(0)
+try:
+    our_raw = subprocess.check_output(["git", "show", "REBASE_HEAD:meta/index.json"])
+    our_data = json.loads(our_raw)
+    our_entry = next((e for e in our_data.get("institutes", []) if e["id"] == inst_id), None)
+except Exception as ex:
+    sys.stderr.write(f"Warning: could not read our index entry: {ex}\n")
+    sys.exit(0)
+if our_entry is None:
+    sys.exit(0)
+data = json.loads(idx.read_text())
+merged = {e["id"]: e for e in data.get("institutes", [])}
+merged[inst_id] = our_entry
+data["institutes"] = list(merged.values())
+idx.write_text(json.dumps(data, ensure_ascii=False, indent=2))
+print(f"Merged {inst_id} entry into index.json")
+PYEOF
+
           for i in 1 2 3 4 5; do
             git push origin data && echo "Pushed OK" && exit 0
             echo "Конфликт при пуше, ребейз (попытка $i)..."
-            git pull --rebase origin data
+            git pull --rebase origin data || {
+              # Resolve meta/index.json: take origin's version, apply our entry on top
+              if git diff --name-only --diff-filter=U | grep -q "meta/index.json"; then
+                git checkout --ours -- meta/index.json
+                python3 /tmp/merge_idx.py "${{ matrix.institute_id }}"
+                git add -- meta/index.json
+              fi
+              # Resolve meta/hashes.json: keep our version (prefer our updated hashes)
+              if git diff --name-only --diff-filter=U | grep -q "meta/hashes.json"; then
+                git checkout --theirs -- meta/hashes.json
+                git add -- meta/hashes.json
+              fi
+              # Resolve any remaining conflicts by keeping our version
+              UNMERGED=$(git diff --name-only --diff-filter=U)
+              if [ -n "$UNMERGED" ]; then
+                echo "$UNMERGED" | xargs git checkout --theirs --
+                echo "$UNMERGED" | xargs git add
+              fi
+              GIT_EDITOR=true git rebase --continue
+            }
             sleep $((i * 4))
           done
           echo "Все попытки пуша провалились" && exit 1
@@ -189,8 +232,12 @@ jobs:
         run: |
           cd data-branch
           git remote set-url origin https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git
-          git add meta/teachers.json
+          git add meta/teachers.json teachers/ 2>/dev/null || git add meta/teachers.json
           git diff --staged --quiet && echo "No changes" && exit 0
           git commit -m "Rebuild teachers index $(date -u '+%Y-%m-%d %H:%M UTC')"
-          git pull --rebase origin data
-          git push origin data
+          for i in 1 2 3; do
+            git push origin data && echo "Pushed OK" && exit 0
+            git pull --rebase origin data
+            sleep $((i * 2))
+          done
+          echo "Push failed" && exit 1
