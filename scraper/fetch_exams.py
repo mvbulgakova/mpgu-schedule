@@ -140,6 +140,10 @@ async def process_institute(
                 log.debug("[%s] skip stale link (%s): %s", inst_id, link_type, url[:60])
                 continue
 
+            if "drive.google.com" in url:
+                log.debug("[%s] skip google drive link: %s", inst_id, url[:60])
+                continue
+
             # Nextcloud: resolve to direct download URL
             fetch_url = nextcloud_download_url(url) if link_type == "nextcloud" else url
             hint_ext = _TYPE_EXT.get(link_type, "")
