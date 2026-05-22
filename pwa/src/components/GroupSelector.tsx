@@ -73,8 +73,6 @@ function GroupMetaButton({
 export default function GroupMetaSelector({ groups }: Props) {
   const setGroup = useAppStore((s) => s.setGroup);
   const selected = useAppStore((s) => s.selectedGroupName);
-  const back = useAppStore((s) => s.setInstitute);
-  const instituteId = useAppStore((s) => s.selectedInstituteId)!;
   const pinnedGroups = useAppStore((s) => s.pinnedGroups);
   const togglePin = useAppStore((s) => s.togglePin);
 
@@ -108,13 +106,6 @@ export default function GroupMetaSelector({ groups }: Props) {
 
   return (
     <div className="p-4">
-      <button
-        onClick={() => back(instituteId)}
-        className="text-sm text-indigo-600 mb-3 flex items-center gap-1"
-      >
-        ← Назад
-      </button>
-
       {showSearch && (
         <div className="relative mb-4">
           <input
