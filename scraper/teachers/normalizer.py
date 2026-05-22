@@ -114,7 +114,7 @@ def match_teacher(schedule_name: str, db: list[dict]) -> dict | None:
     # Prefix: schedule may omit patronymic "Архипова Т." → target = "архиповат"
     for t in db:
         key = t.get("_key", "")
-        if len(target) >= 6 and (key.startswith(target) or target.startswith(key)):
+        if key and len(target) >= 6 and (key.startswith(target) or target.startswith(key)):
             return t
 
     return None
