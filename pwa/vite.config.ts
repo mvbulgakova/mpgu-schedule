@@ -28,6 +28,7 @@ export default defineConfig({
       manifest: false,
       workbox: {
         globPatterns: ["**/*.{js,css,html,ico,png,svg}"],
+        importScripts: ["sw-notifications.js"],
         runtimeCaching: [
           ...dataPatterns.map((base) => ({
             urlPattern: new RegExp(`^${escapeRegex(base)}/meta/`),

@@ -1,13 +1,17 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useAppStore } from "./store";
 import { useIndex, useInstituteManifest, useGroupSchedule } from "./hooks/useSchedule";
 import { useOfflineCache } from "./hooks/useOfflineCache";
+import { useNotifications } from "./hooks/useNotifications";
 import InstituteSelector from "./components/InstituteSelector";
 import GroupSelector from "./components/GroupSelector";
 import WeekSchedule from "./components/WeekSchedule";
+import NotificationSettings from "./components/NotificationSettings";
 import { format, getISOWeek } from "date-fns";
 import { ru } from "date-fns/locale";
+
+const SUPPORTED_MANIFEST_VERSION = 1;
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: 2 } },
@@ -53,6 +57,10 @@ function ScheduleApp() {
   const cachedGroup = useOfflineCache(`group:${instituteId}:${groupName}`, groupData);
 
   const setWeek = useAppStore((s) => s.setWeek);
+
+  const [showNotifSettings, setShowNotifSettings] = useState(false);
+
+  useNotifications(cachedGroup?.schedule);
 
   const today = new Date();
   const weekNum = getISOWeek(today);
@@ -107,21 +115,41 @@ function ScheduleApp() {
           </button>
 
           {groupMeta && (
-            <button
-              onClick={toggleWeek}
-              className="text-xs bg-indigo-700 hover:bg-indigo-600 rounded-lg px-3 py-1.5 border border-indigo-600"
-            >
-              {showEvenWeek ? "Чётная" : "Нечётная"}
-              <span className="text-indigo-400 ml-1">/ сменить</span>
-            </button>
+            <>
+              <button
+                onClick={() => setShowNotifSettings(true)}
+                className="text-xs bg-indigo-700 hover:bg-indigo-600 rounded-lg px-2.5 py-1.5 border border-indigo-600"
+                aria-label="Настройки уведомлений"
+              >
+                🔔
+              </button>
+              <button
+                onClick={toggleWeek}
+                className="text-xs bg-indigo-700 hover:bg-indigo-600 rounded-lg px-3 py-1.5 border border-indigo-600"
+              >
+                {showEvenWeek ? "Чётная" : "Нечётная"}
+                <span className="text-indigo-400 ml-1">/ сменить</span>
+              </button>
+            </>
           )}
         </div>
       </header>
+
+      {showNotifSettings && (
+        <NotificationSettings onClose={() => setShowNotifSettings(false)} />
+      )}
 
       {/* Offline notice */}
       {!navigator.onLine && (
         <div className="bg-amber-50 text-amber-700 text-xs text-center py-1.5 border-b border-amber-200">
           Офлайн · показываем кешированные данные
+        </div>
+      )}
+
+      {/* Version upgrade notice */}
+      {cachedManifest && typeof cachedManifest.version === "number" && cachedManifest.version > SUPPORTED_MANIFEST_VERSION && (
+        <div className="bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-xs text-center py-1.5 border-b border-blue-200 dark:border-blue-800">
+          Доступен новый формат данных. Обновите приложение.
         </div>
       )}
 

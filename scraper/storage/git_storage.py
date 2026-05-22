@@ -60,6 +60,7 @@ class GitStorage:
 
         # Манифест без поля groups[*].schedule
         manifest = {k: v for k, v in data.items() if k != "groups"}
+        manifest["version"] = 1
         manifest["groups"] = manifest_groups
         _write_json(self.root / "institutes" / institute_id / "schedule.json", manifest)
 

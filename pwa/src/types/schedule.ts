@@ -43,6 +43,7 @@ export interface GroupMeta {
 }
 
 export interface InstituteManifest {
+  version?: number;
   institute_id: string;
   institute_name: string;
   short_name: string;
