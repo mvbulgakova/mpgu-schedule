@@ -78,13 +78,20 @@ def _empty(raw: str) -> dict:
     return {"first": "", "patronymic": "", "last": raw, "abbreviated": raw}
 
 
+_TITLE_PREFIX_RE = re.compile(
+    r"^(?:проф|доц|ст\.?\s*преп(?:одаватель)?|асс(?:истент)?|преп(?:одаватель)?)\s*\.?\s+",
+    re.IGNORECASE,
+)
+
+
 def match_key(name: str) -> str:
     """
     Produce a canonical key for matching:
     "Архипова Т.В." → "архиповатв"
     "Архипова Татьяна Валентиновна" → "архиповатв"
+    "доц. Архипова Т.В." → "архиповатв"
     """
-    name = name.strip()
+    name = _TITLE_PREFIX_RE.sub("", name.strip())
     parts = name.split()
     # If looks like a full name (3 parts with patronymic), abbreviate first
     if len(parts) >= 3:
