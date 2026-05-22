@@ -33,6 +33,31 @@ TIME_SLOTS = {
 WEEK_ODD = {"числитель", "числ", "н", "н/", "над", "нечётная", "нечетная", "i", "1"}
 WEEK_EVEN = {"знаменатель", "знам", "з", "з/", "под", "чётная", "четная", "ii", "2"}
 
+_TEACHER_TITLE_RE = re.compile(
+    r"((?:проф|доц|ст\.?\s*преп|асс|преп)\.?\s+[А-ЯЁ][а-яё]+(?:\s+[А-ЯЁ]\.[А-ЯЁ]\.?)?)",
+    re.IGNORECASE,
+)
+
+
+def _split_room_teacher(room: str | None, teacher: str | None) -> tuple[str | None, str | None]:
+    """If room contains an academic title + name, extract teacher and leave only room number."""
+    if not room:
+        return room, teacher
+    m = _TEACHER_TITLE_RE.search(room)
+    if not m:
+        return room, teacher
+    if teacher is None:
+        teacher = m.group(1).strip().rstrip(",. ")
+    remainder = (room[: m.start()] + room[m.end() :]).strip(" ,")
+    aud = re.search(r"ауд\.?\s*(\S+)", remainder, re.I)
+    if aud:
+        room = aud.group(0).strip()
+    else:
+        num = re.search(r"\b\d{2,}\b", remainder)
+        room = num.group(0) if num else None
+    return room, teacher
+
+
 # Подгруппы: (п/г 1), (1 п/г), (подгр. 2), (подгруппа 2)
 _SUBGROUP_RE = re.compile(
     r"\(\s*(?:п[/.]?\s*г\.?|подгр(?:уппа)?\.?)\s*(\d+)\s*\)"

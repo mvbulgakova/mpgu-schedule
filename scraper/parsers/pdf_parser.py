@@ -480,7 +480,7 @@ def _norm_hm(s: str) -> str:
 def _valid_time(t: str) -> bool:
     try:
         h, m = map(int, t.split(":"))
-        return 0 <= h <= 23 and 0 <= m <= 59
+        return 7 <= h <= 22 and 0 <= m <= 59
     except Exception:
         return False
 

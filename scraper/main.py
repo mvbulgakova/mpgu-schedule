@@ -305,6 +305,8 @@ async def main():
         "institutes": index_entries,
     })
 
+    _build_teacher_index(storage)
+
     # Пишем/удаляем файл аномалий
     alerts_path = Path(DATA_PATH) / "meta" / "alerts.json"
     if all_alerts:
@@ -391,9 +393,12 @@ _DAY_NAMES_RU = {
 
 # Слова, с которых начинаются заголовки секций, а не коды групп
 _SECTION_HEADER_STARTS = re.compile(
-    r"^(курс|семестр|расписание|группы|форма|очная|заочная|очно|бакалавр|магистр|специалитет)\b",
+    r"^(курс|семестр|расписание|группы|форма|очная|заочная|очно|бакалавр|магистр|специалитет|направление|направленность)\b",
     re.IGNORECASE,
 )
+
+# Код специальности (44.03.01 и подобные) где угодно в строке
+_SPECIALTY_CODE = re.compile(r"\d{2}\.\d{2}\.\d{2}")
 
 
 def _filter_invalid_groups(groups: list[dict]) -> list[dict]:
@@ -408,7 +413,7 @@ def _filter_invalid_groups(groups: list[dict]) -> list[dict]:
             reason = "слишком короткое"
         elif name.replace(".", "").replace(" ", "").isdigit():
             reason = "только цифры"
-        elif re.match(r"^\d{2}\.\d{2}\.\d{2}", name):
+        elif _SPECIALTY_CODE.search(name):
             reason = "код специальности"
         elif len(name) > 40:
             reason = "слишком длинное"
@@ -456,6 +461,92 @@ def _error_entry(inst_id, inst_name, error):
         "error": error,
         "alerts": [],
     }
+
+
+_BAD_TEACHER_PREFIXES = re.compile(
+    r"^\s*[\(\[]|"          # starts with ( or [
+    r"^\s*(лк|пз|лаб|ауд|каб|каф|зал)\b",  # room/type prefixes
+    re.IGNORECASE,
+)
+
+
+def _is_valid_teacher_name(name: str) -> bool:
+    if len(name) > 70:
+        return False
+    if _BAD_TEACHER_PREFIXES.search(name):
+        return False
+    # must have at least one Cyrillic letter
+    if not re.search(r"[а-яёА-ЯЁ]", name):
+        return False
+    return True
+
+
+def _build_teacher_index(storage) -> None:
+    """Строит meta/teachers.json — индекс всех преподавателей по всем институтам."""
+    config = json.loads(CONFIG_PATH.read_text(encoding="utf-8"))
+    config_by_id = {i["id"]: i for i in config["institutes"]}
+
+    teachers: dict[str, list] = {}
+
+    sched_root = Path(DATA_PATH) / "institutes"
+    for inst_dir in sorted(sched_root.iterdir()):
+        sched_path = inst_dir / "schedule.json"
+        if not sched_path.exists():
+            continue
+        try:
+            data = json.loads(sched_path.read_text(encoding="utf-8"))
+        except Exception:
+            continue
+
+        inst_id = data.get("institute_id", inst_dir.name)
+        cfg = config_by_id.get(inst_id, {})
+        inst_short = data.get("short_name") or cfg.get("short_name", inst_id)
+
+        for group in data.get("groups", []):
+            group_name = group.get("name", "")
+            for week in ("odd_week", "even_week"):
+                for day, lessons in group.get("schedule", {}).get(week, {}).items():
+                    for lesson in lessons:
+                        teacher = lesson.get("teacher")
+                        if not teacher or not teacher.strip():
+                            continue
+                        teacher = teacher.strip()
+                        if not _is_valid_teacher_name(teacher):
+                            continue
+                        entry = {
+                            "ii": inst_id,
+                            "is": inst_short,
+                            "g": group_name,
+                            "w": week,
+                            "d": day,
+                            "sl": lesson.get("slot"),
+                            "ts": lesson.get("time_start"),
+                            "te": lesson.get("time_end"),
+                            "s": lesson.get("subject", ""),
+                            "t": lesson.get("type", "other"),
+                            "r": lesson.get("room"),
+                            "sg": lesson.get("subgroup"),
+                        }
+                        if teacher not in teachers:
+                            teachers[teacher] = []
+                        teachers[teacher].append(entry)
+
+    teacher_list = [
+        {"name": name, "lessons": lessons}
+        for name, lessons in sorted(teachers.items())
+    ]
+
+    out_path = Path(DATA_PATH) / "meta" / "teachers.json"
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    out_path.write_text(
+        json.dumps(
+            {"generated_at": datetime.now(timezone.utc).isoformat(), "teachers": teacher_list},
+            ensure_ascii=False,
+            separators=(",", ":"),
+        ),
+        encoding="utf-8",
+    )
+    print(f"  Индекс преподавателей: {len(teacher_list)} чел.")
 
 
 if __name__ == "__main__":
