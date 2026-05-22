@@ -108,6 +108,17 @@ async def process_institute(
         ]
         print(f"  Фильтр по году ≥{min_year}: {len(links)} из {before} ссылок")
 
+    # Дедупликация по URL (один и тот же файл может появиться из main + sub_faculty)
+    seen_urls: set[str] = set()
+    deduped: list[dict] = []
+    for lnk in links:
+        if lnk["url"] not in seen_urls:
+            seen_urls.add(lnk["url"])
+            deduped.append(lnk)
+    if len(deduped) < len(links):
+        print(f"  Дедупликация: {len(links) - len(deduped)} дублей убрано")
+    links = deduped
+
     all_groups = []
     parser_used = parser_type
     file_hashes: dict[str, str] = {}
@@ -310,6 +321,16 @@ async def main():
     print(f"Готово: {ok}/{len(index_entries)} институтов обработано успешно")
     if all_alerts:
         print(f"⚠ Аномалий: {len(all_alerts)} — проверьте meta/alerts.json")
+
+    # Build per-teacher schedule files if teacher DB exists
+    teachers_db = Path(DATA_PATH) / "meta" / "teachers.json"
+    if teachers_db.exists():
+        print("\n[TEACHERS] Строим расписания преподавателей …")
+        try:
+            from scraper.build_teacher_schedules import build as build_teacher_schedules
+            build_teacher_schedules(DATA_PATH)
+        except Exception as e:
+            print(f"  ⚠ Ошибка построения расписаний преподавателей: {e}")
 
 
 def _current_academic_year() -> str:

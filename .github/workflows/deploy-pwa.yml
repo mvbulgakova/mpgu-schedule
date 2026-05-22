@@ -36,7 +36,8 @@ jobs:
       - name: Build
         working-directory: pwa
         env:
-          VITE_DATA_URL: https://raw.githubusercontent.com/${{ github.repository }}/data
+          # Необязательный секрет: если задан, используется вместо jsDelivr как основной URL
+          VITE_PROXY_URL: ${{ secrets.VITE_PROXY_URL }}
           VITE_BASE_URL: /${{ github.event.repository.name }}/
         run: npm run build
 

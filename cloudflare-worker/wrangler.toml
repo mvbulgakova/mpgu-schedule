@@ -1,0 +1,14 @@
+name = "mpgu-schedule"
+main = "worker.js"
+compatibility_date = "2024-09-23"
+
+# Бесплатный план Workers поддерживает до 100 000 запросов/день
+# https://developers.cloudflare.com/workers/platform/pricing/
+
+# После деплоя воркер будет доступен по адресу:
+# https://mpgu-schedule.<your-subdomain>.workers.dev
+#
+# Можно привязать свой домен:
+# [routes]
+# pattern = "schedule-api.example.ru/*"
+# zone_name = "example.ru"
