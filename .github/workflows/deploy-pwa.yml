@@ -36,7 +36,10 @@ jobs:
       - name: Build
         working-directory: pwa
         env:
-          VITE_DATA_URL: https://raw.githubusercontent.com/${{ github.repository }}/data
+          # Если секрет VITE_PROXY_URL задан в репозитории — PWA использует
+          # Cloudflare Worker как основной источник данных, GitHub raw — как резерв.
+          # Если секрет не задан — данные читаются напрямую с GitHub raw.
+          VITE_PROXY_URL: ${{ secrets.VITE_PROXY_URL }}
           VITE_BASE_URL: /${{ github.event.repository.name }}/
         run: npm run build
 
