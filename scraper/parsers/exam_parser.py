@@ -101,10 +101,12 @@ def _parse_cell_content(lines: list[str]) -> dict | None:
 
     for line in lines:
         up = line.upper()
-        if "ЭКЗАМЕН" in up:
+        if "ЭКЗАМЕН" in up or "ЭКЗ." in up:
             type_ = "exam"
-        elif "ЗАЧЁТ" in up or "ЗАЧЕТ" in up:
+        elif "ЗАЧЁТ" in up or "ЗАЧЕТ" in up or "ЗАЧ." in up:
             type_ = "credit"
+        elif "КОНС." in up or "КОНСУЛЬТАЦ" in up:
+            type_ = "exam"  # pre-exam consultation, treat as exam-session event
         elif re.search(r"ауд\.?\s*[\d\w/\\-]+", line, re.I):
             m = re.search(r"ауд\.?\s*([\d\w/\\-]+)", line, re.I)
             if m:
@@ -429,14 +431,16 @@ def _split_time(time_str: str | None) -> tuple[str | None, str | None]:
 
 
 def _clean_group_name(name: str) -> str:
+    # Strip newlines and trailing group labels like "\nГр. 101"
+    name = re.sub(r"\s*\n.*", "", name)
     # Remove room number suffix like "(101)"
     return re.sub(r"\s*\(\d{3}\)\s*$", "", name).strip()
 
 
 # ─── OCR fallback for scanned PDFs ───────────────────────────────────────────
 
-_OCR_MAX_PAGES = 4      # skip PDFs with more pages (huge scans, old docs)
-_OCR_PAGE_TIMEOUT = 60  # seconds per page before giving up
+_OCR_MAX_PAGES = 0      # 0 = skip OCR entirely (too slow for batch runs)
+_OCR_PAGE_TIMEOUT = 30  # seconds per page before giving up
 
 
 def _parse_pdf_ocr(path: str) -> list[ExamEntry]:
