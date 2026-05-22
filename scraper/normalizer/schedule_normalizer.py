@@ -33,6 +33,31 @@ TIME_SLOTS = {
 WEEK_ODD = {"числитель", "числ", "н", "н/", "над", "нечётная", "нечетная", "i", "1"}
 WEEK_EVEN = {"знаменатель", "знам", "з", "з/", "под", "чётная", "четная", "ii", "2"}
 
+_TEACHER_TITLE_RE = re.compile(
+    r"((?:проф|доц|ст\.?\s*преп|асс|преп)\.?\s+[А-ЯЁ][а-яё]+(?:\s+[А-ЯЁ]\.[А-ЯЁ]\.?)?)",
+    re.IGNORECASE,
+)
+
+
+def _split_room_teacher(room: str | None, teacher: str | None) -> tuple[str | None, str | None]:
+    """If room contains an academic title + name, extract teacher and leave only room number."""
+    if not room:
+        return room, teacher
+    m = _TEACHER_TITLE_RE.search(room)
+    if not m:
+        return room, teacher
+    if teacher is None:
+        teacher = m.group(1).strip().rstrip(",. ")
+    remainder = (room[: m.start()] + room[m.end() :]).strip(" ,")
+    # keep "ауд. NNN" or bare room number
+    aud = re.search(r"ауд\.?\s*(\S+)", remainder, re.I)
+    if aud:
+        room = aud.group(0).strip()
+    else:
+        num = re.search(r"\b\d{2,}\b", remainder)
+        room = num.group(0) if num else None
+    return room, teacher
+
 
 def normalize_day(raw: str) -> str | None:
     key = raw.strip().lower().rstrip(".")
@@ -118,14 +143,17 @@ def lesson_obj(
 ) -> dict:
     if slot is None:
         slot = infer_slot(time_start)
+    room_clean = room.strip() if room else None
+    teacher_clean = teacher.strip() if teacher else None
+    room_clean, teacher_clean = _split_room_teacher(room_clean, teacher_clean)
     return {
         "slot": slot,
         "time_start": time_start,
         "time_end": time_end,
         "subject": subject.strip(),
         "type": lesson_type,
-        "teacher": teacher.strip() if teacher else None,
-        "room": room.strip() if room else None,
+        "teacher": teacher_clean,
+        "room": room_clean,
         "subgroup": subgroup,
         "notes": notes,
     }
