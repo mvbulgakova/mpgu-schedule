@@ -101,12 +101,12 @@ def _parse_cell_content(lines: list[str]) -> dict | None:
 
     for line in lines:
         up = line.upper()
-        if "ЭКЗАМЕН" in up or "ЭКЗ." in up:
+        # Standalone type keyword lines (no other subject content)
+        stripped = re.sub(r"[\s().]", "", up)
+        if stripped in {"ЭКЗАМЕН", "ЭКЗ", "КОНС", "КОНСУЛЬТАЦИЯ"}:
             type_ = "exam"
-        elif "ЗАЧЁТ" in up or "ЗАЧЕТ" in up or "ЗАЧ." in up:
+        elif stripped in {"ЗАЧЁТ", "ЗАЧЕТ", "ЗАЧ"}:
             type_ = "credit"
-        elif "КОНС." in up or "КОНСУЛЬТАЦ" in up:
-            type_ = "exam"  # pre-exam consultation, treat as exam-session event
         elif re.search(r"ауд\.?\s*[\d\w/\\-]+", line, re.I):
             m = re.search(r"ауд\.?\s*([\d\w/\\-]+)", line, re.I)
             if m:
@@ -121,6 +121,16 @@ def _parse_cell_content(lines: list[str]) -> dict | None:
     subject = " ".join(subject_parts).strip()
     if not subject:
         return None
+
+    # Post-process: detect type keywords embedded in the subject line
+    sub_up = subject.upper()
+    if type_ == "unknown":
+        if re.search(r"\bЭКЗ\b|ЭКЗАМЕН", sub_up):
+            type_ = "exam"
+        elif re.search(r"\bЗАЧ\b|ЗАЧЁТ|ЗАЧЕТ", sub_up):
+            type_ = "credit"
+        elif re.search(r"\bКОНС\b|КОНСУЛЬТАЦ", sub_up):
+            type_ = "exam"
 
     return {
         "subject": subject,
