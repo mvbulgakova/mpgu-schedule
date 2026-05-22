@@ -1,4 +1,4 @@
-"""PDF парсер с тремя уровнями: pdfplumber → camelot → Claude vision."""
+"""PDF парсер с четырьмя уровнями: pdfplumber → camelot → Tesseract OCR → Claude vision."""
 import os
 import re
 from pathlib import Path
@@ -41,6 +41,19 @@ class PDFParser(BaseParser):
                 return result
             accumulated_warnings.extend(result.warnings)
 
+        # Уровень 3: Tesseract OCR (бесплатно, работает офлайн)
+        result = self._try_tesseract(path)
+        if result.confidence >= CONFIDENCE_THRESHOLD:
+            result.warnings = accumulated_warnings + result.warnings
+            return result
+        if result.groups:
+            # Принимаем разреженный результат от Tesseract
+            accumulated_warnings.extend(result.warnings)
+            result.warnings = accumulated_warnings
+            return result
+        accumulated_warnings.extend(result.warnings)
+
+        # Уровень 4: Gemini vision
         result = self._try_gemini(path)
         if result.confidence >= CONFIDENCE_THRESHOLD or (result.groups and not any(
             "провалился" in w for w in result.warnings
@@ -49,7 +62,7 @@ class PDFParser(BaseParser):
             return result
         accumulated_warnings.extend(result.warnings)
 
-        # Уровень 4: Claude vision (если Gemini недоступен)
+        # Уровень 5: Claude vision
         result = self._try_claude(path)
         result.warnings = accumulated_warnings + result.warnings
         return result
@@ -106,7 +119,38 @@ class PDFParser(BaseParser):
             return ParseResult(groups=[], parser_used="camelot", confidence=0.0,
                                warnings=[str(e)])
 
-    # ── уровень 3: Gemini vision ──────────────────────────────────────────────
+    # ── уровень 3: Tesseract OCR ──────────────────────────────────────────────
+
+    def _try_tesseract(self, path: str) -> ParseResult:
+        try:
+            from pdf2image import convert_from_path
+            import pytesseract  # noqa: F401 — проверка доступности
+
+            images = convert_from_path(path, dpi=300, fmt="jpeg")
+            all_tables: list[list[list]] = []
+            for img in images:
+                tables = _ocr_image_to_tables(img)
+                all_tables.extend(tables)
+
+            if not all_tables:
+                return ParseResult(groups=[], parser_used="tesseract", confidence=0.0,
+                                   warnings=["Tesseract: таблицы не найдены"])
+
+            groups = _parse_tables(all_tables)
+
+            # Если >60% занятий сконцентрировано в одном дне — скорее всего
+            # не удалось распознать вертикальные заголовки дней (MPGU-формат).
+            if _is_day_distribution_skewed(groups):
+                return ParseResult(groups=[], parser_used="tesseract", confidence=0.0,
+                                   warnings=["Tesseract: нераспознаны вертикальные заголовки дней"])
+
+            confidence = _compute_confidence(groups)
+            return ParseResult(groups=groups, parser_used="tesseract", confidence=confidence)
+        except Exception as e:
+            return ParseResult(groups=[], parser_used="tesseract", confidence=0.0,
+                               warnings=[f"Tesseract fallback провалился: {e}"])
+
+    # ── уровень 4: Gemini vision ──────────────────────────────────────────────
 
     def _try_gemini(self, path: str) -> ParseResult:
         try:
@@ -138,6 +182,102 @@ class PDFParser(BaseParser):
 
 
 # ── helpers ───────────────────────────────────────────────────────────────────
+
+def _ocr_image_to_tables(img) -> list[list[list[str]]]:
+    """Конвертирует PIL-изображение в список таблиц через Tesseract TSV.
+
+    Tesseract возвращает каждое слово с координатами (left, top, width, height).
+    Реконструируем таблицу: группируем слова в строки по Y-позиции,
+    затем в колонки по X-позиции.
+    """
+    import pytesseract
+    import pandas as pd
+
+    tsv = pytesseract.image_to_data(
+        img, lang="rus+eng",
+        config="--psm 6 --oem 1",
+        output_type=pytesseract.Output.DATAFRAME,
+    )
+    # Оставляем только распознанные слова с уверенностью > 0
+    tsv = tsv[(tsv["conf"] > 0) & (tsv["text"].notna())]
+    tsv = tsv[tsv["text"].str.strip() != ""]
+    if tsv.empty:
+        return []
+
+    # --- Группировка слов в строки ---
+    # Два слова в одной строке, если их вертикальные центры различаются < ROW_TOL
+    ROW_TOL = 12  # пикселей при DPI=200
+    tsv = tsv.sort_values("top").reset_index(drop=True)
+    row_ids = []
+    current_row = 0
+    prev_center = None
+    for _, word in tsv.iterrows():
+        center = word["top"] + word["height"] / 2
+        if prev_center is None or abs(center - prev_center) > ROW_TOL:
+            current_row += 1
+            prev_center = center
+        row_ids.append(current_row)
+    tsv["row_id"] = row_ids
+
+    # --- Определяем границы колонок ---
+    # Строим гистограмму X-начал слов; «провалы» между кластерами = границы колонок.
+    all_lefts = sorted(tsv["left"].tolist())
+    col_breaks = _find_column_breaks(all_lefts, gap_threshold=20)
+
+    def col_of(left_px: int) -> int:
+        for ci, brk in enumerate(col_breaks):
+            if left_px < brk:
+                return ci
+        return len(col_breaks)
+
+    # --- Заполняем сетку ---
+    n_cols = len(col_breaks) + 1
+    grid: dict[tuple[int, int], list[str]] = {}
+    for _, word in tsv.iterrows():
+        r = int(word["row_id"])
+        c = col_of(int(word["left"]))
+        grid.setdefault((r, c), []).append(str(word["text"]).strip())
+
+    if not grid:
+        return []
+
+    max_row = max(k[0] for k in grid)
+    table: list[list[str]] = []
+    for r in range(1, max_row + 1):
+        row = [" ".join(grid.get((r, c), [])) for c in range(n_cols)]
+        if any(cell.strip() for cell in row):
+            table.append(row)
+
+    if len(table) < 3:
+        return []
+    return [table]
+
+
+def _is_day_distribution_skewed(groups: list[dict], threshold: float = 0.6) -> bool:
+    """True если >threshold занятий приходится на один день (артефакт OCR)."""
+    day_counts: dict[str, int] = {}
+    for g in groups:
+        for week in ("odd_week", "even_week"):
+            for day, lessons in g["schedule"][week].items():
+                day_counts[day] = day_counts.get(day, 0) + len(lessons)
+    total = sum(day_counts.values())
+    if total < 4:
+        return False
+    return max(day_counts.values()) / total > threshold
+
+
+def _find_column_breaks(lefts: list[int], gap_threshold: int) -> list[int]:
+    """Возвращает X-координаты границ между колонками."""
+    if not lefts:
+        return []
+    breaks = []
+    prev = lefts[0]
+    for x in lefts[1:]:
+        if x - prev > gap_threshold:
+            breaks.append((prev + x) // 2)
+        prev = x
+    return breaks
+
 
 def _bytes_to_tmp(data: bytes, ext: str) -> str:
     import tempfile, os
