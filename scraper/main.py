@@ -40,6 +40,8 @@ CONFIG_PATH = Path(__file__).parent / "config" / "institutes.json"
 DATA_PATH = os.environ.get("DATA_PATH", "./data")
 CHANGED_ONLY = os.environ.get("CHANGED_ONLY", "true").lower() == "true"
 INSTITUTE_FILTER = os.environ.get("INSTITUTE_ID")  # конкретный институт или все
+SKIP_TEACHERS = os.environ.get("SKIP_TEACHERS", "false").lower() == "true"
+TEACHERS_ONLY = os.environ.get("TEACHERS_ONLY", "false").lower() == "true"
 
 
 def load_institutes() -> list[dict]:
@@ -265,6 +267,12 @@ async def process_institute(
 
 
 async def main():
+    if TEACHERS_ONLY:
+        storage = GitStorage(DATA_PATH)
+        _build_teacher_index(storage)
+        print("Teachers index rebuilt.")
+        return
+
     institutes = load_institutes()
     storage = GitStorage(DATA_PATH)
     hashes_path = os.path.join(DATA_PATH, "meta", "hashes.json")
@@ -305,7 +313,8 @@ async def main():
         "institutes": index_entries,
     })
 
-    _build_teacher_index(storage)
+    if not SKIP_TEACHERS:
+        _build_teacher_index(storage)
 
     # Пишем/удаляем файл аномалий
     alerts_path = Path(DATA_PATH) / "meta" / "alerts.json"
