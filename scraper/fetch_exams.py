@@ -15,8 +15,6 @@ import asyncio
 import json
 import logging
 import os
-import sys
-import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -27,7 +25,8 @@ load_dotenv()
 
 from scraper.fetchers.site_fetcher import fetch_schedule_links, HEADERS
 from scraper.fetchers.file_fetcher import fetch_file
-from scraper.parsers.exam_parser import parse_exam_file, entries_to_dicts
+from scraper.parsers.exam_parser import parse_exam_bytes, entries_to_dicts
+from scraper.parsers.nextcloud_parser import nextcloud_download_url
 from scraper.storage.git_storage import GitStorage
 
 log = logging.getLogger(__name__)
@@ -35,28 +34,62 @@ log = logging.getLogger(__name__)
 CONFIG_PATH = Path(__file__).parent / "config" / "institutes.json"
 DATA_PATH = os.environ.get("DATA_PATH", "./data")
 
-# Institutes with non-standard exam URL structure
+# Institutes with non-standard exam URL structure.
+# childhood uses sub-faculty URLs, so derive from each sub-faculty's schedule_url.
 EXAM_URL_OVERRIDES: dict[str, list[str]] = {
-    # "institute_id": ["exam_url1", ...]
-    # Fill in if auto-derived URL returns 404
+    "childhood": [
+        # defectology sub-faculty
+        "https://mpgu.su/ob-mpgu/struktura/faculties/institut-detstva/defektologicheskiy-fakultet/uchebnyiy-protsess/raspisanie-ekzamenatsionnyih-sessiy/",
+        "https://mpgu.su/ob-mpgu/struktura/faculties/institut-detstva/defektologicheskiy-fakultet/uchebnyiy-protsess/raspisanie-zachjotnyh-sessij/",
+        # primary education sub-faculty
+        "https://mpgu.su/ob-mpgu/struktura/faculties/institut-detstva/fakultet-nachalnogo-obrazovaniya/uchenyiy-otdel/raspisanie-ekzamenatsionnyih-sessiy/",
+        "https://mpgu.su/ob-mpgu/struktura/faculties/institut-detstva/fakultet-nachalnogo-obrazovaniya/uchenyiy-otdel/raspisanie-zachjotnyh-sessij/",
+        # music sub-faculty
+        "https://mpgu.su/ob-mpgu/struktura/faculties/institut-detstva/uchebnyiy-protsess/raspisanie-ekzamenatsionnyih-sessiy/",
+        "https://mpgu.su/ob-mpgu/struktura/faculties/institut-detstva/uchebnyiy-protsess/raspisanie-zachjotnyh-sessij/",
+    ],
 }
 
 CREDIT_SLUGS = [
-    "raspisanie-zachjotnyh-sessij",  # with ё-encoding (most institutes)
-    "raspisanie-zachetnyh-sessij",   # without ё (physics, some others)
+    "raspisanie-zachjotnyh-sessij",   # with ё-encoding (most institutes)
+    "raspisanie-zachetnyh-sessij",    # without ё (physics, some others)
+    "raspisanie-zachjotnoj-sessii",   # singular genitive variant
 ]
-EXAM_SLUG = "raspisanie-ekzamenatsionnyih-sessiy"
-REGULAR_SLUG = "raspisanie-uchebnyih-zanyatiy"
+# Exam slug variants (different URL spelling across institutes)
+EXAM_SLUGS = [
+    "raspisanie-ekzamenatsionnyih-sessiy",  # main spelling
+    "raspisanie-ekzamenatsionnoj-sessii",   # singular
+    "raspisanie-ekzamenacionnoj-sessii",    # without ё
+]
+REGULAR_SLUGS = [
+    "raspisanie-uchebnyih-zanyatiy",  # main spelling
+    "raspisanie-uchebnyh-zanjatij",   # teaching_development / digital variant
+    "raspisanie-zanyatiy-instituta",  # childhood (non-standard)
+]
+
+# Link types that carry downloadable files (gsheets are unlikely for exams)
+_FILE_TYPES = {"pdf", "excel", "nextcloud", "docx", "doc"}
+
+# Hint extensions from link type
+_TYPE_EXT = {
+    "pdf":       ".pdf",
+    "excel":     ".xlsx",
+    "docx":      ".docx",
+    "doc":       ".doc",
+    "nextcloud": "",     # format detected from bytes
+}
 
 
 def derive_exam_urls(schedule_url: str) -> list[str]:
     """Derive exam and credit session URLs from the regular schedule URL."""
-    if REGULAR_SLUG not in schedule_url:
+    matched_slug = next(
+        (s for s in REGULAR_SLUGS if s in schedule_url), None
+    )
+    if not matched_slug:
         return []
-    base = schedule_url.replace(REGULAR_SLUG, "")
-    urls = [base + EXAM_SLUG + "/"]
-    for slug in CREDIT_SLUGS:
-        urls.append(base + slug + "/")
+    base = schedule_url[: schedule_url.index(matched_slug)]
+    urls = [base + s + "/" for s in EXAM_SLUGS]
+    urls += [base + s + "/" for s in CREDIT_SLUGS]
     return urls
 
 
@@ -87,33 +120,26 @@ async def process_institute(
         for link in links:
             url = link["url"]
             link_type = link["type"]
-            if link_type not in {"pdf", "excel", "nextcloud", "docx"}:
+            if link_type not in _FILE_TYPES:
+                log.debug("[%s] skip link type %s: %s", inst_id, link_type, url[:60])
                 continue
 
+            # Nextcloud: resolve to direct download URL
+            fetch_url = nextcloud_download_url(url) if link_type == "nextcloud" else url
+            hint_ext = _TYPE_EXT.get(link_type, "")
+
             try:
-                content, _ = await fetch_file(session, url)
+                content, _ = await fetch_file(session, fetch_url)
             except Exception as e:
                 log.warning("[%s] fetch %s: %s", inst_id, url[:60], e)
                 continue
 
-            ext = {
-                "pdf": ".pdf",
-                "excel": ".xlsx",
-                "docx": ".docx",
-            }.get(link_type, ".bin")
-
-            with tempfile.NamedTemporaryFile(suffix=ext, delete=False) as tmp:
-                tmp.write(content)
-                tmp_path = tmp.name
-
             try:
-                entries = parse_exam_file(tmp_path)
+                entries = parse_exam_bytes(content, hint_ext=hint_ext)
                 log.info("  [%s] %s → %d entries", inst_id, url[-50:], len(entries))
                 all_entries.extend(entries)
             except Exception as e:
                 log.warning("  [%s] parse error %s: %s", inst_id, url[-50:], e)
-            finally:
-                os.unlink(tmp_path)
 
     # Deduplicate by (date, time_start, subject, groups)
     seen = set()

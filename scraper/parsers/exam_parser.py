@@ -695,14 +695,93 @@ def _dedup_group_cols(
     return result
 
 
+# ─── Format detection ────────────────────────────────────────────────────────
+
+def _detect_bytes_format(data: bytes, hint_ext: str = "") -> str:
+    """Detect file format from magic bytes; hint_ext overrides if reliable."""
+    clean = hint_ext.lstrip(".").lower()
+    if clean in {"pdf", "xlsx", "xls", "docx", "doc"}:
+        return clean
+
+    sig = data[:8]
+    if sig[:4] == b"%PDF":
+        return "pdf"
+    if sig == b"\xd0\xcf\x11\xe0\xa1\xb1\x1a\xe1":
+        return "xls"
+    if sig[:4] == b"PK\x03\x04":
+        import zipfile, io
+        try:
+            with zipfile.ZipFile(io.BytesIO(data)) as zf:
+                names = zf.namelist()
+            if "[Content_Types].xml" in names:
+                if any(n.startswith("xl/") for n in names):
+                    return "xlsx"
+                if any(n.startswith("word/") for n in names):
+                    return "docx"
+                return "xlsx"
+            return "zip"
+        except Exception:
+            return "zip"
+    if data[:5] in (b"<!DOC", b"<html") or data[:1] == b"<":
+        return "html"
+    return "unknown"
+
+
+def _parse_zip_bytes(data: bytes) -> list[ExamEntry]:
+    """Extract and parse each supported file inside a ZIP archive."""
+    import zipfile, io
+    entries: list[ExamEntry] = []
+    try:
+        with zipfile.ZipFile(io.BytesIO(data)) as zf:
+            for name in zf.namelist():
+                if name.endswith("/"):
+                    continue
+                ext = Path(name).suffix.lower()
+                if ext not in {".pdf", ".xlsx", ".xls", ".docx", ".doc"}:
+                    continue
+                try:
+                    file_data = zf.read(name)
+                    found = parse_exam_bytes(file_data, hint_ext=ext)
+                    log.info("  ZIP entry %s → %d entries", name, len(found))
+                    entries.extend(found)
+                except Exception as e:
+                    log.warning("  ZIP entry %s: %s", name, e)
+    except Exception as e:
+        log.warning("ZIP open error: %s", e)
+    return entries
+
+
 # ─── Public API ──────────────────────────────────────────────────────────────
+
+def parse_exam_bytes(data: bytes, hint_ext: str = "") -> list[ExamEntry]:
+    """Parse exam entries from raw bytes, auto-detecting format."""
+    fmt = _detect_bytes_format(data, hint_ext)
+    if fmt in {"html", "unknown"}:
+        log.debug("Unsupported or HTML content (fmt=%s), skipping", fmt)
+        return []
+    if fmt == "zip":
+        return _parse_zip_bytes(data)
+
+    import tempfile, os
+    suffix = "." + fmt
+    fd, tmp_path = tempfile.mkstemp(suffix=suffix)
+    try:
+        os.write(fd, data)
+        os.close(fd)
+        return parse_exam_file(tmp_path)
+    finally:
+        try:
+            os.unlink(tmp_path)
+        except OSError:
+            pass
+
 
 def parse_exam_file(path: str) -> list[ExamEntry]:
     """Parse exam/credit schedule from a PDF, Excel, or DOCX file."""
     ext = Path(path).suffix.lower()
     if ext in {".xlsx", ".xls"}:
         return _parse_excel(path)
-    elif ext == ".docx":
+    elif ext in {".docx", ".doc"}:
         return _parse_docx(path)
     else:
         return _parse_pdf(path)
