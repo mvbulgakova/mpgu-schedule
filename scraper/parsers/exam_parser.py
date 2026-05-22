@@ -435,20 +435,43 @@ def _clean_group_name(name: str) -> str:
 
 # ─── OCR fallback for scanned PDFs ───────────────────────────────────────────
 
+_OCR_MAX_PAGES = 4      # skip PDFs with more pages (huge scans, old docs)
+_OCR_PAGE_TIMEOUT = 60  # seconds per page before giving up
+
+
 def _parse_pdf_ocr(path: str) -> list[ExamEntry]:
     """Fallback: Tesseract OCR for image-based exam schedule PDFs."""
     try:
-        from pdf2image import convert_from_path
+        from pdf2image import convert_from_path, pdfinfo_from_path
         import pytesseract
     except ImportError:
         return []
 
-    log.info("Falling back to OCR for exam schedule: %s", path)
+    try:
+        info = pdfinfo_from_path(path)
+        total_pages = info.get("Pages", 1)
+    except Exception:
+        total_pages = 1
+
+    if total_pages > _OCR_MAX_PAGES:
+        log.info("OCR skipped: %d-page PDF too large for OCR (%s)", total_pages, path)
+        return []
+
+    log.info("Falling back to OCR for exam schedule (%d pages): %s", total_pages, path)
     entries: list[ExamEntry] = []
-    images = convert_from_path(path, dpi=200)
+    images = convert_from_path(path, dpi=150)  # 150 dpi: 4× faster than 200
 
     for img in images:
-        text = pytesseract.image_to_string(img, lang="rus+eng", config="--psm 6")
+        try:
+            text = pytesseract.image_to_string(
+                img,
+                lang="rus+eng",
+                config="--psm 6 --oem 1",  # oem 1 = LSTM only (faster)
+                timeout=_OCR_PAGE_TIMEOUT,
+            )
+        except RuntimeError:
+            log.warning("OCR timeout on page in %s, skipping", path)
+            continue
         page_entries = _parse_ocr_text(text)
         entries.extend(page_entries)
 

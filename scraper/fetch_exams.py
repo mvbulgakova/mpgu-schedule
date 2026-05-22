@@ -15,6 +15,7 @@ import asyncio
 import json
 import logging
 import os
+import re
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -79,6 +80,17 @@ _TYPE_EXT = {
     "nextcloud": "",     # format detected from bytes
 }
 
+# Skip links whose URL contains upload year older than this
+_MIN_YEAR = 2024
+
+_YEAR_IN_URL_RE = re.compile(r"/(\d{4})/\d{2}/")
+
+
+def _is_stale_link(url: str) -> bool:
+    """True if the link's upload year is older than _MIN_YEAR."""
+    m = _YEAR_IN_URL_RE.search(url)
+    return bool(m and int(m.group(1)) < _MIN_YEAR)
+
 
 def derive_exam_urls(schedule_url: str) -> list[str]:
     """Derive exam and credit session URLs from the regular schedule URL."""
@@ -122,6 +134,10 @@ async def process_institute(
             link_type = link["type"]
             if link_type not in _FILE_TYPES:
                 log.debug("[%s] skip link type %s: %s", inst_id, link_type, url[:60])
+                continue
+
+            if _is_stale_link(url):
+                log.debug("[%s] skip stale link (%s): %s", inst_id, link_type, url[:60])
                 continue
 
             # Nextcloud: resolve to direct download URL
