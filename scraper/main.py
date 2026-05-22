@@ -267,12 +267,6 @@ async def process_institute(
 
 
 async def main():
-    if TEACHERS_ONLY:
-        storage = GitStorage(DATA_PATH)
-        _build_teacher_index(storage)
-        print("Teachers index rebuilt.")
-        return
-
     institutes = load_institutes()
     storage = GitStorage(DATA_PATH)
     hashes_path = os.path.join(DATA_PATH, "meta", "hashes.json")
