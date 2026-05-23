@@ -31,8 +31,8 @@ function _scheduleForDay(lessons, minutesBefore) {
         `Через ${minutesBefore} мин: ${lesson.subject}`,
         {
           body: parts.length ? parts.join(" · ") : "Занятие начинается",
-          icon: "/icons/icon-192x192.png",
-          badge: "/icons/icon-72x72.png",
+          icon: "icons/192.png",
+          badge: "icons/192.png",
           tag: `mpgu-${lesson.time_start}`,
           renotify: false,
           data: { time_start: lesson.time_start },

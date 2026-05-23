@@ -46,6 +46,14 @@ export default defineConfig({
               expiration: { maxAgeSeconds: 21600 },
             },
           })),
+          ...dataPatterns.map((base) => ({
+            urlPattern: new RegExp(`^${escapeRegex(base)}/teachers/`),
+            handler: "CacheFirst" as const,
+            options: {
+              cacheName: "mpgu-teachers",
+              expiration: { maxAgeSeconds: 21600 },
+            },
+          })),
         ],
       },
     }),
