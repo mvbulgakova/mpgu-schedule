@@ -238,6 +238,7 @@ async def process_institute(
         return err
 
     all_groups = _filter_invalid_groups(all_groups)
+    all_groups = _clean_lessons(all_groups)
     all_groups = _merge_duplicate_groups(all_groups)
 
     now = datetime.now(timezone.utc).isoformat()
@@ -393,16 +394,41 @@ _DAY_NAMES_RU = {
 
 # Слова, с которых начинаются заголовки секций, а не коды групп
 _SECTION_HEADER_STARTS = re.compile(
-    r"^(курс|семестр|расписание|группы|форма|очная|заочная|очно|бакалавр|магистр|специалитет|направление|направленность)\b",
+    r"^(курс|семестр|расписание|группы|форма|очная|заочная|очно|бакалавр|магистр|специалитет|"
+    r"направление|направленность|история|государственный|педагогическое|современные|"
+    r"аудитория|кафедра|институт|факультет|отделение)\b",
     re.IGNORECASE,
 )
 
 # Код специальности (44.03.01 и подобные) где угодно в строке
 _SPECIALTY_CODE = re.compile(r"\d{2}\.\d{2}\.\d{2}")
 
+# Фамилия преподавателя заглавными буквами (ГОРДЕЕВА, ИВАНОВ и т.п.)
+_SURNAME_CAPS = re.compile(r"^[А-ЯЁ]{3,}\s*$")
+
+# Пробел внутри кода группы: «БОЛ01 5-XXX» вместо «БОЛОУС-XXX»
+_SPACE_IN_CODE = re.compile(r"^[А-ЯЁA-Z]{2,}\d+\s+\d")
+
+# subject, который является числом или временем — не настоящий предмет
+_NUMERIC_SUBJECT = re.compile(r"^\d+$")
+_TIME_SUBJECT = re.compile(r"^\d{1,2}:\d{2}")
+# time_start/time_end без ведущего нуля: '9:00' → нужно '09:00'
+_SHORT_TIME = re.compile(r"^\d:\d{2}$")
+
+# «ФИО (ауд.NNN)» или «ФИО ауд.NNN» в поле room, когда teacher пустой.
+# Поддерживает форматы: «Доц. М.К. Чиняков (ауд. 58)», «Иванов И.И. ауд.301»,
+# «проф. Светлана Николаевна Морозюк (ауд. 312)» — любой порядок звание/инициалы/фамилия.
+_TITLE = r"(?:проф|доц|ст\.?\s*преп|асс|преп)\.?\s+"
+_NAME_TOKEN = r"[А-ЯЁA-Z][а-яёa-z]+|[А-ЯЁA-Z]\.[А-ЯЁA-Z]\.?"
+_ROOM_TEACHER_RE = re.compile(
+    r"^((?:" + _TITLE + r")?(?:" + _NAME_TOKEN + r")(?:\s+(?:" + _NAME_TOKEN + r"))*)"
+    r"[\s,]+\(?(?:ауд\.?\s*)?(\d[\w\-/]*)\)?$",
+    re.IGNORECASE,
+)
+
 
 def _filter_invalid_groups(groups: list[dict]) -> list[dict]:
-    """Отфильтровывает группы с явно невалидными именами (дни недели, заголовки секций и т.п.)"""
+    """Отфильтровывает группы с явно невалидными именами."""
     result = []
     for g in groups:
         name = g["name"].strip()
@@ -415,15 +441,63 @@ def _filter_invalid_groups(groups: list[dict]) -> list[dict]:
             reason = "только цифры"
         elif _SPECIALTY_CODE.search(name):
             reason = "код специальности"
-        elif len(name) > 40:
+        elif len(name) > 60:
             reason = "слишком длинное"
         elif _SECTION_HEADER_STARTS.match(name):
             reason = "заголовок секции"
+        elif _SURNAME_CAPS.match(name):
+            reason = "фамилия заглавными"
+        elif _SPACE_IN_CODE.match(name):
+            reason = "пробел в коде"
         if reason:
             print(f"  ✗ фильтр [{reason}]: {name!r}")
             continue
         result.append(g)
     return result
+
+
+def _clean_lesson(lesson: dict) -> dict | None:
+    """Очищает поля одного занятия. Возвращает None если занятие нужно выбросить."""
+    subj = (lesson.get("subject") or "").strip()
+
+    # Числовой subject или одиночный символ — мусор (разделитель строки, номер ауд.)
+    if not subj or _NUMERIC_SUBJECT.match(subj) or len(subj) < 3:
+        return None
+
+    # subject — это время ('09:00', '09:00-10:30') — мусор
+    if _TIME_SUBJECT.match(subj):
+        return None
+
+    # Исправляем '9:00' → '09:00'
+    for field in ("time_start", "time_end"):
+        t = lesson.get(field) or ""
+        if _SHORT_TIME.match(t):
+            lesson[field] = "0" + t
+
+    # Разбиваем room = "Иванов И.И. (ауд.301)" → teacher + room
+    room = (lesson.get("room") or "").strip()
+    teacher = (lesson.get("teacher") or "").strip()
+    if room and not teacher:
+        m = _ROOM_TEACHER_RE.match(room)
+        if m:
+            lesson["teacher"] = m.group(1).strip()
+            lesson["room"] = m.group(2).strip()
+
+    return lesson
+
+
+def _clean_lessons(groups: list[dict]) -> list[dict]:
+    """Применяет _clean_lesson ко всем занятиям всех групп."""
+    for group in groups:
+        for week in ("odd_week", "even_week"):
+            for day in list(group["schedule"][week].keys()):
+                cleaned = []
+                for lesson in group["schedule"][week][day]:
+                    result = _clean_lesson(lesson)
+                    if result is not None:
+                        cleaned.append(result)
+                group["schedule"][week][day] = cleaned
+    return groups
 
 
 def _merge_duplicate_groups(groups: list[dict]) -> list[dict]:
@@ -502,10 +576,26 @@ def _build_teacher_index(storage) -> None:
         cfg = config_by_id.get(inst_id, {})
         inst_short = data.get("short_name") or cfg.get("short_name", inst_id)
 
-        for group in data.get("groups", []):
-            group_name = group.get("name", "")
+        groups_dir = inst_dir / "groups"
+        for group_meta in data.get("groups", []):
+            group_name = group_meta.get("name", "")
+            group_file = group_meta.get("file", "")
+
+            # Новый формат: расписание в отдельном файле groups/{file}.json
+            group_data: dict = {}
+            if group_file and groups_dir.exists():
+                gpath = groups_dir / f"{group_file}.json"
+                if gpath.exists():
+                    try:
+                        group_data = json.loads(gpath.read_text(encoding="utf-8"))
+                    except Exception:
+                        pass
+            # Старый формат: расписание встроено в запись манифеста
+            if not group_data.get("schedule"):
+                group_data = group_meta
+
             for week in ("odd_week", "even_week"):
-                for day, lessons in group.get("schedule", {}).get(week, {}).items():
+                for day, lessons in group_data.get("schedule", {}).get(week, {}).items():
                     for lesson in lessons:
                         teacher = lesson.get("teacher")
                         if not teacher or not teacher.strip():
