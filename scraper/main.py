@@ -589,6 +589,18 @@ def _clean_lesson(lesson: dict) -> dict | None:
     if "//" in subj and not lesson.get("teacher"):
         return None
 
+    # URL в subject — переносим в notes, очищаем subject
+    _url_m = re.search(r"https?://\S+", subj)
+    if _url_m:
+        if _url_m.start() == 0:
+            # Весь subject — URL, переносим в notes и убираем (предмет неизвестен)
+            lesson["notes"] = (lesson.get("notes") or "") + subj
+            lesson["subject"] = ""
+            return None
+        lesson["notes"] = (lesson.get("notes") or "") + " " + _url_m.group(0)
+        lesson["subject"] = subj[:_url_m.start()].strip().rstrip(",").strip()
+        subj = lesson["subject"]
+
     # Исправляем '9:00' → '09:00'
     for field in ("time_start", "time_end"):
         t = lesson.get(field) or ""
