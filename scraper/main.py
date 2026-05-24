@@ -411,9 +411,17 @@ _SPACE_IN_CODE = re.compile(r"^[А-ЯЁA-Z]{2,}\d+\s+\d")
 
 # subject, который является числом или временем — не настоящий предмет
 _NUMERIC_SUBJECT = re.compile(r"^\d+$")
-_TIME_SUBJECT = re.compile(r"^\d{1,2}:\d{2}")
+_TIME_SUBJECT = re.compile(r"^\d{1,2}[:.]\d{2}")
 # time_start/time_end без ведущего нуля: '9:00' → нужно '09:00'
 _SHORT_TIME = re.compile(r"^\d:\d{2}$")
+# Диапазон дат как subject: «С 12 февраля по 11 июня», «С 04.10 по 27.12», «13.10, 27.10»
+_DATE_SUBJECT = re.compile(
+    r"^(?:с\s+\d|до\s+\d|\d{1,2}[./]\d{1,2}[./]?\d*[,\s])"
+    r"|^(?:по\s+\d|\d{1,2}\s+(?:января|февраля|марта|апреля|мая|июня|июля|августа|сентября|октября|ноября|декабря))",
+    re.IGNORECASE,
+)
+# Код группы как subject (артефакт разбора): «БOЗ35-КДО2202 (19)»
+_GROUP_CODE_SUBJECT = re.compile(r"^[А-ЯЁA-Z]{2,}[O0-9]{2}[-–][А-ЯЁA-Z]{2,}[0-9]{2,}")
 
 # Паттерны для извлечения teacher+room из поля room, когда teacher пустой.
 _TEACHER_TITLE_RE = re.compile(
@@ -566,6 +574,19 @@ def _clean_lesson(lesson: dict) -> dict | None:
 
     # subject — это время ('09:00', '09:00-10:30') — мусор
     if _TIME_SUBJECT.match(subj):
+        return None
+
+    # Диапазон дат в subject — артефакт парсинга, не настоящий предмет
+    if _DATE_SUBJECT.match(subj):
+        return None
+
+    # Код группы в subject — артефакт парсинга
+    if _GROUP_CODE_SUBJECT.match(subj):
+        return None
+
+    # «ПРЕПОДАВАТЕЛЬ // АУДИТОРИЯ» в subject — ИБиХ-формат, где teacher+room
+    # попал в subject вместо соответствующих полей. Выбрасываем, т.к. предмет неизвестен.
+    if "//" in subj and not lesson.get("teacher"):
         return None
 
     # Исправляем '9:00' → '09:00'
