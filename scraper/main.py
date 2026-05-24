@@ -415,16 +415,116 @@ _TIME_SUBJECT = re.compile(r"^\d{1,2}:\d{2}")
 # time_start/time_end без ведущего нуля: '9:00' → нужно '09:00'
 _SHORT_TIME = re.compile(r"^\d:\d{2}$")
 
-# «ФИО (ауд.NNN)» или «ФИО ауд.NNN» в поле room, когда teacher пустой.
-# Поддерживает форматы: «Доц. М.К. Чиняков (ауд. 58)», «Иванов И.И. ауд.301»,
-# «проф. Светлана Николаевна Морозюк (ауд. 312)» — любой порядок звание/инициалы/фамилия.
-_TITLE = r"(?:проф|доц|ст\.?\s*преп|асс|преп)\.?\s+"
-_NAME_TOKEN = r"[А-ЯЁA-Z][а-яёa-z]+|[А-ЯЁA-Z]\.[А-ЯЁA-Z]\.?"
-_ROOM_TEACHER_RE = re.compile(
-    r"^((?:" + _TITLE + r")?(?:" + _NAME_TOKEN + r")(?:\s+(?:" + _NAME_TOKEN + r"))*)"
-    r"[\s,]+\(?(?:ауд\.?\s*)?(\d[\w\-/]*)\)?$",
+# Паттерны для извлечения teacher+room из поля room, когда teacher пустой.
+_TEACHER_TITLE_RE = re.compile(
+    r"^(?:проф(?:ессор)?|доц(?:ент)?|зав\.?\s*каф(?:едрой)?|"
+    r"ст\.?\s*(?:преп(?:\w*)?|пр\.?)|пр(?:еп(?:одаватель)?)?|"
+    r"асс(?:ист(?:ент)?)?|ассист)\.?\s*",
     re.IGNORECASE,
 )
+# То же, но без якоря ^ — для поиска в середине строки
+_TEACHER_TITLE_ANYWHERE_RE = re.compile(
+    r"(?:проф(?:ессор)?|доц(?:ент)?|зав\.?\s*каф(?:едрой)?|"
+    r"ст\.?\s*(?:преп(?:\w*)?|пр\.?)|пр(?:еп(?:одаватель)?)?|"
+    r"асс(?:ист(?:ент)?)?|ассист)\.?\s+[А-ЯЁA-Z]",
+    re.IGNORECASE,
+)
+# Суффиксы типа занятия "(ПЗ 18)", "(ЛК 36)", "п/г", "п\г" в конце строки
+_LESSON_TYPE_SUFFIX_RE = re.compile(
+    r"\s*\(?(?:[А-ЯЁ]{1,3}|ПЗ|ЛК|СЗ|ЛР|СМ)\s*\d*\)?\s*$", re.IGNORECASE
+)
+_TEACHER_NAME_TOK_RE = re.compile(
+    r"[А-ЯЁA-Z][а-яёa-z]+|[А-ЯЁA-Z]\.[А-ЯЁA-Z]\.?|[А-ЯЁA-Z]\.",
+    re.IGNORECASE,
+)
+# Слова, при которых нужно остановить поглощение имени (начало описания аудитории)
+_ROOM_KWD_RE = re.compile(
+    r"^(?:ауд|зал|корп(?:ус)?|каб(?:инет)?|ул(?:ица)?|дом|этаж|онлайн|дист)\b",
+    re.IGNORECASE,
+)
+_AUD_NUM_RE = re.compile(r"ауд\.?\s*(\d[\w\-/]*(?:-\d+)?)", re.IGNORECASE)
+
+
+def _extract_teacher_room(room_str: str) -> tuple[str, str | None] | None:
+    """Если room содержит «ФИО + аудитория», возвращает (teacher, room) или None.
+
+    Обрабатывает форматы:
+    - «Доц. М.К. Чиняков(ауд. 58)»
+    - «Ст.преп. С.В.Десятская (ауд. 637)»
+    - «доц. К.Ю. Машков (спортивный зал)»
+    - «ассист. Артемов Д.Ю., ауд. 405»
+    - «проф. Елена Игоревна Корзинова, (Краснодарская улица, дом 59, ауд. 109)»
+    """
+    s = room_str.strip()
+    pos = 0
+
+    # 1. Consume optional title (ст.преп., доц., etc.)
+    m_title = _TEACHER_TITLE_RE.match(s, pos)
+    if m_title:
+        pos = m_title.end()
+
+    # 2. Consume name tokens; allow no space between initials and surname
+    #    (handles «С.В.Десятская»). Stop at room keywords (ауд, зал, корп…).
+    name_start = pos
+    tok = _TEACHER_NAME_TOK_RE.match(s, pos)
+    if not tok:
+        return None  # no name token → not a teacher pattern
+    pos = tok.end()
+
+    while pos < len(s):
+        ws = re.match(r"\s*", s[pos:])
+        npos = pos + (ws.end() if ws else 0)
+        if _ROOM_KWD_RE.match(s[npos:]):
+            break
+        tok2 = _TEACHER_NAME_TOK_RE.match(s, npos)
+        if not tok2:
+            break
+        pos = tok2.end()
+
+    teacher_raw = s[name_start:pos].strip().rstrip(",").strip()
+
+    # Validate: teacher string must contain Cyrillic
+    if not re.search(r"[А-ЯЁа-яё]", teacher_raw):
+        return None
+
+    # Must have title OR initials OR multiple tokens — reject single bare words like «ауд»
+    has_title = m_title is not None
+    has_initials = bool(re.search(r"[А-ЯЁA-Z]\.[А-ЯЁA-Z]", teacher_raw))
+    multi_token = bool(re.search(r"\s", teacher_raw) or re.search(r"\.", teacher_raw))
+    if not (has_title or has_initials or multi_token):
+        return None
+
+    # Prepend title
+    if name_start > 0:
+        teacher_raw = s[:name_start].strip().rstrip(".").strip() + ". " + teacher_raw
+
+    rest = s[pos:].strip().lstrip(",").strip()
+
+    if not rest:
+        # Just a teacher name with no room
+        if has_title or has_initials:
+            return (teacher_raw, None)
+        return None
+
+    # Pattern A: "(room_content)" — parens form
+    m_paren = re.match(r"^\(([^)]+)\)", rest)
+    if m_paren:
+        room_content = m_paren.group(1).strip()
+        m_aud = _AUD_NUM_RE.search(room_content)
+        if m_aud:
+            return (teacher_raw, m_aud.group(1).strip())
+        return (teacher_raw, room_content)
+
+    # Pattern B: "ауд. NNN" directly
+    m_aud = re.match(r"^ауд\.?\s*(\d[\w\-/]*)", rest, re.IGNORECASE)
+    if m_aud:
+        return (teacher_raw, m_aud.group(1).strip())
+
+    # Pattern C: rest is a short room label with no Cyrillic surname words
+    if len(rest) < 60 and not re.search(r"[А-ЯЁ][а-яё]{3,}", rest):
+        return (teacher_raw, rest.rstrip(".").strip() if rest else None)
+
+    return None
 
 
 def _filter_invalid_groups(groups: list[dict]) -> list[dict]:
@@ -477,11 +577,27 @@ def _clean_lesson(lesson: dict) -> dict | None:
     # Разбиваем room = "Иванов И.И. (ауд.301)" → teacher + room
     room = (lesson.get("room") or "").strip()
     teacher = (lesson.get("teacher") or "").strip()
-    if room and not teacher:
-        m = _ROOM_TEACHER_RE.match(room)
-        if m:
-            lesson["teacher"] = m.group(1).strip()
-            lesson["room"] = m.group(2).strip()
+    if not teacher:
+        # Case 1: room starts with teacher info
+        if room:
+            result = _extract_teacher_room(room)
+            if result is not None:
+                lesson["teacher"] = result[0]
+                lesson["room"] = result[1]
+
+        # Case 2: subject == room — AI put full "SUBJECT TEACHER ROOM" in both fields
+        room2 = (lesson.get("room") or "").strip()
+        if not lesson.get("teacher") and subj and room2 and subj == room2:
+            m_title = _TEACHER_TITLE_ANYWHERE_RE.search(subj)
+            if m_title and m_title.start() > 4:
+                clean_subj = subj[:m_title.start()].strip().rstrip(",").strip()
+                clean_subj = _LESSON_TYPE_SUFFIX_RE.sub("", clean_subj).strip()
+                teacher_room_str = subj[m_title.start():]
+                tres = _extract_teacher_room(teacher_room_str)
+                if tres and clean_subj:
+                    lesson["subject"] = clean_subj
+                    lesson["teacher"] = tres[0]
+                    lesson["room"] = tres[1]
 
     return lesson
 
