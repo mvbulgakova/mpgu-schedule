@@ -94,12 +94,36 @@ class ClaudeClient:
     def __init__(self):
         self.client = _get_anthropic_client()
 
-    @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=4, max=30))
     def parse_pdf_pages(self, pdf_path: str) -> dict:
-        images = convert_from_path(pdf_path, dpi=150, fmt="jpeg")
+        """Парсит PDF постранично батчами по 4 страницы и объединяет результаты.
 
+        Для image-based PDF с 10+ страницами (напр. ИИЯ) отправка всего документа
+        сразу приводит к неполному результату — модель читает только начало.
+        """
+        images = convert_from_path(pdf_path, dpi=150, fmt="jpeg")
+        if not images:
+            return {"groups": []}
+        all_groups: list[dict] = []
+        seen_names: set[str] = set()
+        batch_size = 4
+        for start in range(0, len(images), batch_size):
+            batch = images[start:start + batch_size]
+            try:
+                result = self._parse_batch(batch)
+                for g in result.get("groups", []):
+                    name = g.get("name", "")
+                    if name and name not in seen_names:
+                        seen_names.add(name)
+                        all_groups.append(g)
+            except Exception as e:
+                print(f"    ⚠ Claude batch {start // batch_size + 1}: {e}")
+                continue
+        return {"groups": all_groups}
+
+    @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=4, max=30))
+    def _parse_batch(self, images) -> dict:
         content = []
-        for img in images[:6]:  # не более 6 страниц за раз
+        for img in images:
             buf = _image_to_base64(img)
             content.append({
                 "type": "image",
@@ -119,17 +143,14 @@ class ClaudeClient:
         )
 
         text = response.content[0].text.strip()
-        # убираем markdown-обёртку если есть
         if "```" in text:
-            # извлекаем содержимое между ```...```
             parts = text.split("```")
-            for part in parts[1::2]:  # нечётные части — между ```
+            for part in parts[1::2]:
                 candidate = part.lstrip("json").strip()
                 try:
                     return json.loads(candidate)
                 except json.JSONDecodeError:
                     continue
-        # пробуем найти JSON-объект напрямую (может быть лишний текст вокруг)
         m = _JSON_BLOCK_RE.search(text)
         if m:
             return json.loads(m.group(0))

@@ -1,4 +1,6 @@
+import base64
 import collections
+import io
 import json
 import os
 import pathlib
@@ -8,6 +10,9 @@ import time
 from google import genai
 from google.genai import types
 from tenacity import retry, stop_after_attempt, wait_exponential
+
+_PAGE_PROMPT = """Ты — парсер одной страницы расписания МПГУ.
+На изображении — одна страница расписания учебных занятий."""
 
 SYSTEM_PROMPT = """Ты — парсер расписания занятий российского университета.
 Тебе дают PDF расписания МПГУ (Московский педагогический государственный университет).
@@ -71,6 +76,16 @@ SYSTEM_PROMPT = """Ты — парсер расписания занятий р�
 Если расписание одинаково для чётной и нечётной недели — дублируй в оба ключа.
 Если ячейка содержит занятия для разных подгрупп — создавай два объекта с subgroup: 1 и subgroup: 2.
 Верни ТОЛЬКО валидный JSON без пояснений."""
+
+def _merge_group_schedule(target: dict, source: dict) -> None:
+    """Добавляет занятия из source в target для дней, где target пустой."""
+    for week in ("odd_week", "even_week"):
+        tw = target.get("schedule", {}).get(week, {})
+        sw = source.get("schedule", {}).get(week, {})
+        for day, lessons in sw.items():
+            if lessons and not tw.get(day):
+                tw[day] = lessons
+
 
 def _extract_json(text: str) -> dict:
     """Извлекает JSON из ответа модели — из markdown-блока или напрямую."""
@@ -136,8 +151,40 @@ class GeminiClient:
                 return result
             except Exception as e:
                 last_err = e
-                continue  # always try next model
+                continue
         raise RuntimeError(f"Все Gemini-модели недоступны: {last_err}") from last_err
+
+    def parse_pdf_by_pages(self, pdf_path: str) -> dict:
+        """Конвертирует PDF в изображения и обрабатывает каждую страницу отдельно.
+
+        Нужно для image-based PDF с большим числом страниц (напр. ИИЯ, ~15 стр),
+        где отправка целого файла Gemini даёт только 1-2 группы вместо 10-15.
+        """
+        from pdf2image import convert_from_path
+        images = convert_from_path(pdf_path, dpi=150, fmt="jpeg")
+        all_groups: list[dict] = []
+        seen_names: set[str] = set()
+        for idx, img in enumerate(images):
+            buf = io.BytesIO()
+            img.save(buf, format="JPEG", quality=85)
+            jpeg_bytes = buf.getvalue()
+            b64 = base64.b64encode(jpeg_bytes).decode("utf-8")
+            try:
+                result = self._call_image(jpeg_bytes)
+                for g in result.get("groups", []):
+                    name = g.get("name", "")
+                    if name and name not in seen_names:
+                        seen_names.add(name)
+                        all_groups.append(g)
+                    elif name in seen_names:
+                        # Merge schedule if same group appears again (odd vs even page split)
+                        existing = next((x for x in all_groups if x.get("name") == name), None)
+                        if existing:
+                            _merge_group_schedule(existing, g)
+            except Exception as e:
+                print(f"    ⚠ Страница {idx+1}/{len(images)}: {e}")
+                continue
+        return {"groups": all_groups}
 
     @retry(stop=stop_after_attempt(2), wait=wait_exponential(multiplier=2, min=10, max=30))
     def _call(self, model: str, pdf_bytes: bytes) -> dict:
@@ -150,3 +197,27 @@ class GeminiClient:
             ],
         )
         return _extract_json(response.text)
+
+    @retry(stop=stop_after_attempt(2), wait=wait_exponential(multiplier=2, min=10, max=30))
+    def _call_image(self, jpeg_bytes: bytes) -> dict:
+        _acquire_gemini_slot()
+        last_err = None
+        for model in _CANDIDATE_MODELS:
+            try:
+                response = self.client.models.generate_content(
+                    model=model,
+                    contents=[
+                        types.Part(
+                            inline_data=types.Blob(
+                                mime_type="image/jpeg",
+                                data=jpeg_bytes,
+                            )
+                        ),
+                        SYSTEM_PROMPT + "\n\nРаспарси расписание с этого изображения страницы.",
+                    ],
+                )
+                return _extract_json(response.text)
+            except Exception as e:
+                last_err = e
+                continue
+        raise RuntimeError(f"Все Gemini-модели недоступны для изображения: {last_err}")

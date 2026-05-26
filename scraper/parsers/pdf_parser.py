@@ -160,11 +160,19 @@ class PDFParser(BaseParser):
         try:
             from scraper.utils.gemini_client import GeminiClient
             client = GeminiClient()
-            raw = client.parse_pdf(path)
+            # Для многостраничных image-based PDF обрабатываем каждую страницу отдельно:
+            # целый PDF Gemini читает частично и возвращает лишь первые 1-2 группы.
+            page_count = _count_pdf_pages(path)
+            if page_count > 3:
+                raw = client.parse_pdf_by_pages(path)
+                parser_label = "gemini-pages"
+            else:
+                raw = client.parse_pdf(path)
+                parser_label = "gemini"
             groups = raw.get("groups", [])
             confidence = 0.85 if groups else 0.0
-            return ParseResult(groups=groups, parser_used="gemini", confidence=confidence,
-                               warnings=["Использован Gemini fallback"])
+            return ParseResult(groups=groups, parser_used=parser_label, confidence=confidence,
+                               warnings=[f"Использован {parser_label} fallback"])
         except Exception as e:
             return ParseResult(groups=[], parser_used="gemini", confidence=0.0,
                                warnings=[f"Gemini fallback провалился: {e}"])
@@ -186,6 +194,14 @@ class PDFParser(BaseParser):
 
 
 # ── helpers ───────────────────────────────────────────────────────────────────
+
+def _count_pdf_pages(path: str) -> int:
+    try:
+        with pdfplumber.open(path) as pdf:
+            return len(pdf.pages)
+    except Exception:
+        return 1
+
 
 def _ocr_image_to_tables(img) -> list[list[list[str]]]:
     """Конвертирует PIL-изображение в список таблиц через OpenCV + Tesseract.
