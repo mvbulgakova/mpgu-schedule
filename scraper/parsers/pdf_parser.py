@@ -632,6 +632,20 @@ def _parse_mpgu_timetable_pages(tables: list[list[list]]) -> list[dict]:
 _SPLIT_TIME_START_RE = re.compile(r"^(\d{3,4})\s*[-–]\s*$")
 _SPLIT_TIME_END_RE = re.compile(r"^(\d{3,4})$")
 
+# Однозначные кириллические префиксы дней для biology-style vertical day labels.
+# После накопления 2+ букв ищем уникальное совпадение (нет омонимов среди 6 дней).
+_DAY_PREFIXES: dict[str, str] = {
+    "ПО": "monday",    # ПОНЕДЕЛЬНИК — уникален с 2-й буквы (ПЯ/ПТ — пятница)
+    "ВТ": "tuesday",   # ВТОРНИК
+    "СР": "wednesday", # СРЕДА
+    "ЧЕ": "thursday",  # ЧЕТВЕРГ
+    "ЧТ": "thursday",
+    "ПЯ": "friday",    # ПЯТНИЦА
+    "ПТ": "friday",
+    "СУ": "saturday",  # СУББОТА
+    "СБ": "saturday",
+}
+
 # Маркеры чётной/нечётной недели на отдельной строке
 _WEEK_ODD_MARKER = re.compile(
     r"^(?:числитель|числ\.?|нечётная|нечетная|нечёт\.?|нечет\.?|н/?)\s*$",
@@ -779,6 +793,8 @@ def _fill_mpgu_schedule_multi(
                     day_acc.append(raw.upper())
                     candidate = "".join(day_acc)
                     day = normalize_day(candidate.lower())
+                    if not day and len(candidate) >= 2:
+                        day = _DAY_PREFIXES.get(candidate[:2])
                     if day:
                         current_day = day
                         day_acc = []
