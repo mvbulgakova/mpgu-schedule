@@ -1002,14 +1002,15 @@ def _parse_timetable_cell(content: str, t_start: str, t_end: str,
             continue
 
         # Только аудитория
-        if re.search(r"\d+\s+корп\.", line, re.I) or re.search(r"ауд\.?\s*\d", line, re.I) \
-                or re.search(r"спортзал|зал|стадион", line, re.I):
+        if (re.search(r"\d+\s+корп\.", line, re.I)
+                or re.search(r"ауд(?:итория)?\.?\s*\d", line, re.I)
+                or re.search(r"спортзал|зал|стадион|онлайн|дистанц", line, re.I)):
             if room is None:
                 room = line
             continue
 
         # Преподаватель
-        if re.search(r"\b(проф|доц|ст\.?\s*преп|асс|преп)\b", line, re.I):
+        if re.search(r"\b(проф(?:ессор)?|доц(?:ент)?|ст\.?\s*преп|асс(?:ист)?|преп(?:одаватель)?|ассистент)\b", line, re.I):
             if teacher is None:
                 teacher = re.sub(r"\(ауд\.?[^)]*\)", "", line).strip().rstrip(",. ")
             continue
