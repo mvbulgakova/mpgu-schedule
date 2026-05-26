@@ -794,7 +794,7 @@ def _fill_mpgu_schedule_multi(
                     candidate = "".join(day_acc)
                     day = normalize_day(candidate.lower())
                     if not day and len(candidate) >= 2:
-                        day = _DAY_PREFIXES.get(candidate[:2])
+                        day = _DAY_PREFIXES.get(candidate[-2:])
                     if day:
                         current_day = day
                         day_acc = []
@@ -1011,7 +1011,7 @@ def _parse_timetable_cell(content: str, t_start: str, t_end: str,
         if "//" in line:
             parts = line.split("//", 1)
             left, right = parts[0].strip(), parts[1].strip()
-            if re.search(r"\b(проф|доц|ст\.?\s*преп|асс|преп)\b", left, re.I):
+            if re.search(r"\b(проф(?:ессор)?|доц(?:ент)?|ст\.?\s*преп|асс(?:ист(?:ент)?)?|преп(?:одаватель)?)\b", left, re.I):
                 teacher = left
             if right and re.search(r"\d", right):
                 room = right
@@ -1026,10 +1026,25 @@ def _parse_timetable_cell(content: str, t_start: str, t_end: str,
             continue
 
         # Преподаватель
-        if re.search(r"\b(проф(?:ессор)?|доц(?:ент)?|ст\.?\s*преп|асс(?:ист)?|преп(?:одаватель)?|ассистент)\b", line, re.I):
+        if re.search(r"\b(проф(?:ессор)?|доц(?:ент)?|ст\.?\s*преп|асс(?:ист(?:ент)?)?|преп(?:одаватель)?)\b", line, re.I):
             if teacher is None:
                 teacher = re.sub(r"\(ауд\.?[^)]*\)", "", line).strip().rstrip(",. ")
             continue
+
+    # Если первая строка оказалась «Учитель // Аудитория» — ищем реальный предмет в остальных
+    _TEACHER_TITLE_RE = re.compile(
+        r"\b(проф(?:ессор)?|доц(?:ент)?|ст\.?\s*преп|асс(?:ист(?:ент)?)?|преп(?:одаватель)?)\b",
+        re.I,
+    )
+    if "//" in subject:
+        left_s = subject.split("//", 1)[0].strip()
+        if _TEACHER_TITLE_RE.search(left_s):
+            for ln in lines[1:]:
+                if ln and not re.search(
+                    r"//|ауд(?:итория)?|корп\.|спортзал|онлайн|дистанц|^\(", ln, re.I
+                ) and not _TEACHER_TITLE_RE.search(ln):
+                    subject = ln
+                    break
 
     # Очищаем предмет от маркеров типа
     subject = re.sub(r"\([А-ЯЁа-яёA-Za-z.]{2,4}\)", "", subject).strip(" ,.")
