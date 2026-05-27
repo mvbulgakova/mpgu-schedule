@@ -973,12 +973,56 @@ def _assign_timetable_lessons(
         schedule["even_week"][day].append({**lesson})
 
 
+_TITLE_ONLY_RE = re.compile(
+    r"^(проф(?:ессор)?|доц(?:ент)?|старший\s+преп(?:одаватель)?|ст\.?\s*преп(?:одаватель)?|асс(?:ист(?:ент)?)?|преп(?:одаватель)?)\.?$",
+    re.I,
+)
+_NAME_RE = re.compile(r"[А-ЯЁ][а-яё]{1,15}\s+[А-ЯЁ]\.[А-ЯЁ]|[А-ЯЁ]\.[А-ЯЁ]\.\s*[А-ЯЁ]")
+_ROOM_DANGLING_RE = re.compile(r"\(ауд\.?\s*$", re.I)
+
+
+def _merge_split_teacher_lines(lines: list[str]) -> list[str]:
+    """Сшивает строки вида «доцент» + «А.В. Иванов» → «доцент А.В. Иванов».
+
+    В ряде PDF ФИО преподавателя разнесено по отдельным строкам ячейки:
+    звание на одной строке, имя-отчество-фамилия — на следующей.
+    Также склеивает «(ауд.» + «204)» если номер аудитории перенесён.
+    """
+    merged: list[str] = []
+    i = 0
+    while i < len(lines):
+        line = lines[i]
+        # Звание без ФИО + следующая строка с именем → объединяем
+        if _TITLE_ONLY_RE.match(line) and i + 1 < len(lines):
+            nxt = lines[i + 1]
+            if _NAME_RE.search(nxt):
+                combined = f"{line} {nxt}"
+                # Если в объединённой строке висящий «(ауд.» — добавляем ещё строку
+                if _ROOM_DANGLING_RE.search(combined) and i + 2 < len(lines):
+                    combined = combined + lines[i + 2]
+                    i += 3
+                else:
+                    i += 2
+                merged.append(combined)
+                continue
+        # «(ауд.» без закрывающей скобки + «204)» → объединяем
+        if _ROOM_DANGLING_RE.search(line) and i + 1 < len(lines):
+            merged.append(line + lines[i + 1])
+            i += 2
+            continue
+        merged.append(line)
+        i += 1
+    return merged
+
+
 def _parse_timetable_cell(content: str, t_start: str, t_end: str,
                            subgroup: int | None) -> dict | None:
     """Парсит ячейку занятия: предмет, тип, преподаватель, аудитория."""
     lines = [l.strip() for l in content.split("\n") if l.strip()]
     if not lines:
         return None
+
+    lines = _merge_split_teacher_lines(lines)
 
     # Извлекаем подгруппу из любой строки
     if subgroup is None:
@@ -1017,18 +1061,23 @@ def _parse_timetable_cell(content: str, t_start: str, t_end: str,
                 room = right
             continue
 
+        # Преподаватель (проверяем ДО аудитории: «проф. А.В. Иванов (ауд. 204)»
+        # должен попасть в teacher, а не в room)
+        if re.search(r"\b(проф(?:ессор)?|доц(?:ент)?|ст\.?\s*преп|асс(?:ист(?:ент)?)?|преп(?:одаватель)?)\b", line, re.I):
+            if teacher is None:
+                teacher = re.sub(r"\s*\(ауд\.?[^)]*\)", "", line).strip().rstrip(",. ")
+                # Если после удаления аудитории осталась комната — сохраняем
+                m_aud = re.search(r"\(ауд\.?\s*(\d[\w/]*)\)", line, re.I)
+                if m_aud and room is None:
+                    room = m_aud.group(1)
+            continue
+
         # Только аудитория
         if (re.search(r"\d+\s+корп\.", line, re.I)
                 or re.search(r"ауд(?:итория)?\.?\s*\d", line, re.I)
                 or re.search(r"спортзал|зал|стадион|онлайн|дистанц", line, re.I)):
             if room is None:
                 room = line
-            continue
-
-        # Преподаватель
-        if re.search(r"\b(проф(?:ессор)?|доц(?:ент)?|ст\.?\s*преп|асс(?:ист(?:ент)?)?|преп(?:одаватель)?)\b", line, re.I):
-            if teacher is None:
-                teacher = re.sub(r"\(ауд\.?[^)]*\)", "", line).strip().rstrip(",. ")
             continue
 
     # Если первая строка оказалась «Учитель // Аудитория» — ищем реальный предмет в остальных
