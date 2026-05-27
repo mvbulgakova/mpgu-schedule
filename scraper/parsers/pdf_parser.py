@@ -1015,9 +1015,26 @@ def _merge_split_teacher_lines(lines: list[str]) -> list[str]:
     return merged
 
 
+_ROOM_LINE_RE = re.compile(
+    r"^\d+\s+корп\.|^ауд(?:итория)?\.?\s*\d|спортзал|^дистанц|^онлайн",
+    re.I,
+)
+_TEACHER_TITLE_RE = re.compile(
+    r"\b(проф(?:ессор)?|доц(?:ент)?|ст\.?\s*преп|асс(?:ист(?:ент)?)?|преп(?:одаватель)?)\b",
+    re.I,
+)
+_TYPE_LINE_RE = re.compile(r"^\([А-ЯЁA-Zа-яёa-z.]{2,4}\)$")
+
+
+def _dehyphenate(text: str) -> str:
+    """Склеивает перенос через дефис в конце строки: 'СИСТЕ-\nМА' → 'СИСТЕМА'."""
+    return re.sub(r"-\s*\n\s*", "", text)
+
+
 def _parse_timetable_cell(content: str, t_start: str, t_end: str,
                            subgroup: int | None) -> dict | None:
     """Парсит ячейку занятия: предмет, тип, преподаватель, аудитория."""
+    content = _dehyphenate(content)
     lines = [l.strip() for l in content.split("\n") if l.strip()]
     if not lines:
         return None
@@ -1033,71 +1050,88 @@ def _parse_timetable_cell(content: str, t_start: str, t_end: str,
                 lines[i] = cleaned
                 break
 
-    subject = lines[0]
     lesson_type = "other"
     teacher: str | None = None
     room: str | None = None
+    subject_parts: list[str] = []
 
     TYPE_MAP = {"лк": "lecture", "пз": "practice", "лаб": "lab", "лб": "lab",
                 "сем": "seminar", "сем.": "seminar"}
 
+    subject_closed = False  # после первого teacher/room/type — предмет закрыт
+
     for line in lines:
-        # Тип занятия в скобках
-        m = re.search(r"\(([А-ЯЁA-Zа-яёa-z.]{2,4})\)", line)
-        if m:
-            t = TYPE_MAP.get(m.group(1).lower())
-            if t:
-                lesson_type = t
-            if line.strip().startswith("(") and line.strip().endswith(")"):
-                continue  # строка только с типом — не предмет
+        # Тип занятия в скобках (строка только с типом)
+        if _TYPE_LINE_RE.match(line.strip()):
+            m = re.search(r"\(([А-ЯЁA-Zа-яёa-z.]{2,4})\)", line)
+            if m:
+                t = TYPE_MAP.get(m.group(1).lower())
+                if t:
+                    lesson_type = t
+            subject_closed = True
+            continue
 
         # teacher // room
         if "//" in line:
             parts = line.split("//", 1)
             left, right = parts[0].strip(), parts[1].strip()
-            if re.search(r"\b(проф(?:ессор)?|доц(?:ент)?|ст\.?\s*преп|асс(?:ист(?:ент)?)?|преп(?:одаватель)?)\b", left, re.I):
-                teacher = left
-            if right and re.search(r"\d", right):
-                room = right
+            if _TEACHER_TITLE_RE.search(left):
+                if teacher is None:
+                    teacher = left
+                if right and re.search(r"\d", right):
+                    room = right if room is None else room
+            elif not subject_closed and not _ROOM_LINE_RE.search(line):
+                subject_parts.append(line)
+                subject_closed = True
+                continue
+            subject_closed = True
             continue
 
-        # Преподаватель (проверяем ДО аудитории: «проф. А.В. Иванов (ауд. 204)»
-        # должен попасть в teacher, а не в room)
-        if re.search(r"\b(проф(?:ессор)?|доц(?:ент)?|ст\.?\s*преп|асс(?:ист(?:ент)?)?|преп(?:одаватель)?)\b", line, re.I):
+        # Преподаватель (проверяем ДО аудитории)
+        if _TEACHER_TITLE_RE.search(line):
             if teacher is None:
                 teacher = re.sub(r"\s*\(ауд\.?[^)]*\)", "", line).strip().rstrip(",. ")
-                # Если после удаления аудитории осталась комната — сохраняем
                 m_aud = re.search(r"\(ауд\.?\s*(\d[\w/]*)\)", line, re.I)
                 if m_aud and room is None:
                     room = m_aud.group(1)
+            subject_closed = True
             continue
 
-        # Только аудитория
+        # Только аудитория / место
         if (re.search(r"\d+\s+корп\.", line, re.I)
                 or re.search(r"ауд(?:итория)?\.?\s*\d", line, re.I)
                 or re.search(r"спортзал|зал|стадион|онлайн|дистанц", line, re.I)):
             if room is None:
                 room = line
+            subject_closed = True
             continue
 
-    # Если первая строка оказалась «Учитель // Аудитория» — ищем реальный предмет в остальных
-    _TEACHER_TITLE_RE = re.compile(
-        r"\b(проф(?:ессор)?|доц(?:ент)?|ст\.?\s*преп|асс(?:ист(?:ент)?)?|преп(?:одаватель)?)\b",
-        re.I,
-    )
-    if "//" in subject:
-        left_s = subject.split("//", 1)[0].strip()
-        if _TEACHER_TITLE_RE.search(left_s):
-            for ln in lines[1:]:
-                if ln and not re.search(
-                    r"//|ауд(?:итория)?|корп\.|спортзал|онлайн|дистанц|^\(", ln, re.I
-                ) and not _TEACHER_TITLE_RE.search(ln):
-                    subject = ln
-                    break
+        # Тип занятия внутри строки с предметом
+        m_type = re.search(r"\(([А-ЯЁA-Zа-яёa-z.]{2,4})\)", line)
+        if m_type:
+            t = TYPE_MAP.get(m_type.group(1).lower())
+            if t:
+                lesson_type = t
 
-    # Очищаем предмет от маркеров типа
+        # Строка — часть названия предмета (до первого teacher/room/type)
+        if not subject_closed:
+            subject_parts.append(line)
+
+    subject = " ".join(subject_parts).strip()
+
+    # Если первая строка/часть оказалась «Учитель // Аудитория» — ищем предмет в остальных
+    if not subject and teacher:
+        for ln in lines:
+            if ln and not re.search(
+                r"//|ауд(?:итория)?|корп\.|спортзал|онлайн|дистанц|^\(", ln, re.I
+            ) and not _TEACHER_TITLE_RE.search(ln):
+                subject = ln
+                break
+
+    # Очищаем предмет от маркеров типа и лишних символов
     subject = re.sub(r"\([А-ЯЁа-яёA-Za-z.]{2,4}\)", "", subject).strip(" ,.")
-    if not subject:
+    # Ячейка, содержащая только адрес аудитории — не занятие
+    if not subject or _ROOM_LINE_RE.match(subject):
         return None
 
     return lesson_obj(None, t_start, t_end, subject, lesson_type, teacher, room, subgroup)
