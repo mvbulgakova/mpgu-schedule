@@ -7,42 +7,53 @@
     "odd_week": {
       "monday": [
         {
-          "slot": null,
+          "slot": 1,
           "time_start": "09:00",
           "time_end": "10:30",
           "subject": "Технологии цифрового",
           "type": "other",
-          "teacher": "доц. Иванова Н.Ю., 1 п/гр",
-          "room": "ауд. 208",
-          "subgroup": null,
+          "teacher": "доц. Иванова Н.Ю.",
+          "room": "208",
+          "subgroup": 1,
           "notes": ""
         }
       ],
       "tuesday": [
         {
-          "slot": null,
-          "time_start": "10:40",
-          "time_end": "12:10",
-          "subject": "Технологии цифрового",
-          "type": "other",
-          "teacher": "доц. Иванова Н.Ю., 1 п/гр",
-          "room": "ауд. 208",
-          "subgroup": null,
-          "notes": ""
-        },
-        {
-          "slot": null,
+          "slot": 1,
           "time_start": "09:00",
           "time_end": "10:30",
           "subject": "Иностранный язык",
           "type": "practice",
           "teacher": "проф. Бойкова И.Б., немец",
-          "room": "ауд. 308",
+          "room": "308",
           "subgroup": null,
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 1,
+          "time_start": "09:00",
+          "time_end": "10:30",
+          "subject": "Алгебра",
+          "type": "practice",
+          "teacher": "доц. Шеина Г.В.",
+          "room": "207",
+          "subgroup": null,
+          "notes": ""
+        },
+        {
+          "slot": 2,
+          "time_start": "10:40",
+          "time_end": "12:10",
+          "subject": "Технологии цифрового",
+          "type": "other",
+          "teacher": "доц. Иванова Н.Ю.",
+          "room": "208",
+          "subgroup": 1,
+          "notes": ""
+        },
+        {
+          "slot": 2,
           "time_start": "10:40",
           "time_end": "12:10",
           "subject": "Алгебра",
@@ -53,7 +64,7 @@
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 3,
           "time_start": "12:40",
           "time_end": "14:10",
           "subject": "Иностранный язык",
@@ -62,55 +73,11 @@
           "room": "404",
           "subgroup": null,
           "notes": ""
-        },
-        {
-          "slot": null,
-          "time_start": "09:00",
-          "time_end": "10:30",
-          "subject": "Алгебра",
-          "type": "practice",
-          "teacher": "доц. Шеина Г.В.",
-          "room": "207",
-          "subgroup": null,
-          "notes": ""
         }
       ],
       "wednesday": [
         {
-          "slot": null,
-          "time_start": "10:40",
-          "time_end": "12:10",
-          "subject": "Микроэкономика",
-          "type": "practice",
-          "teacher": "проф. Адельфинский А.О",
-          "room": null,
-          "subgroup": null,
-          "notes": ""
-        },
-        {
-          "slot": null,
-          "time_start": "12:40",
-          "time_end": "14:10",
-          "subject": "История России",
-          "type": "lecture",
-          "teacher": "доц. Филина Е.И.",
-          "room": "el.mpgu.su",
-          "subgroup": null,
-          "notes": ""
-        },
-        {
-          "slot": null,
-          "time_start": "14:20",
-          "time_end": "15:50",
-          "subject": "Алгебра",
-          "type": "lab",
-          "teacher": "ассист. Артемов Д.Ю.",
-          "room": "405",
-          "subgroup": null,
-          "notes": ""
-        },
-        {
-          "slot": null,
+          "slot": 1,
           "time_start": "09:00",
           "time_end": "10:30",
           "subject": "Иностранный язык",
@@ -121,7 +88,40 @@
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 2,
+          "time_start": "10:40",
+          "time_end": "12:10",
+          "subject": "Микроэкономика",
+          "type": "practice",
+          "teacher": "проф. Адельфинский А.О",
+          "room": null,
+          "subgroup": null,
+          "notes": ""
+        },
+        {
+          "slot": 3,
+          "time_start": "12:40",
+          "time_end": "14:10",
+          "subject": "История России",
+          "type": "lecture",
+          "teacher": "доц. Филина Е.И.",
+          "room": "el.mpgu.su",
+          "subgroup": null,
+          "notes": ""
+        },
+        {
+          "slot": 4,
+          "time_start": "14:20",
+          "time_end": "15:50",
+          "subject": "Алгебра",
+          "type": "lab",
+          "teacher": "ассист. Артемов Д.Ю.",
+          "room": "405",
+          "subgroup": null,
+          "notes": ""
+        },
+        {
+          "slot": 4,
           "time_start": "14:20",
           "time_end": "15:50",
           "subject": "История России",
@@ -134,18 +134,7 @@
       ],
       "thursday": [
         {
-          "slot": null,
-          "time_start": "14:20",
-          "time_end": "15:50",
-          "subject": "История России",
-          "type": "other",
-          "teacher": "доц. Филина Е.И.",
-          "room": "el.mpgu.su",
-          "subgroup": null,
-          "notes": ""
-        },
-        {
-          "slot": null,
+          "slot": 2,
           "time_start": "10:40",
           "time_end": "12:10",
           "subject": "Речевые практики",
@@ -156,18 +145,51 @@
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 3,
+          "time_start": "12:40",
+          "time_end": "14:10",
+          "subject": "Технологии цифрового образования",
+          "type": "practice",
+          "teacher": "доц. Иванова Н.Ю.",
+          "room": "108",
+          "subgroup": 2,
+          "notes": ""
+        },
+        {
+          "slot": 4,
           "time_start": "14:20",
           "time_end": "15:50",
-          "subject": "Информатика",
-          "type": "lab",
-          "teacher": "доц. Стесева О.И., 1 п/гр",
-          "room": "ауд. 208, 210",
+          "subject": "История России",
+          "type": "other",
+          "teacher": "доц. Филина Е.И.",
+          "room": "el.mpgu.su",
           "subgroup": null,
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 4,
+          "time_start": "14:20",
+          "time_end": "15:50",
+          "subject": "Информатика",
+          "type": "lab",
+          "teacher": "доц. Стесева О.И.",
+          "room": "208, 210",
+          "subgroup": 1,
+          "notes": ""
+        },
+        {
+          "slot": 4,
+          "time_start": "14:20",
+          "time_end": "15:50",
+          "subject": "Речевые практики",
+          "type": "practice",
+          "teacher": "доц. Сабурова С.В.",
+          "room": "304",
+          "subgroup": null,
+          "notes": ""
+        },
+        {
+          "slot": 5,
           "time_start": "16:00",
           "time_end": "17:30",
           "subject": "Основы медицинских знаний",
@@ -178,7 +200,7 @@
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 6,
           "time_start": "17:40",
           "time_end": "19:10",
           "subject": "История России (ПЗ 18.03, 15.04)",
@@ -189,7 +211,7 @@
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 6,
           "time_start": "17:40",
           "time_end": "19:10",
           "subject": "История России",
@@ -198,33 +220,11 @@
           "room": "el.mpgu.su",
           "subgroup": null,
           "notes": ""
-        },
-        {
-          "slot": null,
-          "time_start": "12:40",
-          "time_end": "14:10",
-          "subject": "Технологии цифрового образования",
-          "type": "practice",
-          "teacher": "доц. Иванова Н.Ю.",
-          "room": "2 п/гр, ауд. 108",
-          "subgroup": null,
-          "notes": ""
-        },
-        {
-          "slot": null,
-          "time_start": "14:20",
-          "time_end": "15:50",
-          "subject": "Речевые практики",
-          "type": "practice",
-          "teacher": "доц. Сабурова С.В.",
-          "room": "304",
-          "subgroup": null,
-          "notes": ""
         }
       ],
       "friday": [
         {
-          "slot": null,
+          "slot": 1,
           "time_start": "09:00",
           "time_end": "10:30",
           "subject": "Основы медицинских знаний (ЛК по 03.04)",
@@ -235,7 +235,40 @@
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 1,
+          "time_start": "09:00",
+          "time_end": "10:30",
+          "subject": "Программирование",
+          "type": "lab",
+          "teacher": "доц. Муратова Д.А.",
+          "room": "108",
+          "subgroup": 1,
+          "notes": ""
+        },
+        {
+          "slot": 2,
+          "time_start": "10:40",
+          "time_end": "12:10",
+          "subject": "Программирование",
+          "type": "lab",
+          "teacher": "доц. Муратова Д.А.",
+          "room": "108, 210",
+          "subgroup": 1,
+          "notes": ""
+        },
+        {
+          "slot": 3,
+          "time_start": "12:40",
+          "time_end": "14:10",
+          "subject": "Психология",
+          "type": "lab",
+          "teacher": "доц. Горбенко И.А.",
+          "room": "402",
+          "subgroup": null,
+          "notes": ""
+        },
+        {
+          "slot": 5,
           "time_start": "16:00",
           "time_end": "17:30",
           "subject": "История России",
@@ -246,64 +279,20 @@
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 5,
           "time_start": "16:00",
           "time_end": "17:30",
           "subject": "Речевые практики",
           "type": "practice",
-          "teacher": "доц. Иванова Н.Ю., 1 п/гр",
+          "teacher": "доц. Иванова Н.Ю.",
           "room": "304",
-          "subgroup": null,
+          "subgroup": 1,
           "notes": "доц. Сабурова С.В., ауд. 304"
-        },
-        {
-          "slot": null,
-          "time_start": "09:00",
-          "time_end": "10:30",
-          "subject": "Программирование",
-          "type": "lab",
-          "teacher": "доц. Муратова Д.А.",
-          "room": "1 п/гр, ауд. 108",
-          "subgroup": null,
-          "notes": ""
-        },
-        {
-          "slot": null,
-          "time_start": "10:40",
-          "time_end": "12:10",
-          "subject": "Программирование",
-          "type": "lab",
-          "teacher": "доц. Муратова Д.А., 1 п/гр",
-          "room": "ауд. 108, 210",
-          "subgroup": null,
-          "notes": ""
-        },
-        {
-          "slot": null,
-          "time_start": "12:40",
-          "time_end": "14:10",
-          "subject": "Психология",
-          "type": "lab",
-          "teacher": "доц. Горбенко И.А.",
-          "room": "402",
-          "subgroup": null,
-          "notes": ""
         }
       ],
       "saturday": [
         {
-          "slot": null,
-          "time_start": "12:40",
-          "time_end": "14:10",
-          "subject": "Геометрия",
-          "type": "practice",
-          "teacher": "проф. Гусева Н.И.",
-          "room": "401",
-          "subgroup": null,
-          "notes": ""
-        },
-        {
-          "slot": null,
+          "slot": 2,
           "time_start": "10:40",
           "time_end": "12:10",
           "subject": "Математический анализ",
@@ -314,7 +303,18 @@
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 3,
+          "time_start": "12:40",
+          "time_end": "14:10",
+          "subject": "Геометрия",
+          "type": "practice",
+          "teacher": "проф. Гусева Н.И.",
+          "room": "401",
+          "subgroup": null,
+          "notes": ""
+        },
+        {
+          "slot": 3,
           "time_start": "12:40",
           "time_end": "14:10",
           "subject": "Математический анализ",
@@ -325,7 +325,7 @@
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 4,
           "time_start": "14:20",
           "time_end": "15:50",
           "subject": "Математический анализ",
@@ -340,42 +340,53 @@
     "even_week": {
       "monday": [
         {
-          "slot": null,
+          "slot": 1,
           "time_start": "09:00",
           "time_end": "10:30",
           "subject": "Технологии цифрового",
           "type": "other",
-          "teacher": "доц. Иванова Н.Ю., 1 п/гр",
-          "room": "ауд. 208",
-          "subgroup": null,
+          "teacher": "доц. Иванова Н.Ю.",
+          "room": "208",
+          "subgroup": 1,
           "notes": ""
         }
       ],
       "tuesday": [
         {
-          "slot": null,
-          "time_start": "10:40",
-          "time_end": "12:10",
-          "subject": "Технологии цифрового",
-          "type": "other",
-          "teacher": "доц. Иванова Н.Ю., 1 п/гр",
-          "room": "ауд. 208",
-          "subgroup": null,
-          "notes": ""
-        },
-        {
-          "slot": null,
+          "slot": 1,
           "time_start": "09:00",
           "time_end": "10:30",
           "subject": "Иностранный язык",
           "type": "practice",
           "teacher": "проф. Бойкова И.Б., немец",
-          "room": "ауд. 308",
+          "room": "308",
           "subgroup": null,
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 1,
+          "time_start": "09:00",
+          "time_end": "10:30",
+          "subject": "Алгебра",
+          "type": "practice",
+          "teacher": "доц. Шеина Г.В.",
+          "room": "207",
+          "subgroup": null,
+          "notes": ""
+        },
+        {
+          "slot": 2,
+          "time_start": "10:40",
+          "time_end": "12:10",
+          "subject": "Технологии цифрового",
+          "type": "other",
+          "teacher": "доц. Иванова Н.Ю.",
+          "room": "208",
+          "subgroup": 1,
+          "notes": ""
+        },
+        {
+          "slot": 2,
           "time_start": "10:40",
           "time_end": "12:10",
           "subject": "Алгебра",
@@ -386,7 +397,7 @@
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 3,
           "time_start": "12:40",
           "time_end": "14:10",
           "subject": "Иностранный язык",
@@ -395,55 +406,11 @@
           "room": "404",
           "subgroup": null,
           "notes": ""
-        },
-        {
-          "slot": null,
-          "time_start": "09:00",
-          "time_end": "10:30",
-          "subject": "Алгебра",
-          "type": "practice",
-          "teacher": "доц. Шеина Г.В.",
-          "room": "207",
-          "subgroup": null,
-          "notes": ""
         }
       ],
       "wednesday": [
         {
-          "slot": null,
-          "time_start": "10:40",
-          "time_end": "12:10",
-          "subject": "Микроэкономика",
-          "type": "practice",
-          "teacher": "проф. Адельфинский А.О",
-          "room": null,
-          "subgroup": null,
-          "notes": ""
-        },
-        {
-          "slot": null,
-          "time_start": "12:40",
-          "time_end": "14:10",
-          "subject": "История России",
-          "type": "lecture",
-          "teacher": "доц. Филина Е.И.",
-          "room": "el.mpgu.su",
-          "subgroup": null,
-          "notes": ""
-        },
-        {
-          "slot": null,
-          "time_start": "14:20",
-          "time_end": "15:50",
-          "subject": "Алгебра",
-          "type": "lab",
-          "teacher": "ассист. Артемов Д.Ю.",
-          "room": "405",
-          "subgroup": null,
-          "notes": ""
-        },
-        {
-          "slot": null,
+          "slot": 1,
           "time_start": "09:00",
           "time_end": "10:30",
           "subject": "Иностранный язык",
@@ -454,7 +421,40 @@
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 2,
+          "time_start": "10:40",
+          "time_end": "12:10",
+          "subject": "Микроэкономика",
+          "type": "practice",
+          "teacher": "проф. Адельфинский А.О",
+          "room": null,
+          "subgroup": null,
+          "notes": ""
+        },
+        {
+          "slot": 3,
+          "time_start": "12:40",
+          "time_end": "14:10",
+          "subject": "История России",
+          "type": "lecture",
+          "teacher": "доц. Филина Е.И.",
+          "room": "el.mpgu.su",
+          "subgroup": null,
+          "notes": ""
+        },
+        {
+          "slot": 4,
+          "time_start": "14:20",
+          "time_end": "15:50",
+          "subject": "Алгебра",
+          "type": "lab",
+          "teacher": "ассист. Артемов Д.Ю.",
+          "room": "405",
+          "subgroup": null,
+          "notes": ""
+        },
+        {
+          "slot": 4,
           "time_start": "14:20",
           "time_end": "15:50",
           "subject": "История России",
@@ -467,18 +467,7 @@
       ],
       "thursday": [
         {
-          "slot": null,
-          "time_start": "14:20",
-          "time_end": "15:50",
-          "subject": "История России",
-          "type": "other",
-          "teacher": "доц. Филина Е.И.",
-          "room": "el.mpgu.su",
-          "subgroup": null,
-          "notes": ""
-        },
-        {
-          "slot": null,
+          "slot": 2,
           "time_start": "10:40",
           "time_end": "12:10",
           "subject": "Речевые практики",
@@ -489,18 +478,51 @@
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 3,
+          "time_start": "12:40",
+          "time_end": "14:10",
+          "subject": "Технологии цифрового образования",
+          "type": "practice",
+          "teacher": "доц. Иванова Н.Ю.",
+          "room": "108",
+          "subgroup": 2,
+          "notes": ""
+        },
+        {
+          "slot": 4,
           "time_start": "14:20",
           "time_end": "15:50",
-          "subject": "Информатика",
-          "type": "lab",
-          "teacher": "доц. Стесева О.И., 1 п/гр",
-          "room": "ауд. 208, 210",
+          "subject": "История России",
+          "type": "other",
+          "teacher": "доц. Филина Е.И.",
+          "room": "el.mpgu.su",
           "subgroup": null,
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 4,
+          "time_start": "14:20",
+          "time_end": "15:50",
+          "subject": "Информатика",
+          "type": "lab",
+          "teacher": "доц. Стесева О.И.",
+          "room": "208, 210",
+          "subgroup": 1,
+          "notes": ""
+        },
+        {
+          "slot": 4,
+          "time_start": "14:20",
+          "time_end": "15:50",
+          "subject": "Речевые практики",
+          "type": "practice",
+          "teacher": "доц. Сабурова С.В.",
+          "room": "304",
+          "subgroup": null,
+          "notes": ""
+        },
+        {
+          "slot": 5,
           "time_start": "16:00",
           "time_end": "17:30",
           "subject": "Основы медицинских знаний",
@@ -511,7 +533,7 @@
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 6,
           "time_start": "17:40",
           "time_end": "19:10",
           "subject": "История России (ПЗ 18.03, 15.04)",
@@ -522,7 +544,7 @@
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 6,
           "time_start": "17:40",
           "time_end": "19:10",
           "subject": "История России",
@@ -531,33 +553,11 @@
           "room": "el.mpgu.su",
           "subgroup": null,
           "notes": ""
-        },
-        {
-          "slot": null,
-          "time_start": "12:40",
-          "time_end": "14:10",
-          "subject": "Технологии цифрового образования",
-          "type": "practice",
-          "teacher": "доц. Иванова Н.Ю.",
-          "room": "2 п/гр, ауд. 108",
-          "subgroup": null,
-          "notes": ""
-        },
-        {
-          "slot": null,
-          "time_start": "14:20",
-          "time_end": "15:50",
-          "subject": "Речевые практики",
-          "type": "practice",
-          "teacher": "доц. Сабурова С.В.",
-          "room": "304",
-          "subgroup": null,
-          "notes": ""
         }
       ],
       "friday": [
         {
-          "slot": null,
+          "slot": 1,
           "time_start": "09:00",
           "time_end": "10:30",
           "subject": "Основы медицинских знаний (ЛК по 03.04)",
@@ -568,7 +568,40 @@
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 1,
+          "time_start": "09:00",
+          "time_end": "10:30",
+          "subject": "Программирование",
+          "type": "lab",
+          "teacher": "доц. Муратова Д.А.",
+          "room": "108",
+          "subgroup": 1,
+          "notes": ""
+        },
+        {
+          "slot": 2,
+          "time_start": "10:40",
+          "time_end": "12:10",
+          "subject": "Программирование",
+          "type": "lab",
+          "teacher": "доц. Муратова Д.А.",
+          "room": "108, 210",
+          "subgroup": 1,
+          "notes": ""
+        },
+        {
+          "slot": 3,
+          "time_start": "12:40",
+          "time_end": "14:10",
+          "subject": "Психология",
+          "type": "lab",
+          "teacher": "доц. Горбенко И.А.",
+          "room": "402",
+          "subgroup": null,
+          "notes": ""
+        },
+        {
+          "slot": 5,
           "time_start": "16:00",
           "time_end": "17:30",
           "subject": "История России",
@@ -579,64 +612,20 @@
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 5,
           "time_start": "16:00",
           "time_end": "17:30",
           "subject": "Речевые практики",
           "type": "practice",
-          "teacher": "доц. Иванова Н.Ю., 1 п/гр",
+          "teacher": "доц. Иванова Н.Ю.",
           "room": "304",
-          "subgroup": null,
+          "subgroup": 1,
           "notes": "доц. Сабурова С.В., ауд. 304"
-        },
-        {
-          "slot": null,
-          "time_start": "09:00",
-          "time_end": "10:30",
-          "subject": "Программирование",
-          "type": "lab",
-          "teacher": "доц. Муратова Д.А.",
-          "room": "1 п/гр, ауд. 108",
-          "subgroup": null,
-          "notes": ""
-        },
-        {
-          "slot": null,
-          "time_start": "10:40",
-          "time_end": "12:10",
-          "subject": "Программирование",
-          "type": "lab",
-          "teacher": "доц. Муратова Д.А., 1 п/гр",
-          "room": "ауд. 108, 210",
-          "subgroup": null,
-          "notes": ""
-        },
-        {
-          "slot": null,
-          "time_start": "12:40",
-          "time_end": "14:10",
-          "subject": "Психология",
-          "type": "lab",
-          "teacher": "доц. Горбенко И.А.",
-          "room": "402",
-          "subgroup": null,
-          "notes": ""
         }
       ],
       "saturday": [
         {
-          "slot": null,
-          "time_start": "12:40",
-          "time_end": "14:10",
-          "subject": "Геометрия",
-          "type": "practice",
-          "teacher": "проф. Гусева Н.И.",
-          "room": "401",
-          "subgroup": null,
-          "notes": ""
-        },
-        {
-          "slot": null,
+          "slot": 2,
           "time_start": "10:40",
           "time_end": "12:10",
           "subject": "Математический анализ",
@@ -647,7 +636,18 @@
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 3,
+          "time_start": "12:40",
+          "time_end": "14:10",
+          "subject": "Геометрия",
+          "type": "practice",
+          "teacher": "проф. Гусева Н.И.",
+          "room": "401",
+          "subgroup": null,
+          "notes": ""
+        },
+        {
+          "slot": 3,
           "time_start": "12:40",
           "time_end": "14:10",
           "subject": "Математический анализ",
@@ -658,7 +658,7 @@
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 4,
           "time_start": "14:20",
           "time_end": "15:50",
           "subject": "Математический анализ",

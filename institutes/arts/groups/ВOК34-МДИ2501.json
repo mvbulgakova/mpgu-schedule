@@ -8,7 +8,7 @@
       "monday": [],
       "tuesday": [
         {
-          "slot": null,
+          "slot": 1,
           "time_start": "09:00",
           "time_end": "10:30",
           "subject": "Индивидуальные занятия и",
@@ -19,7 +19,7 @@
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 2,
           "time_start": "10:40",
           "time_end": "12:10",
           "subject": "Индивидуальные занятия и",
@@ -47,31 +47,20 @@
           "subject": "Психология",
           "type": "other",
           "teacher": "доцент И.В. Борзенкова",
-          "room": "ауд. 316",
+          "room": "316",
           "subgroup": null,
           "notes": ""
         }
       ],
       "wednesday": [
         {
-          "slot": null,
-          "time_start": "15:50",
-          "time_end": "17:20",
-          "subject": "Индивидуальные занятия и",
-          "type": "other",
-          "teacher": "доцент И.В. Борзенкова",
-          "room": "ауд. 316",
-          "subgroup": null,
-          "notes": ""
-        },
-        {
-          "slot": null,
+          "slot": 2,
           "time_start": "10:40",
           "time_end": "12:10",
           "subject": "Хоровое пение и",
           "type": "practice",
           "teacher": "профессор Е.Н. Никитина",
-          "room": "ауд. 315",
+          "room": "315",
           "subgroup": null,
           "notes": ""
         },
@@ -82,7 +71,7 @@
           "subject": "Сольфеджи",
           "type": "other",
           "teacher": "доцент",
-          "room": "ауд. 308",
+          "room": "308",
           "subgroup": null,
           "notes": ""
         },
@@ -93,25 +82,25 @@
           "subject": "Сольфеджио",
           "type": "other",
           "teacher": "доцент М.А. Румянцева",
-          "room": "ауд. 308",
+          "room": "308",
+          "subgroup": null,
+          "notes": ""
+        },
+        {
+          "slot": null,
+          "time_start": "15:50",
+          "time_end": "17:20",
+          "subject": "Индивидуальные занятия и",
+          "type": "other",
+          "teacher": "доцент И.В. Борзенкова",
+          "room": "316",
           "subgroup": null,
           "notes": ""
         }
       ],
       "thursday": [
         {
-          "slot": null,
-          "time_start": "15:50",
-          "time_end": "17:20",
-          "subject": "Речевые практики",
-          "type": "practice",
-          "teacher": "доцент Р.Х. Шаряфетдинов",
-          "room": "ауд. 316",
-          "subgroup": null,
-          "notes": ""
-        },
-        {
-          "slot": null,
+          "slot": 1,
           "time_start": "09:00",
           "time_end": "10:30",
           "subject": "Индивидуальные занятия и",
@@ -122,7 +111,7 @@
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 2,
           "time_start": "10:40",
           "time_end": "12:10",
           "subject": "Индивидуальные занятия и",
@@ -150,7 +139,18 @@
           "subject": "Основы медицинских",
           "type": "lecture",
           "teacher": "доцент Э.В. Айриян",
-          "room": "(ауд. 316)",
+          "room": "( 316)",
+          "subgroup": null,
+          "notes": ""
+        },
+        {
+          "slot": null,
+          "time_start": "15:50",
+          "time_end": "17:20",
+          "subject": "Речевые практики",
+          "type": "practice",
+          "teacher": "доцент Р.Х. Шаряфетдинов",
+          "room": "316",
           "subgroup": null,
           "notes": ""
         },
@@ -168,7 +168,7 @@
       ],
       "friday": [
         {
-          "slot": null,
+          "slot": 1,
           "time_start": "09:00",
           "time_end": "10:30",
           "subject": "Индивидуальные занятия и",
@@ -179,7 +179,7 @@
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 2,
           "time_start": "10:40",
           "time_end": "12:10",
           "subject": "Индивидуальные занятия и",
@@ -196,7 +196,7 @@
           "subject": "Хоровое",
           "type": "practice",
           "teacher": "профессор",
-          "room": "ауд. 403",
+          "room": "403",
           "subgroup": null,
           "notes": ""
         },
@@ -225,18 +225,7 @@
       ],
       "saturday": [
         {
-          "slot": null,
-          "time_start": "17:25",
-          "time_end": "18:55",
-          "subject": "Индивидуальные занятия и",
-          "type": "other",
-          "teacher": null,
-          "room": null,
-          "subgroup": null,
-          "notes": ""
-        },
-        {
-          "slot": null,
+          "slot": 1,
           "time_start": "09:00",
           "time_end": "10:30",
           "subject": "Индивидуальные занятия и",
@@ -247,13 +236,13 @@
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 2,
           "time_start": "10:40",
           "time_end": "12:10",
           "subject": "Технологии цифрового",
           "type": "practice",
           "teacher": "профессор Н.А. Рудианов",
-          "room": "ауд. 204",
+          "room": "204",
           "subgroup": null,
           "notes": ""
         },
@@ -286,6 +275,17 @@
           "subject": "Иностранный язык",
           "type": "practice",
           "teacher": "доцент Г.И. Евтушенко ауд.204",
+          "room": null,
+          "subgroup": null,
+          "notes": ""
+        },
+        {
+          "slot": null,
+          "time_start": "17:25",
+          "time_end": "18:55",
+          "subject": "Индивидуальные занятия и",
+          "type": "other",
+          "teacher": null,
           "room": null,
           "subgroup": null,
           "notes": ""
@@ -296,7 +296,7 @@
       "monday": [],
       "tuesday": [
         {
-          "slot": null,
+          "slot": 1,
           "time_start": "09:00",
           "time_end": "10:30",
           "subject": "Индивидуальные занятия и",
@@ -307,7 +307,7 @@
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 2,
           "time_start": "10:40",
           "time_end": "12:10",
           "subject": "Индивидуальные занятия и",
@@ -335,31 +335,20 @@
           "subject": "Психология",
           "type": "other",
           "teacher": "доцент И.В. Борзенкова",
-          "room": "ауд. 316",
+          "room": "316",
           "subgroup": null,
           "notes": ""
         }
       ],
       "wednesday": [
         {
-          "slot": null,
-          "time_start": "15:50",
-          "time_end": "17:20",
-          "subject": "Индивидуальные занятия и",
-          "type": "other",
-          "teacher": "доцент И.В. Борзенкова",
-          "room": "ауд. 316",
-          "subgroup": null,
-          "notes": ""
-        },
-        {
-          "slot": null,
+          "slot": 2,
           "time_start": "10:40",
           "time_end": "12:10",
           "subject": "Хоровое пение и",
           "type": "practice",
           "teacher": "профессор Е.Н. Никитина",
-          "room": "ауд. 315",
+          "room": "315",
           "subgroup": null,
           "notes": ""
         },
@@ -370,7 +359,7 @@
           "subject": "Сольфеджи",
           "type": "other",
           "teacher": "доцент",
-          "room": "ауд. 308",
+          "room": "308",
           "subgroup": null,
           "notes": ""
         },
@@ -381,25 +370,25 @@
           "subject": "Сольфеджио",
           "type": "other",
           "teacher": "доцент М.А. Румянцева",
-          "room": "ауд. 308",
+          "room": "308",
+          "subgroup": null,
+          "notes": ""
+        },
+        {
+          "slot": null,
+          "time_start": "15:50",
+          "time_end": "17:20",
+          "subject": "Индивидуальные занятия и",
+          "type": "other",
+          "teacher": "доцент И.В. Борзенкова",
+          "room": "316",
           "subgroup": null,
           "notes": ""
         }
       ],
       "thursday": [
         {
-          "slot": null,
-          "time_start": "15:50",
-          "time_end": "17:20",
-          "subject": "Речевые практики",
-          "type": "practice",
-          "teacher": "доцент Р.Х. Шаряфетдинов",
-          "room": "ауд. 316",
-          "subgroup": null,
-          "notes": ""
-        },
-        {
-          "slot": null,
+          "slot": 1,
           "time_start": "09:00",
           "time_end": "10:30",
           "subject": "Индивидуальные занятия и",
@@ -410,7 +399,7 @@
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 2,
           "time_start": "10:40",
           "time_end": "12:10",
           "subject": "Индивидуальные занятия и",
@@ -438,7 +427,18 @@
           "subject": "Основы медицинских",
           "type": "lecture",
           "teacher": "доцент Э.В. Айриян",
-          "room": "(ауд. 316)",
+          "room": "( 316)",
+          "subgroup": null,
+          "notes": ""
+        },
+        {
+          "slot": null,
+          "time_start": "15:50",
+          "time_end": "17:20",
+          "subject": "Речевые практики",
+          "type": "practice",
+          "teacher": "доцент Р.Х. Шаряфетдинов",
+          "room": "316",
           "subgroup": null,
           "notes": ""
         },
@@ -456,7 +456,7 @@
       ],
       "friday": [
         {
-          "slot": null,
+          "slot": 1,
           "time_start": "09:00",
           "time_end": "10:30",
           "subject": "Индивидуальные занятия и",
@@ -467,7 +467,7 @@
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 2,
           "time_start": "10:40",
           "time_end": "12:10",
           "subject": "Индивидуальные занятия и",
@@ -484,7 +484,7 @@
           "subject": "Хоровое",
           "type": "practice",
           "teacher": "профессор",
-          "room": "ауд. 403",
+          "room": "403",
           "subgroup": null,
           "notes": ""
         },
@@ -513,18 +513,7 @@
       ],
       "saturday": [
         {
-          "slot": null,
-          "time_start": "17:25",
-          "time_end": "18:55",
-          "subject": "Индивидуальные занятия и",
-          "type": "other",
-          "teacher": null,
-          "room": null,
-          "subgroup": null,
-          "notes": ""
-        },
-        {
-          "slot": null,
+          "slot": 1,
           "time_start": "09:00",
           "time_end": "10:30",
           "subject": "Индивидуальные занятия и",
@@ -535,13 +524,13 @@
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 2,
           "time_start": "10:40",
           "time_end": "12:10",
           "subject": "Технологии цифрового",
           "type": "practice",
           "teacher": "профессор Н.А. Рудианов",
-          "room": "ауд. 204",
+          "room": "204",
           "subgroup": null,
           "notes": ""
         },
@@ -574,6 +563,17 @@
           "subject": "Иностранный язык",
           "type": "practice",
           "teacher": "доцент Г.И. Евтушенко ауд.204",
+          "room": null,
+          "subgroup": null,
+          "notes": ""
+        },
+        {
+          "slot": null,
+          "time_start": "17:25",
+          "time_end": "18:55",
+          "subject": "Индивидуальные занятия и",
+          "type": "other",
+          "teacher": null,
           "room": null,
           "subgroup": null,
           "notes": ""

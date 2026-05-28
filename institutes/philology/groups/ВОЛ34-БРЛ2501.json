@@ -7,7 +7,7 @@
     "odd_week": {
       "monday": [
         {
-          "slot": null,
+          "slot": 3,
           "time_start": "12:40",
           "time_end": "14:10",
           "subject": "Элективный",
@@ -21,12 +21,34 @@
       "tuesday": [
         {
           "slot": null,
+          "time_start": "08:30",
+          "time_end": "10:00",
+          "subject": "Теория языка",
+          "type": "lecture",
+          "teacher": "Доц. А.Г. Лисицын",
+          "room": "319",
+          "subgroup": null,
+          "notes": ""
+        },
+        {
+          "slot": null,
           "time_start": "10:10",
           "time_end": "11:40",
           "subject": "Фольклор",
           "type": "practice",
           "teacher": "Доц. Е.М",
-          "room": "Ауд. 11",
+          "room": "11",
+          "subgroup": null,
+          "notes": ""
+        },
+        {
+          "slot": null,
+          "time_start": "10:10",
+          "time_end": "11:40",
+          "subject": "Теория языка",
+          "type": "practice",
+          "teacher": "Доц. А.Г. Лисицын",
+          "room": "304",
           "subgroup": null,
           "notes": ""
         },
@@ -37,40 +59,7 @@
           "subject": "История",
           "type": "practice",
           "teacher": "Доц. А.В",
-          "room": "Ауд. 9",
-          "subgroup": null,
-          "notes": ""
-        },
-        {
-          "slot": 4,
-          "time_start": "13:30",
-          "time_end": "15:00",
-          "subject": "Теория",
-          "type": "practice",
-          "teacher": "Доц. Е.В",
-          "room": "Ауд. 309",
-          "subgroup": null,
-          "notes": ""
-        },
-        {
-          "slot": null,
-          "time_start": "08:30",
-          "time_end": "10:00",
-          "subject": "Теория языка",
-          "type": "lecture",
-          "teacher": "Доц. А.Г. Лисицын",
-          "room": "Ауд.319",
-          "subgroup": null,
-          "notes": ""
-        },
-        {
-          "slot": null,
-          "time_start": "10:10",
-          "time_end": "11:40",
-          "subject": "Теория языка",
-          "type": "practice",
-          "teacher": "Доц. А.Г. Лисицын",
-          "room": "Ауд. 304",
+          "room": "9",
           "subgroup": null,
           "notes": ""
         },
@@ -81,7 +70,18 @@
           "subject": "Технологии",
           "type": "practice",
           "teacher": "Ст. преп. М.Э",
-          "room": "Ауд.310",
+          "room": "310",
+          "subgroup": null,
+          "notes": ""
+        },
+        {
+          "slot": 4,
+          "time_start": "13:30",
+          "time_end": "15:00",
+          "subject": "Теория",
+          "type": "practice",
+          "teacher": "Доц. Е.В",
+          "room": "309",
           "subgroup": null,
           "notes": ""
         },
@@ -92,7 +92,7 @@
           "subject": "Речевые",
           "type": "practice",
           "teacher": "Ст. преп. А.С",
-          "room": "Ауд.308",
+          "room": "308",
           "subgroup": null,
           "notes": ""
         }
@@ -106,7 +106,7 @@
           "subject": "Латинский",
           "type": "practice",
           "teacher": "Доц. И.А",
-          "room": "Ауд. 305",
+          "room": "305",
           "subgroup": null,
           "notes": ""
         }
@@ -119,40 +119,7 @@
           "subject": "Основы",
           "type": "practice",
           "teacher": "Доц. М.А. Майстат",
-          "room": "Ауд. 310",
-          "subgroup": null,
-          "notes": ""
-        },
-        {
-          "slot": null,
-          "time_start": "10:10",
-          "time_end": "11:40",
-          "subject": "Практикум по",
-          "type": "practice",
-          "teacher": "Ст. преп. С. С",
-          "room": "Ауд. 305",
-          "subgroup": null,
-          "notes": ""
-        },
-        {
-          "slot": null,
-          "time_start": "11:50",
-          "time_end": "13:20",
-          "subject": "Зарубежная литература в контексте",
-          "type": "practice",
-          "teacher": "Доц. П.А. Смирнов",
-          "room": "Ауд. 205",
-          "subgroup": null,
-          "notes": ""
-        },
-        {
-          "slot": 4,
-          "time_start": "13:30",
-          "time_end": "15:00",
-          "subject": "Возрастная",
-          "type": "practice",
-          "teacher": "Доц. Э.В. Айриян",
-          "room": "Ауд. 10",
+          "room": "310",
           "subgroup": null,
           "notes": ""
         },
@@ -163,7 +130,18 @@
           "subject": "Основы медицинских знаний (13.02",
           "type": "lecture",
           "teacher": "Доц. Э.В. Айриян",
-          "room": "Ауд. 10",
+          "room": "10",
+          "subgroup": null,
+          "notes": ""
+        },
+        {
+          "slot": null,
+          "time_start": "10:10",
+          "time_end": "11:40",
+          "subject": "Практикум по",
+          "type": "practice",
+          "teacher": "Ст. преп. С. С",
+          "room": "305",
           "subgroup": null,
           "notes": ""
         },
@@ -174,7 +152,18 @@
           "subject": "История русской литературы (XI-XIX",
           "type": "lecture",
           "teacher": "Проф. Н.В. Трофимова",
-          "room": "Ауд.319",
+          "room": "319",
+          "subgroup": null,
+          "notes": ""
+        },
+        {
+          "slot": null,
+          "time_start": "11:50",
+          "time_end": "13:20",
+          "subject": "Зарубежная литература в контексте",
+          "type": "practice",
+          "teacher": "Доц. П.А. Смирнов",
+          "room": "205",
           "subgroup": null,
           "notes": ""
         },
@@ -185,7 +174,18 @@
           "subject": "История русской",
           "type": "practice",
           "teacher": "Проф. Н.В",
-          "room": "Ауд.314",
+          "room": "314",
+          "subgroup": null,
+          "notes": ""
+        },
+        {
+          "slot": 4,
+          "time_start": "13:30",
+          "time_end": "15:00",
+          "subject": "Возрастная",
+          "type": "practice",
+          "teacher": "Доц. Э.В. Айриян",
+          "room": "10",
           "subgroup": null,
           "notes": ""
         }
@@ -198,7 +198,7 @@
           "subject": "История",
           "type": "practice",
           "teacher": "Доц. А.А",
-          "room": "Ауд.306",
+          "room": "306",
           "subgroup": null,
           "notes": ""
         },
@@ -209,7 +209,7 @@
           "subject": "История",
           "type": "practice",
           "teacher": "Доц. А.А",
-          "room": "Ауд.306",
+          "room": "306",
           "subgroup": null,
           "notes": ""
         },
@@ -220,7 +220,7 @@
           "subject": "Зарубежная",
           "type": "practice",
           "teacher": "Доц. Н.В",
-          "room": "Ауд.313",
+          "room": "313",
           "subgroup": null,
           "notes": ""
         }
@@ -229,7 +229,7 @@
     "even_week": {
       "monday": [
         {
-          "slot": null,
+          "slot": 3,
           "time_start": "12:40",
           "time_end": "14:10",
           "subject": "Элективный",
@@ -243,12 +243,34 @@
       "tuesday": [
         {
           "slot": null,
+          "time_start": "08:30",
+          "time_end": "10:00",
+          "subject": "Теория языка",
+          "type": "lecture",
+          "teacher": "Доц. А.Г. Лисицын",
+          "room": "319",
+          "subgroup": null,
+          "notes": ""
+        },
+        {
+          "slot": null,
           "time_start": "10:10",
           "time_end": "11:40",
           "subject": "Фольклор",
           "type": "practice",
           "teacher": "Доц. Е.М",
-          "room": "Ауд. 11",
+          "room": "11",
+          "subgroup": null,
+          "notes": ""
+        },
+        {
+          "slot": null,
+          "time_start": "10:10",
+          "time_end": "11:40",
+          "subject": "Теория языка",
+          "type": "practice",
+          "teacher": "Доц. А.Г. Лисицын",
+          "room": "304",
           "subgroup": null,
           "notes": ""
         },
@@ -259,40 +281,7 @@
           "subject": "История",
           "type": "practice",
           "teacher": "Доц. А.В",
-          "room": "Ауд. 9",
-          "subgroup": null,
-          "notes": ""
-        },
-        {
-          "slot": 4,
-          "time_start": "13:30",
-          "time_end": "15:00",
-          "subject": "Теория",
-          "type": "practice",
-          "teacher": "Доц. Е.В",
-          "room": "Ауд. 309",
-          "subgroup": null,
-          "notes": ""
-        },
-        {
-          "slot": null,
-          "time_start": "08:30",
-          "time_end": "10:00",
-          "subject": "Теория языка",
-          "type": "lecture",
-          "teacher": "Доц. А.Г. Лисицын",
-          "room": "Ауд.319",
-          "subgroup": null,
-          "notes": ""
-        },
-        {
-          "slot": null,
-          "time_start": "10:10",
-          "time_end": "11:40",
-          "subject": "Теория языка",
-          "type": "practice",
-          "teacher": "Доц. А.Г. Лисицын",
-          "room": "Ауд. 304",
+          "room": "9",
           "subgroup": null,
           "notes": ""
         },
@@ -303,7 +292,18 @@
           "subject": "Технологии",
           "type": "practice",
           "teacher": "Ст. преп. М.Э",
-          "room": "Ауд.310",
+          "room": "310",
+          "subgroup": null,
+          "notes": ""
+        },
+        {
+          "slot": 4,
+          "time_start": "13:30",
+          "time_end": "15:00",
+          "subject": "Теория",
+          "type": "practice",
+          "teacher": "Доц. Е.В",
+          "room": "309",
           "subgroup": null,
           "notes": ""
         },
@@ -314,7 +314,7 @@
           "subject": "Речевые",
           "type": "practice",
           "teacher": "Ст. преп. А.С",
-          "room": "Ауд.308",
+          "room": "308",
           "subgroup": null,
           "notes": ""
         }
@@ -328,7 +328,7 @@
           "subject": "Латинский",
           "type": "practice",
           "teacher": "Доц. И.А",
-          "room": "Ауд. 305",
+          "room": "305",
           "subgroup": null,
           "notes": ""
         }
@@ -341,40 +341,7 @@
           "subject": "Основы",
           "type": "practice",
           "teacher": "Доц. М.А. Майстат",
-          "room": "Ауд. 310",
-          "subgroup": null,
-          "notes": ""
-        },
-        {
-          "slot": null,
-          "time_start": "10:10",
-          "time_end": "11:40",
-          "subject": "Практикум по",
-          "type": "practice",
-          "teacher": "Ст. преп. С. С",
-          "room": "Ауд. 305",
-          "subgroup": null,
-          "notes": ""
-        },
-        {
-          "slot": null,
-          "time_start": "11:50",
-          "time_end": "13:20",
-          "subject": "Зарубежная литература в контексте",
-          "type": "practice",
-          "teacher": "Доц. П.А. Смирнов",
-          "room": "Ауд. 205",
-          "subgroup": null,
-          "notes": ""
-        },
-        {
-          "slot": 4,
-          "time_start": "13:30",
-          "time_end": "15:00",
-          "subject": "Возрастная",
-          "type": "practice",
-          "teacher": "Доц. Э.В. Айриян",
-          "room": "Ауд. 10",
+          "room": "310",
           "subgroup": null,
           "notes": ""
         },
@@ -385,7 +352,18 @@
           "subject": "Основы медицинских знаний (13.02",
           "type": "lecture",
           "teacher": "Доц. Э.В. Айриян",
-          "room": "Ауд. 10",
+          "room": "10",
+          "subgroup": null,
+          "notes": ""
+        },
+        {
+          "slot": null,
+          "time_start": "10:10",
+          "time_end": "11:40",
+          "subject": "Практикум по",
+          "type": "practice",
+          "teacher": "Ст. преп. С. С",
+          "room": "305",
           "subgroup": null,
           "notes": ""
         },
@@ -396,7 +374,18 @@
           "subject": "История русской литературы (XI-XIX",
           "type": "lecture",
           "teacher": "Проф. Н.В. Трофимова",
-          "room": "Ауд.319",
+          "room": "319",
+          "subgroup": null,
+          "notes": ""
+        },
+        {
+          "slot": null,
+          "time_start": "11:50",
+          "time_end": "13:20",
+          "subject": "Зарубежная литература в контексте",
+          "type": "practice",
+          "teacher": "Доц. П.А. Смирнов",
+          "room": "205",
           "subgroup": null,
           "notes": ""
         },
@@ -407,7 +396,18 @@
           "subject": "История русской",
           "type": "practice",
           "teacher": "Проф. Н.В",
-          "room": "Ауд.314",
+          "room": "314",
+          "subgroup": null,
+          "notes": ""
+        },
+        {
+          "slot": 4,
+          "time_start": "13:30",
+          "time_end": "15:00",
+          "subject": "Возрастная",
+          "type": "practice",
+          "teacher": "Доц. Э.В. Айриян",
+          "room": "10",
           "subgroup": null,
           "notes": ""
         }
@@ -420,7 +420,7 @@
           "subject": "История",
           "type": "practice",
           "teacher": "Доц. А.А",
-          "room": "Ауд.306",
+          "room": "306",
           "subgroup": null,
           "notes": ""
         },
@@ -431,7 +431,7 @@
           "subject": "История",
           "type": "practice",
           "teacher": "Доц. А.А",
-          "room": "Ауд.306",
+          "room": "306",
           "subgroup": null,
           "notes": ""
         },
@@ -442,7 +442,7 @@
           "subject": "Зарубежная",
           "type": "practice",
           "teacher": "Доц. Н.В",
-          "room": "Ауд.313",
+          "room": "313",
           "subgroup": null,
           "notes": ""
         }

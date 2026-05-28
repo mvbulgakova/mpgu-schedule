@@ -7,7 +7,7 @@
     "odd_week": {
       "monday": [
         {
-          "slot": null,
+          "slot": 2,
           "time_start": "10:40",
           "time_end": "12:10",
           "subject": "Дифференциальные",
@@ -18,7 +18,7 @@
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 3,
           "time_start": "12:40",
           "time_end": "14:10",
           "subject": "Дифференциальные",
@@ -31,7 +31,7 @@
       ],
       "tuesday": [
         {
-          "slot": null,
+          "slot": 2,
           "time_start": "10:40",
           "time_end": "12:10",
           "subject": "Технологии искусственного",
@@ -42,7 +42,7 @@
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 3,
           "time_start": "12:40",
           "time_end": "14:10",
           "subject": "Д/В 2.1 Избранные вопросы",
@@ -53,31 +53,20 @@
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 5,
           "time_start": "16:00",
           "time_end": "17:00",
           "subject": "Теоретические основы информатики",
           "type": "other",
           "teacher": "доц. Муравьева О.В",
-          "room": "ауд. 209",
+          "room": "209",
           "subgroup": null,
           "notes": ""
         }
       ],
       "wednesday": [
         {
-          "slot": null,
-          "time_start": "14:20",
-          "time_end": "15:50",
-          "subject": "Элементарная",
-          "type": "practice",
-          "teacher": "проф. Седова Е.А.",
-          "room": "206",
-          "subgroup": null,
-          "notes": ""
-        },
-        {
-          "slot": null,
+          "slot": 1,
           "time_start": "09:00",
           "time_end": "10:30",
           "subject": "Макроэкономика",
@@ -88,18 +77,18 @@
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 2,
           "time_start": "10:40",
           "time_end": "12:10",
           "subject": "Д/В 1.1 Актуальные",
           "type": "practice",
           "teacher": "проф. Адельфинский А.О",
-          "room": "ст. пр Желеева А.В., ауд. 306",
+          "room": "ст. пр Желеева А.В., 306",
           "subgroup": null,
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 3,
           "time_start": "12:40",
           "time_end": "14:10",
           "subject": "Методика обучения",
@@ -110,31 +99,31 @@
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 4,
+          "time_start": "14:20",
+          "time_end": "15:50",
+          "subject": "Элементарная",
+          "type": "practice",
+          "teacher": "проф. Седова Е.А.",
+          "room": "206",
+          "subgroup": null,
+          "notes": ""
+        },
+        {
+          "slot": 5,
           "time_start": "16:00",
           "time_end": "17:30",
           "subject": "Производственная практика",
           "type": "other",
           "teacher": "Доцент Павлов Д.И., доц",
-          "room": "ауд. 402",
+          "room": "402",
           "subgroup": null,
           "notes": ""
         }
       ],
       "thursday": [
         {
-          "slot": null,
-          "time_start": "14:20",
-          "time_end": "15:50",
-          "subject": "Д/В 1.2 Естественнонаучная",
-          "type": "lab",
-          "teacher": "доц. Цветкова Е.А",
-          "room": "ст. пр Желеева А.В., ауд. 306",
-          "subgroup": null,
-          "notes": ""
-        },
-        {
-          "slot": null,
+          "slot": 2,
           "time_start": "10:40",
           "time_end": "12:10",
           "subject": "Методика обучения",
@@ -145,7 +134,7 @@
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 3,
           "time_start": "12:40",
           "time_end": "14:10",
           "subject": "Д/В 3.1 Основы школьного",
@@ -156,31 +145,31 @@
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 4,
+          "time_start": "14:20",
+          "time_end": "15:50",
+          "subject": "Д/В 1.2 Естественнонаучная",
+          "type": "lab",
+          "teacher": "доц. Цветкова Е.А",
+          "room": "ст. пр Желеева А.В., 306",
+          "subgroup": null,
+          "notes": ""
+        },
+        {
+          "slot": 5,
           "time_start": "16:00",
           "time_end": "17:00",
           "subject": "Избранные вопросы методики обучения",
           "type": "other",
           "teacher": "доц. Соколова Е.В",
-          "room": "ассист. Фунтиков Р.А., ауд. 404, 405",
+          "room": "404",
           "subgroup": null,
           "notes": ""
         }
       ],
       "friday": [
         {
-          "slot": null,
-          "time_start": "14:20",
-          "time_end": "15:50",
-          "subject": "Методика обучения",
-          "type": "lecture",
-          "teacher": "проф. Фирстова Н.И.",
-          "room": "305",
-          "subgroup": null,
-          "notes": ""
-        },
-        {
-          "slot": null,
+          "slot": 1,
           "time_start": "09:00",
           "time_end": "10:30",
           "subject": "День самостоятельных",
@@ -189,11 +178,22 @@
           "room": null,
           "subgroup": null,
           "notes": ""
+        },
+        {
+          "slot": 4,
+          "time_start": "14:20",
+          "time_end": "15:50",
+          "subject": "Методика обучения",
+          "type": "lecture",
+          "teacher": "проф. Фирстова Н.И.",
+          "room": "305",
+          "subgroup": null,
+          "notes": ""
         }
       ],
       "saturday": [
         {
-          "slot": null,
+          "slot": 5,
           "time_start": "16:00",
           "time_end": "17:00",
           "subject": "Методика обучения математике",
@@ -208,7 +208,7 @@
     "even_week": {
       "monday": [
         {
-          "slot": null,
+          "slot": 2,
           "time_start": "10:40",
           "time_end": "12:10",
           "subject": "Дифференциальные",
@@ -219,7 +219,7 @@
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 3,
           "time_start": "12:40",
           "time_end": "14:10",
           "subject": "Дифференциальные",
@@ -232,7 +232,7 @@
       ],
       "tuesday": [
         {
-          "slot": null,
+          "slot": 2,
           "time_start": "10:40",
           "time_end": "12:10",
           "subject": "Технологии искусственного",
@@ -243,7 +243,7 @@
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 3,
           "time_start": "12:40",
           "time_end": "14:10",
           "subject": "Д/В 2.1 Избранные вопросы",
@@ -254,31 +254,20 @@
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 5,
           "time_start": "16:00",
           "time_end": "17:00",
           "subject": "Теоретические основы информатики",
           "type": "other",
           "teacher": "доц. Муравьева О.В",
-          "room": "ауд. 209",
+          "room": "209",
           "subgroup": null,
           "notes": ""
         }
       ],
       "wednesday": [
         {
-          "slot": null,
-          "time_start": "14:20",
-          "time_end": "15:50",
-          "subject": "Элементарная",
-          "type": "practice",
-          "teacher": "проф. Седова Е.А.",
-          "room": "206",
-          "subgroup": null,
-          "notes": ""
-        },
-        {
-          "slot": null,
+          "slot": 1,
           "time_start": "09:00",
           "time_end": "10:30",
           "subject": "Макроэкономика",
@@ -289,18 +278,18 @@
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 2,
           "time_start": "10:40",
           "time_end": "12:10",
           "subject": "Д/В 1.1 Актуальные",
           "type": "practice",
           "teacher": "проф. Адельфинский А.О",
-          "room": "ст. пр Желеева А.В., ауд. 306",
+          "room": "ст. пр Желеева А.В., 306",
           "subgroup": null,
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 3,
           "time_start": "12:40",
           "time_end": "14:10",
           "subject": "Методика обучения",
@@ -311,31 +300,31 @@
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 4,
+          "time_start": "14:20",
+          "time_end": "15:50",
+          "subject": "Элементарная",
+          "type": "practice",
+          "teacher": "проф. Седова Е.А.",
+          "room": "206",
+          "subgroup": null,
+          "notes": ""
+        },
+        {
+          "slot": 5,
           "time_start": "16:00",
           "time_end": "17:30",
           "subject": "Производственная практика",
           "type": "other",
           "teacher": "Доцент Павлов Д.И., доц",
-          "room": "ауд. 402",
+          "room": "402",
           "subgroup": null,
           "notes": ""
         }
       ],
       "thursday": [
         {
-          "slot": null,
-          "time_start": "14:20",
-          "time_end": "15:50",
-          "subject": "Д/В 1.2 Естественнонаучная",
-          "type": "lab",
-          "teacher": "доц. Цветкова Е.А",
-          "room": "ст. пр Желеева А.В., ауд. 306",
-          "subgroup": null,
-          "notes": ""
-        },
-        {
-          "slot": null,
+          "slot": 2,
           "time_start": "10:40",
           "time_end": "12:10",
           "subject": "Методика обучения",
@@ -346,7 +335,7 @@
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 3,
           "time_start": "12:40",
           "time_end": "14:10",
           "subject": "Д/В 3.1 Основы школьного",
@@ -357,31 +346,31 @@
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 4,
+          "time_start": "14:20",
+          "time_end": "15:50",
+          "subject": "Д/В 1.2 Естественнонаучная",
+          "type": "lab",
+          "teacher": "доц. Цветкова Е.А",
+          "room": "ст. пр Желеева А.В., 306",
+          "subgroup": null,
+          "notes": ""
+        },
+        {
+          "slot": 5,
           "time_start": "16:00",
           "time_end": "17:00",
           "subject": "Избранные вопросы методики обучения",
           "type": "other",
           "teacher": "доц. Соколова Е.В",
-          "room": "ассист. Фунтиков Р.А., ауд. 404, 405",
+          "room": "404",
           "subgroup": null,
           "notes": ""
         }
       ],
       "friday": [
         {
-          "slot": null,
-          "time_start": "14:20",
-          "time_end": "15:50",
-          "subject": "Методика обучения",
-          "type": "lecture",
-          "teacher": "проф. Фирстова Н.И.",
-          "room": "305",
-          "subgroup": null,
-          "notes": ""
-        },
-        {
-          "slot": null,
+          "slot": 1,
           "time_start": "09:00",
           "time_end": "10:30",
           "subject": "День самостоятельных",
@@ -390,11 +379,22 @@
           "room": null,
           "subgroup": null,
           "notes": ""
+        },
+        {
+          "slot": 4,
+          "time_start": "14:20",
+          "time_end": "15:50",
+          "subject": "Методика обучения",
+          "type": "lecture",
+          "teacher": "проф. Фирстова Н.И.",
+          "room": "305",
+          "subgroup": null,
+          "notes": ""
         }
       ],
       "saturday": [
         {
-          "slot": null,
+          "slot": 5,
           "time_start": "16:00",
           "time_end": "17:00",
           "subject": "Методика обучения математике",

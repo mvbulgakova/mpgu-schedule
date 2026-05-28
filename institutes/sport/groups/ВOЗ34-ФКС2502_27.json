@@ -7,7 +7,7 @@
     "odd_week": {
       "monday": [
         {
-          "slot": null,
+          "slot": 1,
           "time_start": "09:00",
           "time_end": "10:30",
           "subject": "ДЕНЬ УЧЕБНОЙ ПРАКТИКИ",
@@ -20,18 +20,7 @@
       ],
       "tuesday": [
         {
-          "slot": null,
-          "time_start": "10:40",
-          "time_end": "12:10",
-          "subject": "ДЕНЬ УЧЕБНОЙ ПРАКТИКИ",
-          "type": "other",
-          "teacher": null,
-          "room": null,
-          "subgroup": null,
-          "notes": ""
-        },
-        {
-          "slot": null,
+          "slot": 1,
           "time_start": "09:00",
           "time_end": "10:30",
           "subject": "Речевые практики",
@@ -42,7 +31,18 @@
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 2,
+          "time_start": "10:40",
+          "time_end": "12:10",
+          "subject": "ДЕНЬ УЧЕБНОЙ ПРАКТИКИ",
+          "type": "other",
+          "teacher": null,
+          "room": null,
+          "subgroup": null,
+          "notes": ""
+        },
+        {
+          "slot": 2,
           "time_start": "10:40",
           "time_end": "12:10",
           "subject": "Теория и методика детско-юношеского спорта и",
@@ -53,31 +53,20 @@
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 4,
           "time_start": "14:20",
           "time_end": "15:50",
-          "subject": "Технологии цифрового образования п/г 1",
+          "subject": "Технологии цифрового образования",
           "type": "practice",
           "teacher": "ст. преп. Тихвинский В.И",
           "room": "______",
-          "subgroup": null,
+          "subgroup": 1,
           "notes": ""
         }
       ],
       "wednesday": [
         {
-          "slot": null,
-          "time_start": "16:00",
-          "time_end": "17:30",
-          "subject": "Технологии цифрового образования п/г 1 ВOЗ34-ФКС2502 (27)",
-          "type": "practice",
-          "teacher": "ст. преп. Тихвинский В.И",
-          "room": null,
-          "subgroup": null,
-          "notes": ""
-        },
-        {
-          "slot": null,
+          "slot": 2,
           "time_start": "10:40",
           "time_end": "12:10",
           "subject": "История России Иностранный язык",
@@ -88,7 +77,7 @@
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 3,
           "time_start": "12:40",
           "time_end": "14:10",
           "subject": "История России Иностранный язык",
@@ -99,7 +88,7 @@
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 4,
           "time_start": "14:20",
           "time_end": "15:50",
           "subject": "Гимнастика с методикой преподавания (ЛК/ПЗ) гимнастический зал",
@@ -108,11 +97,22 @@
           "room": null,
           "subgroup": null,
           "notes": ""
+        },
+        {
+          "slot": 5,
+          "time_start": "16:00",
+          "time_end": "17:30",
+          "subject": "Технологии цифрового образования ВOЗ34-ФКС2502 (27)",
+          "type": "practice",
+          "teacher": "ст. преп. Тихвинский В.И",
+          "room": null,
+          "subgroup": 1,
+          "notes": ""
         }
       ],
       "thursday": [
         {
-          "slot": null,
+          "slot": 1,
           "time_start": "09:00",
           "time_end": "10:30",
           "subject": "Элективные курсы по физической культуре и спорту:",
@@ -123,7 +123,7 @@
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 2,
           "time_start": "10:40",
           "time_end": "12:10",
           "subject": "Основы медицинских знаний Теория и методика детско-юношеского спорта и",
@@ -134,7 +134,7 @@
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 3,
           "time_start": "12:40",
           "time_end": "14:10",
           "subject": "Элективные курсы по физической культуре и спорту: танцевальный зал Психология (Л)",
@@ -147,7 +147,7 @@
       ],
       "friday": [
         {
-          "slot": null,
+          "slot": 1,
           "time_start": "09:00",
           "time_end": "10:30",
           "subject": "Финансово-экономический практикум (ЛК,ПЗ)",
@@ -158,7 +158,7 @@
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 2,
           "time_start": "10:40",
           "time_end": "12:10",
           "subject": "Спортивные и подвижные игры с методикой Спортивный зал №3",
@@ -169,7 +169,7 @@
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 3,
           "time_start": "12:40",
           "time_end": "14:10",
           "subject": "Речевые практики",
@@ -180,7 +180,7 @@
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 4,
           "time_start": "14:20",
           "time_end": "15:50",
           "subject": "Психология",
@@ -193,47 +193,47 @@
       ],
       "saturday": [
         {
-          "slot": null,
+          "slot": 1,
           "time_start": "09:00",
           "time_end": "10:30",
-          "subject": "Технологии цифрового образования п/г 2",
+          "subject": "Технологии цифрового образования",
           "type": "practice",
           "teacher": "ст. преп. Тихвинский В.И",
           "room": "______",
-          "subgroup": null,
+          "subgroup": 2,
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 2,
           "time_start": "10:40",
           "time_end": "12:10",
-          "subject": "Технологии цифрового образования п/г 2 Иностранный язык",
+          "subject": "Технологии цифрового образования Иностранный язык",
           "type": "practice",
           "teacher": "ст. преп. Тихвинский В.И",
           "room": "______",
-          "subgroup": null,
+          "subgroup": 2,
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 3,
           "time_start": "12:40",
           "time_end": "14:10",
           "subject": "Иностранный язык Гимнастика с методикой преподавания (ЛК/ПЗ)",
           "type": "lecture",
-          "teacher": "доц. Бессмертная Ж.Д., п/г №2",
+          "teacher": "доц. Бессмертная Ж.Д.",
           "room": "______",
-          "subgroup": null,
+          "subgroup": 2,
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 4,
           "time_start": "14:20",
           "time_end": "15:50",
           "subject": "Иностранный язык Гимнастика с методикой преподавания (ЛК/ПЗ) гимнастический зал",
           "type": "lecture",
-          "teacher": "доц. Бессмертная Ж.Д., п/г №2",
+          "teacher": "доц. Бессмертная Ж.Д.",
           "room": "______",
-          "subgroup": null,
+          "subgroup": 2,
           "notes": ""
         }
       ]
@@ -241,7 +241,7 @@
     "even_week": {
       "monday": [
         {
-          "slot": null,
+          "slot": 1,
           "time_start": "09:00",
           "time_end": "10:30",
           "subject": "ДЕНЬ УЧЕБНОЙ ПРАКТИКИ",
@@ -254,18 +254,7 @@
       ],
       "tuesday": [
         {
-          "slot": null,
-          "time_start": "10:40",
-          "time_end": "12:10",
-          "subject": "ДЕНЬ УЧЕБНОЙ ПРАКТИКИ",
-          "type": "other",
-          "teacher": null,
-          "room": null,
-          "subgroup": null,
-          "notes": ""
-        },
-        {
-          "slot": null,
+          "slot": 1,
           "time_start": "09:00",
           "time_end": "10:30",
           "subject": "Речевые практики",
@@ -276,7 +265,18 @@
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 2,
+          "time_start": "10:40",
+          "time_end": "12:10",
+          "subject": "ДЕНЬ УЧЕБНОЙ ПРАКТИКИ",
+          "type": "other",
+          "teacher": null,
+          "room": null,
+          "subgroup": null,
+          "notes": ""
+        },
+        {
+          "slot": 2,
           "time_start": "10:40",
           "time_end": "12:10",
           "subject": "Теория и методика детско-юношеского спорта и",
@@ -287,31 +287,20 @@
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 4,
           "time_start": "14:20",
           "time_end": "15:50",
-          "subject": "Технологии цифрового образования п/г 1",
+          "subject": "Технологии цифрового образования",
           "type": "practice",
           "teacher": "ст. преп. Тихвинский В.И",
           "room": "______",
-          "subgroup": null,
+          "subgroup": 1,
           "notes": ""
         }
       ],
       "wednesday": [
         {
-          "slot": null,
-          "time_start": "16:00",
-          "time_end": "17:30",
-          "subject": "Технологии цифрового образования п/г 1 ВOЗ34-ФКС2502 (27)",
-          "type": "practice",
-          "teacher": "ст. преп. Тихвинский В.И",
-          "room": null,
-          "subgroup": null,
-          "notes": ""
-        },
-        {
-          "slot": null,
+          "slot": 2,
           "time_start": "10:40",
           "time_end": "12:10",
           "subject": "История России Иностранный язык",
@@ -322,7 +311,7 @@
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 3,
           "time_start": "12:40",
           "time_end": "14:10",
           "subject": "История России Иностранный язык",
@@ -333,7 +322,7 @@
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 4,
           "time_start": "14:20",
           "time_end": "15:50",
           "subject": "Гимнастика с методикой преподавания (ЛК/ПЗ) гимнастический зал",
@@ -342,11 +331,22 @@
           "room": null,
           "subgroup": null,
           "notes": ""
+        },
+        {
+          "slot": 5,
+          "time_start": "16:00",
+          "time_end": "17:30",
+          "subject": "Технологии цифрового образования ВOЗ34-ФКС2502 (27)",
+          "type": "practice",
+          "teacher": "ст. преп. Тихвинский В.И",
+          "room": null,
+          "subgroup": 1,
+          "notes": ""
         }
       ],
       "thursday": [
         {
-          "slot": null,
+          "slot": 1,
           "time_start": "09:00",
           "time_end": "10:30",
           "subject": "Элективные курсы по физической культуре и спорту:",
@@ -357,7 +357,7 @@
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 2,
           "time_start": "10:40",
           "time_end": "12:10",
           "subject": "Основы медицинских знаний Теория и методика детско-юношеского спорта и",
@@ -368,7 +368,7 @@
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 3,
           "time_start": "12:40",
           "time_end": "14:10",
           "subject": "Элективные курсы по физической культуре и спорту: танцевальный зал Психология (Л)",
@@ -381,7 +381,7 @@
       ],
       "friday": [
         {
-          "slot": null,
+          "slot": 1,
           "time_start": "09:00",
           "time_end": "10:30",
           "subject": "Финансово-экономический практикум (ЛК,ПЗ)",
@@ -392,7 +392,7 @@
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 2,
           "time_start": "10:40",
           "time_end": "12:10",
           "subject": "Спортивные и подвижные игры с методикой Спортивный зал №3",
@@ -403,7 +403,7 @@
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 3,
           "time_start": "12:40",
           "time_end": "14:10",
           "subject": "Речевые практики",
@@ -414,7 +414,7 @@
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 4,
           "time_start": "14:20",
           "time_end": "15:50",
           "subject": "Психология",
@@ -427,47 +427,47 @@
       ],
       "saturday": [
         {
-          "slot": null,
+          "slot": 1,
           "time_start": "09:00",
           "time_end": "10:30",
-          "subject": "Технологии цифрового образования п/г 2",
+          "subject": "Технологии цифрового образования",
           "type": "practice",
           "teacher": "ст. преп. Тихвинский В.И",
           "room": "______",
-          "subgroup": null,
+          "subgroup": 2,
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 2,
           "time_start": "10:40",
           "time_end": "12:10",
-          "subject": "Технологии цифрового образования п/г 2 Иностранный язык",
+          "subject": "Технологии цифрового образования Иностранный язык",
           "type": "practice",
           "teacher": "ст. преп. Тихвинский В.И",
           "room": "______",
-          "subgroup": null,
+          "subgroup": 2,
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 3,
           "time_start": "12:40",
           "time_end": "14:10",
           "subject": "Иностранный язык Гимнастика с методикой преподавания (ЛК/ПЗ)",
           "type": "lecture",
-          "teacher": "доц. Бессмертная Ж.Д., п/г №2",
+          "teacher": "доц. Бессмертная Ж.Д.",
           "room": "______",
-          "subgroup": null,
+          "subgroup": 2,
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 4,
           "time_start": "14:20",
           "time_end": "15:50",
           "subject": "Иностранный язык Гимнастика с методикой преподавания (ЛК/ПЗ) гимнастический зал",
           "type": "lecture",
-          "teacher": "доц. Бессмертная Ж.Д., п/г №2",
+          "teacher": "доц. Бессмертная Ж.Д.",
           "room": "______",
-          "subgroup": null,
+          "subgroup": 2,
           "notes": ""
         }
       ]

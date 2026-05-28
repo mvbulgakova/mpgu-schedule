@@ -7,18 +7,18 @@
     "odd_week": {
       "monday": [
         {
-          "slot": null,
+          "slot": 1,
           "time_start": "09:00",
           "time_end": "10:30",
           "subject": "(ауд. 206)",
           "type": "other",
-          "teacher": "п/г 1 доцент",
-          "room": "(ауд. 206)",
-          "subgroup": null,
+          "teacher": "доцент",
+          "room": "( 206)",
+          "subgroup": 1,
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 2,
           "time_start": "10:40",
           "time_end": "12:10",
           "subject": "профессор А.В. Торопова (ауд. 204)",
@@ -46,14 +46,14 @@
           "subject": "Л.П. Рапацкая",
           "type": "other",
           "teacher": "доцент Л.Э. Шевчук",
-          "room": "(ауд. 204)",
+          "room": "( 204)",
           "subgroup": null,
           "notes": ""
         }
       ],
       "tuesday": [
         {
-          "slot": null,
+          "slot": 1,
           "time_start": "09:00",
           "time_end": "10:30",
           "subject": "Научно-исследовательская",
@@ -64,7 +64,7 @@
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 2,
           "time_start": "10:40",
           "time_end": "12:10",
           "subject": "Научно-исследовательская",
@@ -88,6 +88,39 @@
       ],
       "wednesday": [
         {
+          "slot": 1,
+          "time_start": "09:00",
+          "time_end": "10:30",
+          "subject": "Научно-исследовательская работа и самостоятельная подготовка студентов",
+          "type": "lecture",
+          "teacher": "доцент А.В. Жилина",
+          "room": null,
+          "subgroup": null,
+          "notes": ""
+        },
+        {
+          "slot": 2,
+          "time_start": "10:40",
+          "time_end": "12:10",
+          "subject": "профессор Е.В. Николаева",
+          "type": "other",
+          "teacher": "профессор Е.В. Николаева",
+          "room": "( 207)",
+          "subgroup": null,
+          "notes": ""
+        },
+        {
+          "slot": null,
+          "time_start": "12:30",
+          "time_end": "14:00",
+          "subject": "(ауд. 207)",
+          "type": "practice",
+          "teacher": "доцент В.В. Гетьман",
+          "room": "( 207)",
+          "subgroup": null,
+          "notes": ""
+        },
+        {
           "slot": null,
           "time_start": "14:10",
           "time_end": "15:40",
@@ -100,45 +133,12 @@
         },
         {
           "slot": null,
-          "time_start": "09:00",
-          "time_end": "10:30",
-          "subject": "Научно-исследовательская работа и самостоятельная подготовка студентов",
-          "type": "lecture",
-          "teacher": "доцент А.В. Жилина",
-          "room": null,
-          "subgroup": null,
-          "notes": ""
-        },
-        {
-          "slot": null,
-          "time_start": "10:40",
-          "time_end": "12:10",
-          "subject": "профессор Е.В. Николаева",
-          "type": "other",
-          "teacher": "профессор Е.В. Николаева",
-          "room": "(ауд. 207)",
-          "subgroup": null,
-          "notes": ""
-        },
-        {
-          "slot": null,
-          "time_start": "12:30",
-          "time_end": "14:00",
-          "subject": "(ауд. 207)",
-          "type": "practice",
-          "teacher": "доцент В.В. Гетьман",
-          "room": "(ауд. 207)",
-          "subgroup": null,
-          "notes": ""
-        },
-        {
-          "slot": null,
           "time_start": "14:10",
           "time_end": "15:40",
           "subject": "Методология исследовательской деятельности",
           "type": "practice",
           "teacher": "доцент В.В. Гетьман",
-          "room": "(ауд. 204)",
+          "room": "( 204)",
           "subgroup": null,
           "notes": ""
         },
@@ -156,18 +156,7 @@
       ],
       "thursday": [
         {
-          "slot": null,
-          "time_start": "17:25",
-          "time_end": "18:55",
-          "subject": "Научно-исследовательская работа и",
-          "type": "other",
-          "teacher": "доцент А.В. Жилина",
-          "room": null,
-          "subgroup": null,
-          "notes": ""
-        },
-        {
-          "slot": null,
+          "slot": 1,
           "time_start": "09:00",
           "time_end": "10:30",
           "subject": "Научно-исследовательская работа и",
@@ -178,9 +167,20 @@
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 2,
           "time_start": "10:40",
           "time_end": "12:10",
+          "subject": "Научно-исследовательская работа и",
+          "type": "other",
+          "teacher": "доцент А.В. Жилина",
+          "room": null,
+          "subgroup": null,
+          "notes": ""
+        },
+        {
+          "slot": null,
+          "time_start": "17:25",
+          "time_end": "18:55",
           "subject": "Научно-исследовательская работа и",
           "type": "other",
           "teacher": "доцент А.В. Жилина",
@@ -191,18 +191,7 @@
       ],
       "friday": [
         {
-          "slot": null,
-          "time_start": "14:10",
-          "time_end": "15:40",
-          "subject": "Научно-исследовательская работа и",
-          "type": "other",
-          "teacher": "доцент А.В. Жилина",
-          "room": null,
-          "subgroup": null,
-          "notes": ""
-        },
-        {
-          "slot": null,
+          "slot": 1,
           "time_start": "09:00",
           "time_end": "10:30",
           "subject": "Научно-исследовательская работа и",
@@ -213,7 +202,7 @@
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 2,
           "time_start": "10:40",
           "time_end": "12:10",
           "subject": "Научно-исследовательская работа и",
@@ -227,6 +216,17 @@
           "slot": null,
           "time_start": "12:30",
           "time_end": "14:00",
+          "subject": "Научно-исследовательская работа и",
+          "type": "other",
+          "teacher": "доцент А.В. Жилина",
+          "room": null,
+          "subgroup": null,
+          "notes": ""
+        },
+        {
+          "slot": null,
+          "time_start": "14:10",
+          "time_end": "15:40",
           "subject": "Научно-исследовательская работа и",
           "type": "other",
           "teacher": "доцент А.В. Жилина",
@@ -237,18 +237,7 @@
       ],
       "saturday": [
         {
-          "slot": null,
-          "time_start": "14:10",
-          "time_end": "15:40",
-          "subject": "Научно-исследовательская работа и",
-          "type": "other",
-          "teacher": "доцент А.В. Жилина",
-          "room": null,
-          "subgroup": null,
-          "notes": ""
-        },
-        {
-          "slot": null,
+          "slot": 1,
           "time_start": "09:00",
           "time_end": "10:30",
           "subject": "Научно-исследовательская работа и",
@@ -259,7 +248,7 @@
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 2,
           "time_start": "10:40",
           "time_end": "12:10",
           "subject": "Научно-исследовательская работа и",
@@ -273,6 +262,17 @@
           "slot": null,
           "time_start": "12:30",
           "time_end": "14:00",
+          "subject": "Научно-исследовательская работа и",
+          "type": "other",
+          "teacher": "доцент А.В. Жилина",
+          "room": null,
+          "subgroup": null,
+          "notes": ""
+        },
+        {
+          "slot": null,
+          "time_start": "14:10",
+          "time_end": "15:40",
           "subject": "Научно-исследовательская работа и",
           "type": "other",
           "teacher": "доцент А.В. Жилина",
@@ -285,18 +285,18 @@
     "even_week": {
       "monday": [
         {
-          "slot": null,
+          "slot": 1,
           "time_start": "09:00",
           "time_end": "10:30",
           "subject": "(ауд. 206)",
           "type": "other",
-          "teacher": "п/г 1 доцент",
-          "room": "(ауд. 206)",
-          "subgroup": null,
+          "teacher": "доцент",
+          "room": "( 206)",
+          "subgroup": 1,
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 2,
           "time_start": "10:40",
           "time_end": "12:10",
           "subject": "профессор А.В. Торопова (ауд. 204)",
@@ -324,14 +324,14 @@
           "subject": "Л.П. Рапацкая",
           "type": "other",
           "teacher": "доцент Л.Э. Шевчук",
-          "room": "(ауд. 204)",
+          "room": "( 204)",
           "subgroup": null,
           "notes": ""
         }
       ],
       "tuesday": [
         {
-          "slot": null,
+          "slot": 1,
           "time_start": "09:00",
           "time_end": "10:30",
           "subject": "Научно-исследовательская",
@@ -342,7 +342,7 @@
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 2,
           "time_start": "10:40",
           "time_end": "12:10",
           "subject": "Научно-исследовательская",
@@ -366,6 +366,39 @@
       ],
       "wednesday": [
         {
+          "slot": 1,
+          "time_start": "09:00",
+          "time_end": "10:30",
+          "subject": "Научно-исследовательская работа и самостоятельная подготовка студентов",
+          "type": "lecture",
+          "teacher": "доцент А.В. Жилина",
+          "room": null,
+          "subgroup": null,
+          "notes": ""
+        },
+        {
+          "slot": 2,
+          "time_start": "10:40",
+          "time_end": "12:10",
+          "subject": "профессор Е.В. Николаева",
+          "type": "other",
+          "teacher": "профессор Е.В. Николаева",
+          "room": "( 207)",
+          "subgroup": null,
+          "notes": ""
+        },
+        {
+          "slot": null,
+          "time_start": "12:30",
+          "time_end": "14:00",
+          "subject": "(ауд. 207)",
+          "type": "practice",
+          "teacher": "доцент В.В. Гетьман",
+          "room": "( 207)",
+          "subgroup": null,
+          "notes": ""
+        },
+        {
           "slot": null,
           "time_start": "14:10",
           "time_end": "15:40",
@@ -378,45 +411,12 @@
         },
         {
           "slot": null,
-          "time_start": "09:00",
-          "time_end": "10:30",
-          "subject": "Научно-исследовательская работа и самостоятельная подготовка студентов",
-          "type": "lecture",
-          "teacher": "доцент А.В. Жилина",
-          "room": null,
-          "subgroup": null,
-          "notes": ""
-        },
-        {
-          "slot": null,
-          "time_start": "10:40",
-          "time_end": "12:10",
-          "subject": "профессор Е.В. Николаева",
-          "type": "other",
-          "teacher": "профессор Е.В. Николаева",
-          "room": "(ауд. 207)",
-          "subgroup": null,
-          "notes": ""
-        },
-        {
-          "slot": null,
-          "time_start": "12:30",
-          "time_end": "14:00",
-          "subject": "(ауд. 207)",
-          "type": "practice",
-          "teacher": "доцент В.В. Гетьман",
-          "room": "(ауд. 207)",
-          "subgroup": null,
-          "notes": ""
-        },
-        {
-          "slot": null,
           "time_start": "14:10",
           "time_end": "15:40",
           "subject": "Методология исследовательской деятельности",
           "type": "practice",
           "teacher": "доцент В.В. Гетьман",
-          "room": "(ауд. 204)",
+          "room": "( 204)",
           "subgroup": null,
           "notes": ""
         },
@@ -434,18 +434,7 @@
       ],
       "thursday": [
         {
-          "slot": null,
-          "time_start": "17:25",
-          "time_end": "18:55",
-          "subject": "Научно-исследовательская работа и",
-          "type": "other",
-          "teacher": "доцент А.В. Жилина",
-          "room": null,
-          "subgroup": null,
-          "notes": ""
-        },
-        {
-          "slot": null,
+          "slot": 1,
           "time_start": "09:00",
           "time_end": "10:30",
           "subject": "Научно-исследовательская работа и",
@@ -456,9 +445,20 @@
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 2,
           "time_start": "10:40",
           "time_end": "12:10",
+          "subject": "Научно-исследовательская работа и",
+          "type": "other",
+          "teacher": "доцент А.В. Жилина",
+          "room": null,
+          "subgroup": null,
+          "notes": ""
+        },
+        {
+          "slot": null,
+          "time_start": "17:25",
+          "time_end": "18:55",
           "subject": "Научно-исследовательская работа и",
           "type": "other",
           "teacher": "доцент А.В. Жилина",
@@ -469,18 +469,7 @@
       ],
       "friday": [
         {
-          "slot": null,
-          "time_start": "14:10",
-          "time_end": "15:40",
-          "subject": "Научно-исследовательская работа и",
-          "type": "other",
-          "teacher": "доцент А.В. Жилина",
-          "room": null,
-          "subgroup": null,
-          "notes": ""
-        },
-        {
-          "slot": null,
+          "slot": 1,
           "time_start": "09:00",
           "time_end": "10:30",
           "subject": "Научно-исследовательская работа и",
@@ -491,7 +480,7 @@
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 2,
           "time_start": "10:40",
           "time_end": "12:10",
           "subject": "Научно-исследовательская работа и",
@@ -505,6 +494,17 @@
           "slot": null,
           "time_start": "12:30",
           "time_end": "14:00",
+          "subject": "Научно-исследовательская работа и",
+          "type": "other",
+          "teacher": "доцент А.В. Жилина",
+          "room": null,
+          "subgroup": null,
+          "notes": ""
+        },
+        {
+          "slot": null,
+          "time_start": "14:10",
+          "time_end": "15:40",
           "subject": "Научно-исследовательская работа и",
           "type": "other",
           "teacher": "доцент А.В. Жилина",
@@ -515,18 +515,7 @@
       ],
       "saturday": [
         {
-          "slot": null,
-          "time_start": "14:10",
-          "time_end": "15:40",
-          "subject": "Научно-исследовательская работа и",
-          "type": "other",
-          "teacher": "доцент А.В. Жилина",
-          "room": null,
-          "subgroup": null,
-          "notes": ""
-        },
-        {
-          "slot": null,
+          "slot": 1,
           "time_start": "09:00",
           "time_end": "10:30",
           "subject": "Научно-исследовательская работа и",
@@ -537,7 +526,7 @@
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 2,
           "time_start": "10:40",
           "time_end": "12:10",
           "subject": "Научно-исследовательская работа и",
@@ -551,6 +540,17 @@
           "slot": null,
           "time_start": "12:30",
           "time_end": "14:00",
+          "subject": "Научно-исследовательская работа и",
+          "type": "other",
+          "teacher": "доцент А.В. Жилина",
+          "room": null,
+          "subgroup": null,
+          "notes": ""
+        },
+        {
+          "slot": null,
+          "time_start": "14:10",
+          "time_end": "15:40",
           "subject": "Научно-исследовательская работа и",
           "type": "other",
           "teacher": "доцент А.В. Жилина",

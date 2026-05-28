@@ -7,7 +7,7 @@
     "odd_week": {
       "monday": [
         {
-          "slot": null,
+          "slot": 1,
           "time_start": "09:00",
           "time_end": "10:30",
           "subject": "Дифференциальные уравнения",
@@ -18,7 +18,7 @@
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 2,
           "time_start": "10:40",
           "time_end": "12:10",
           "subject": "Дифференциальная геометрия и топология",
@@ -42,7 +42,7 @@
       ],
       "tuesday": [
         {
-          "slot": null,
+          "slot": 1,
           "time_start": "09:00",
           "time_end": "10:30",
           "subject": "Основы вожатской",
@@ -53,7 +53,7 @@
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 2,
           "time_start": "10:40",
           "time_end": "12:10",
           "subject": "Обучение лиц с ОВЗ и",
@@ -64,7 +64,7 @@
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 3,
           "time_start": "12:40",
           "time_end": "14:10",
           "subject": "Дифференциальные уравнения",
@@ -77,7 +77,7 @@
       ],
       "wednesday": [
         {
-          "slot": null,
+          "slot": 1,
           "time_start": "09:00",
           "time_end": "10:30",
           "subject": "Методика обучения",
@@ -88,29 +88,18 @@
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 2,
           "time_start": "10:40",
           "time_end": "12:10",
           "subject": "Методика обучения",
           "type": "lab",
-          "teacher": "доц. Павлов Д.И., 1 п/гр",
-          "room": "ауд. 105",
-          "subgroup": null,
+          "teacher": "доц. Павлов Д.И.",
+          "room": "105",
+          "subgroup": 1,
           "notes": ""
         },
         {
-          "slot": null,
-          "time_start": "12:40",
-          "time_end": "14:10",
-          "subject": "Методы количественного и",
-          "type": "lab",
-          "teacher": "доц. Шаронова О.В., 1 п/гр",
-          "room": "ауд. 208/210",
-          "subgroup": null,
-          "notes": ""
-        },
-        {
-          "slot": null,
+          "slot": 2,
           "time_start": "10:40",
           "time_end": "12:10",
           "subject": "Численные методы",
@@ -119,22 +108,22 @@
           "room": "210",
           "subgroup": null,
           "notes": ""
+        },
+        {
+          "slot": 3,
+          "time_start": "12:40",
+          "time_end": "14:10",
+          "subject": "Методы количественного и",
+          "type": "lab",
+          "teacher": "доц. Шаронова О.В.",
+          "room": "208/210",
+          "subgroup": 1,
+          "notes": ""
         }
       ],
       "thursday": [
         {
-          "slot": null,
-          "time_start": "16:00",
-          "time_end": "17:30",
-          "subject": "Технология и организация",
-          "type": "other",
-          "teacher": "доц. Соколова Е.В.",
-          "room": "el.mpgu.su",
-          "subgroup": null,
-          "notes": ""
-        },
-        {
-          "slot": null,
+          "slot": 3,
           "time_start": "12:40",
           "time_end": "14:10",
           "subject": "Элективные курсы по",
@@ -143,50 +132,28 @@
           "room": "308",
           "subgroup": null,
           "notes": ""
+        },
+        {
+          "slot": 5,
+          "time_start": "16:00",
+          "time_end": "17:30",
+          "subject": "Технология и организация",
+          "type": "other",
+          "teacher": "доц. Соколова Е.В.",
+          "room": "el.mpgu.su",
+          "subgroup": null,
+          "notes": ""
         }
       ],
       "friday": [
         {
-          "slot": null,
-          "time_start": "19:20",
-          "time_end": "20:50",
-          "subject": "Практикум по решению",
-          "type": "lab",
-          "teacher": "доц. Стесева О.И., 1 п/гр",
-          "room": "ауд. 209, 210",
-          "subgroup": null,
-          "notes": ""
-        },
-        {
-          "slot": null,
-          "time_start": "12:40",
-          "time_end": "14:10",
-          "subject": "Численные методы",
-          "type": "practice",
-          "teacher": "проф. Деза Е.И.",
-          "room": "210",
-          "subgroup": null,
-          "notes": ""
-        },
-        {
-          "slot": null,
+          "slot": 1,
           "time_start": "09:00",
           "time_end": "10:30",
           "subject": "Компьютерное моделирование",
           "type": "lab",
           "teacher": "проф. Бродский Ю.И.",
           "room": "el.mpgu.su",
-          "subgroup": null,
-          "notes": ""
-        },
-        {
-          "slot": null,
-          "time_start": "14:20",
-          "time_end": "15:50",
-          "subject": "Элективные курсы по физической культуре",
-          "type": "other",
-          "teacher": "доц. Удовенко Л.Н.",
-          "room": null,
           "subgroup": null,
           "notes": ""
         },
@@ -200,11 +167,44 @@
           "room": "108",
           "subgroup": null,
           "notes": ""
+        },
+        {
+          "slot": 3,
+          "time_start": "12:40",
+          "time_end": "14:10",
+          "subject": "Численные методы",
+          "type": "practice",
+          "teacher": "проф. Деза Е.И.",
+          "room": "210",
+          "subgroup": null,
+          "notes": ""
+        },
+        {
+          "slot": 4,
+          "time_start": "14:20",
+          "time_end": "15:50",
+          "subject": "Элективные курсы по физической культуре",
+          "type": "other",
+          "teacher": "доц. Удовенко Л.Н.",
+          "room": null,
+          "subgroup": null,
+          "notes": ""
+        },
+        {
+          "slot": 7,
+          "time_start": "19:20",
+          "time_end": "20:50",
+          "subject": "Практикум по решению",
+          "type": "lab",
+          "teacher": "доц. Стесева О.И.",
+          "room": "209, 210",
+          "subgroup": 1,
+          "notes": ""
         }
       ],
       "saturday": [
         {
-          "slot": null,
+          "slot": 1,
           "time_start": "09:00",
           "time_end": "10:30",
           "subject": "Элементарная математика",
@@ -215,13 +215,13 @@
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 5,
           "time_start": "16:00",
           "time_end": "17:00",
           "subject": "Психолого-педагогические",
           "type": "other",
           "teacher": "доц. Нателаури Н.К",
-          "room": "ауд. 208",
+          "room": "208",
           "subgroup": null,
           "notes": ""
         }
@@ -230,7 +230,7 @@
     "even_week": {
       "monday": [
         {
-          "slot": null,
+          "slot": 1,
           "time_start": "09:00",
           "time_end": "10:30",
           "subject": "Дифференциальные уравнения",
@@ -241,7 +241,7 @@
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 2,
           "time_start": "10:40",
           "time_end": "12:10",
           "subject": "Дифференциальная геометрия и топология",
@@ -265,7 +265,7 @@
       ],
       "tuesday": [
         {
-          "slot": null,
+          "slot": 1,
           "time_start": "09:00",
           "time_end": "10:30",
           "subject": "Основы вожатской",
@@ -276,7 +276,7 @@
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 2,
           "time_start": "10:40",
           "time_end": "12:10",
           "subject": "Обучение лиц с ОВЗ и",
@@ -287,7 +287,7 @@
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 3,
           "time_start": "12:40",
           "time_end": "14:10",
           "subject": "Дифференциальные уравнения",
@@ -300,7 +300,7 @@
       ],
       "wednesday": [
         {
-          "slot": null,
+          "slot": 1,
           "time_start": "09:00",
           "time_end": "10:30",
           "subject": "Методика обучения",
@@ -311,29 +311,18 @@
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 2,
           "time_start": "10:40",
           "time_end": "12:10",
           "subject": "Методика обучения",
           "type": "lab",
-          "teacher": "доц. Павлов Д.И., 1 п/гр",
-          "room": "ауд. 105",
-          "subgroup": null,
+          "teacher": "доц. Павлов Д.И.",
+          "room": "105",
+          "subgroup": 1,
           "notes": ""
         },
         {
-          "slot": null,
-          "time_start": "12:40",
-          "time_end": "14:10",
-          "subject": "Методы количественного и",
-          "type": "lab",
-          "teacher": "доц. Шаронова О.В., 1 п/гр",
-          "room": "ауд. 208/210",
-          "subgroup": null,
-          "notes": ""
-        },
-        {
-          "slot": null,
+          "slot": 2,
           "time_start": "10:40",
           "time_end": "12:10",
           "subject": "Численные методы",
@@ -342,22 +331,22 @@
           "room": "210",
           "subgroup": null,
           "notes": ""
+        },
+        {
+          "slot": 3,
+          "time_start": "12:40",
+          "time_end": "14:10",
+          "subject": "Методы количественного и",
+          "type": "lab",
+          "teacher": "доц. Шаронова О.В.",
+          "room": "208/210",
+          "subgroup": 1,
+          "notes": ""
         }
       ],
       "thursday": [
         {
-          "slot": null,
-          "time_start": "16:00",
-          "time_end": "17:30",
-          "subject": "Технология и организация",
-          "type": "other",
-          "teacher": "доц. Соколова Е.В.",
-          "room": "el.mpgu.su",
-          "subgroup": null,
-          "notes": ""
-        },
-        {
-          "slot": null,
+          "slot": 3,
           "time_start": "12:40",
           "time_end": "14:10",
           "subject": "Элективные курсы по",
@@ -366,50 +355,28 @@
           "room": "308",
           "subgroup": null,
           "notes": ""
+        },
+        {
+          "slot": 5,
+          "time_start": "16:00",
+          "time_end": "17:30",
+          "subject": "Технология и организация",
+          "type": "other",
+          "teacher": "доц. Соколова Е.В.",
+          "room": "el.mpgu.su",
+          "subgroup": null,
+          "notes": ""
         }
       ],
       "friday": [
         {
-          "slot": null,
-          "time_start": "19:20",
-          "time_end": "20:50",
-          "subject": "Практикум по решению",
-          "type": "lab",
-          "teacher": "доц. Стесева О.И., 1 п/гр",
-          "room": "ауд. 209, 210",
-          "subgroup": null,
-          "notes": ""
-        },
-        {
-          "slot": null,
-          "time_start": "12:40",
-          "time_end": "14:10",
-          "subject": "Численные методы",
-          "type": "practice",
-          "teacher": "проф. Деза Е.И.",
-          "room": "210",
-          "subgroup": null,
-          "notes": ""
-        },
-        {
-          "slot": null,
+          "slot": 1,
           "time_start": "09:00",
           "time_end": "10:30",
           "subject": "Компьютерное моделирование",
           "type": "lab",
           "teacher": "проф. Бродский Ю.И.",
           "room": "el.mpgu.su",
-          "subgroup": null,
-          "notes": ""
-        },
-        {
-          "slot": null,
-          "time_start": "14:20",
-          "time_end": "15:50",
-          "subject": "Элективные курсы по физической культуре",
-          "type": "other",
-          "teacher": "доц. Удовенко Л.Н.",
-          "room": null,
           "subgroup": null,
           "notes": ""
         },
@@ -423,11 +390,44 @@
           "room": "108",
           "subgroup": null,
           "notes": ""
+        },
+        {
+          "slot": 3,
+          "time_start": "12:40",
+          "time_end": "14:10",
+          "subject": "Численные методы",
+          "type": "practice",
+          "teacher": "проф. Деза Е.И.",
+          "room": "210",
+          "subgroup": null,
+          "notes": ""
+        },
+        {
+          "slot": 4,
+          "time_start": "14:20",
+          "time_end": "15:50",
+          "subject": "Элективные курсы по физической культуре",
+          "type": "other",
+          "teacher": "доц. Удовенко Л.Н.",
+          "room": null,
+          "subgroup": null,
+          "notes": ""
+        },
+        {
+          "slot": 7,
+          "time_start": "19:20",
+          "time_end": "20:50",
+          "subject": "Практикум по решению",
+          "type": "lab",
+          "teacher": "доц. Стесева О.И.",
+          "room": "209, 210",
+          "subgroup": 1,
+          "notes": ""
         }
       ],
       "saturday": [
         {
-          "slot": null,
+          "slot": 1,
           "time_start": "09:00",
           "time_end": "10:30",
           "subject": "Элементарная математика",
@@ -438,13 +438,13 @@
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 5,
           "time_start": "16:00",
           "time_end": "17:00",
           "subject": "Психолого-педагогические",
           "type": "other",
           "teacher": "доц. Нателаури Н.К",
-          "room": "ауд. 208",
+          "room": "208",
           "subgroup": null,
           "notes": ""
         }

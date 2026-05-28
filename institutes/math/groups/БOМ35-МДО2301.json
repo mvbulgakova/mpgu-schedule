@@ -7,7 +7,7 @@
     "odd_week": {
       "monday": [
         {
-          "slot": null,
+          "slot": 1,
           "time_start": "09:00",
           "time_end": "10:30",
           "subject": "Элективные курсы по физической культуре",
@@ -18,7 +18,7 @@
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 2,
           "time_start": "10:40",
           "time_end": "12:10",
           "subject": "Математические методы обработки данных",
@@ -42,7 +42,7 @@
       ],
       "tuesday": [
         {
-          "slot": null,
+          "slot": 1,
           "time_start": "09:00",
           "time_end": "10:30",
           "subject": "Технология и организация",
@@ -53,7 +53,7 @@
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 2,
           "time_start": "10:40",
           "time_end": "12:10",
           "subject": "Основы вожатской",
@@ -64,7 +64,18 @@
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 2,
+          "time_start": "10:40",
+          "time_end": "12:10",
+          "subject": "Элективные курсы по физической культуре",
+          "type": "practice",
+          "teacher": "доц. Игнаточкина Л.А.",
+          "room": "206",
+          "subgroup": null,
+          "notes": ""
+        },
+        {
+          "slot": 3,
           "time_start": "12:40",
           "time_end": "14:10",
           "subject": "Основы вожатской деятельности (ЛК по 31.03)",
@@ -75,18 +86,7 @@
           "notes": ""
         },
         {
-          "slot": null,
-          "time_start": "14:20",
-          "time_end": "15:50",
-          "subject": "Технология и организация воспитательных практик (классное руководство) (ЛК по 31.03)",
-          "type": "other",
-          "teacher": "доц. Соколова Е.В.",
-          "room": "el.mpgu.su",
-          "subgroup": null,
-          "notes": ""
-        },
-        {
-          "slot": null,
+          "slot": 3,
           "time_start": "12:40",
           "time_end": "14:10",
           "subject": "Дифференциальные уравнения",
@@ -97,20 +97,20 @@
           "notes": ""
         },
         {
-          "slot": null,
-          "time_start": "10:40",
-          "time_end": "12:10",
-          "subject": "Элективные курсы по физической культуре",
-          "type": "practice",
-          "teacher": "доц. Игнаточкина Л.А.",
-          "room": "206",
+          "slot": 4,
+          "time_start": "14:20",
+          "time_end": "15:50",
+          "subject": "Технология и организация воспитательных практик (классное руководство) (ЛК по 31.03)",
+          "type": "other",
+          "teacher": "доц. Соколова Е.В.",
+          "room": "el.mpgu.su",
           "subgroup": null,
           "notes": ""
         }
       ],
       "wednesday": [
         {
-          "slot": null,
+          "slot": 1,
           "time_start": "09:00",
           "time_end": "10:30",
           "subject": "Математическая логика и",
@@ -121,40 +121,7 @@
           "notes": ""
         },
         {
-          "slot": null,
-          "time_start": "10:40",
-          "time_end": "12:10",
-          "subject": "Математическая логика и",
-          "type": "practice",
-          "teacher": "доц. Лукьянова Е.В.",
-          "room": "304",
-          "subgroup": null,
-          "notes": ""
-        },
-        {
-          "slot": null,
-          "time_start": "12:40",
-          "time_end": "14:10",
-          "subject": "Методика обучения",
-          "type": "practice",
-          "teacher": "доц. Соколова Е.В.",
-          "room": "301",
-          "subgroup": null,
-          "notes": ""
-        },
-        {
-          "slot": null,
-          "time_start": "12:40",
-          "time_end": "14:10",
-          "subject": "Численные методы",
-          "type": "lecture",
-          "teacher": "проф. Деза Е.И.",
-          "room": "205",
-          "subgroup": null,
-          "notes": ""
-        },
-        {
-          "slot": null,
+          "slot": 1,
           "time_start": "09:00",
           "time_end": "10:30",
           "subject": "Дифференциальная геометрия и топология",
@@ -165,14 +132,25 @@
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 2,
+          "time_start": "10:40",
+          "time_end": "12:10",
+          "subject": "Математическая логика и",
+          "type": "practice",
+          "teacher": "доц. Лукьянова Е.В.",
+          "room": "304",
+          "subgroup": null,
+          "notes": ""
+        },
+        {
+          "slot": 2,
           "time_start": "10:40",
           "time_end": "12:10",
           "subject": "Методика обучения и воспитания",
           "type": "lab",
-          "teacher": "проф. Деза Е.И., 1 п/гр",
+          "teacher": "проф. Деза Е.И.",
           "room": "301",
-          "subgroup": null,
+          "subgroup": 1,
           "notes": ""
         },
         {
@@ -185,22 +163,33 @@
           "room": "301",
           "subgroup": null,
           "notes": ""
-        }
-      ],
-      "thursday": [
+        },
         {
-          "slot": null,
-          "time_start": "16:00",
-          "time_end": "17:30",
-          "subject": "Технология и организация",
-          "type": "other",
+          "slot": 3,
+          "time_start": "12:40",
+          "time_end": "14:10",
+          "subject": "Методика обучения",
+          "type": "practice",
           "teacher": "доц. Соколова Е.В.",
-          "room": "el.mpgu.su",
+          "room": "301",
           "subgroup": null,
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 3,
+          "time_start": "12:40",
+          "time_end": "14:10",
+          "subject": "Численные методы",
+          "type": "lecture",
+          "teacher": "проф. Деза Е.И.",
+          "room": "205",
+          "subgroup": null,
+          "notes": ""
+        }
+      ],
+      "thursday": [
+        {
+          "slot": 1,
           "time_start": "09:00",
           "time_end": "10:30",
           "subject": "Числовые системы",
@@ -211,7 +200,7 @@
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 2,
           "time_start": "10:40",
           "time_end": "12:10",
           "subject": "Числовые системы",
@@ -222,7 +211,7 @@
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 3,
           "time_start": "12:40",
           "time_end": "14:10",
           "subject": "Элективные курсы по",
@@ -233,7 +222,18 @@
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 5,
+          "time_start": "16:00",
+          "time_end": "17:30",
+          "subject": "Технология и организация",
+          "type": "other",
+          "teacher": "доц. Соколова Е.В.",
+          "room": "el.mpgu.su",
+          "subgroup": null,
+          "notes": ""
+        },
+        {
+          "slot": 5,
           "time_start": "16:00",
           "time_end": "17:00",
           "subject": "Математическая логика и",
@@ -246,29 +246,7 @@
       ],
       "friday": [
         {
-          "slot": null,
-          "time_start": "10:40",
-          "time_end": "12:10",
-          "subject": "Методы количественного и",
-          "type": "practice",
-          "teacher": "доц. Шаронова О.В.",
-          "room": "208",
-          "subgroup": null,
-          "notes": ""
-        },
-        {
-          "slot": null,
-          "time_start": "12:40",
-          "time_end": "14:10",
-          "subject": "Численные методы",
-          "type": "practice",
-          "teacher": "проф. Деза Е.И., 1 п/гр",
-          "room": "ауд. 210, 209",
-          "subgroup": null,
-          "notes": ""
-        },
-        {
-          "slot": null,
+          "slot": 1,
           "time_start": "09:00",
           "time_end": "10:30",
           "subject": "Математическая логика и теория",
@@ -279,24 +257,13 @@
           "notes": ""
         },
         {
-          "slot": null,
-          "time_start": "14:20",
-          "time_end": "15:50",
-          "subject": "Д/В 1.1 Технология воспитания средствами",
+          "slot": 2,
+          "time_start": "10:40",
+          "time_end": "12:10",
+          "subject": "Методы количественного и",
           "type": "practice",
-          "teacher": "проф. Федосов А.Ю.",
-          "room": "el.mpgu.su",
-          "subgroup": null,
-          "notes": ""
-        },
-        {
-          "slot": null,
-          "time_start": "16:00",
-          "time_end": "17:30",
-          "subject": "Д/В 1.1 Технология воспитания средствами",
-          "type": "practice",
-          "teacher": "проф. Федосов А.Ю.",
-          "room": "el.mpgu.su",
+          "teacher": "доц. Шаронова О.В.",
+          "room": "208",
           "subgroup": null,
           "notes": ""
         },
@@ -310,22 +277,44 @@
           "room": "206",
           "subgroup": null,
           "notes": ""
-        }
-      ],
-      "saturday": [
+        },
         {
-          "slot": null,
-          "time_start": "16:00",
-          "time_end": "17:30",
-          "subject": "Методика обучения",
-          "type": "lecture",
-          "teacher": "проф. Егупова М.В",
-          "room": null,
+          "slot": 3,
+          "time_start": "12:40",
+          "time_end": "14:10",
+          "subject": "Численные методы",
+          "type": "practice",
+          "teacher": "проф. Деза Е.И.",
+          "room": "210, 209",
+          "subgroup": 1,
+          "notes": ""
+        },
+        {
+          "slot": 4,
+          "time_start": "14:20",
+          "time_end": "15:50",
+          "subject": "Д/В 1.1 Технология воспитания средствами",
+          "type": "practice",
+          "teacher": "проф. Федосов А.Ю.",
+          "room": "el.mpgu.su",
           "subgroup": null,
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 5,
+          "time_start": "16:00",
+          "time_end": "17:30",
+          "subject": "Д/В 1.1 Технология воспитания средствами",
+          "type": "practice",
+          "teacher": "проф. Федосов А.Ю.",
+          "room": "el.mpgu.su",
+          "subgroup": null,
+          "notes": ""
+        }
+      ],
+      "saturday": [
+        {
+          "slot": 1,
           "time_start": "09:00",
           "time_end": "10:30",
           "subject": "День самостоятельных",
@@ -336,13 +325,24 @@
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 5,
+          "time_start": "16:00",
+          "time_end": "17:30",
+          "subject": "Методика обучения",
+          "type": "lecture",
+          "teacher": "проф. Егупова М.В",
+          "room": null,
+          "subgroup": null,
+          "notes": ""
+        },
+        {
+          "slot": 5,
           "time_start": "16:00",
           "time_end": "17:00",
           "subject": "Практикум по решению задач",
           "type": "other",
           "teacher": "Асс. Матвеев А.С",
-          "room": "ауд. 209",
+          "room": "209",
           "subgroup": null,
           "notes": ""
         }
@@ -351,7 +351,7 @@
     "even_week": {
       "monday": [
         {
-          "slot": null,
+          "slot": 1,
           "time_start": "09:00",
           "time_end": "10:30",
           "subject": "Элективные курсы по физической культуре",
@@ -362,7 +362,7 @@
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 2,
           "time_start": "10:40",
           "time_end": "12:10",
           "subject": "Математические методы обработки данных",
@@ -386,7 +386,7 @@
       ],
       "tuesday": [
         {
-          "slot": null,
+          "slot": 1,
           "time_start": "09:00",
           "time_end": "10:30",
           "subject": "Технология и организация",
@@ -397,7 +397,7 @@
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 2,
           "time_start": "10:40",
           "time_end": "12:10",
           "subject": "Основы вожатской",
@@ -408,7 +408,18 @@
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 2,
+          "time_start": "10:40",
+          "time_end": "12:10",
+          "subject": "Элективные курсы по физической культуре",
+          "type": "practice",
+          "teacher": "доц. Игнаточкина Л.А.",
+          "room": "206",
+          "subgroup": null,
+          "notes": ""
+        },
+        {
+          "slot": 3,
           "time_start": "12:40",
           "time_end": "14:10",
           "subject": "Основы вожатской деятельности (ЛК по 31.03)",
@@ -419,18 +430,7 @@
           "notes": ""
         },
         {
-          "slot": null,
-          "time_start": "14:20",
-          "time_end": "15:50",
-          "subject": "Технология и организация воспитательных практик (классное руководство) (ЛК по 31.03)",
-          "type": "other",
-          "teacher": "доц. Соколова Е.В.",
-          "room": "el.mpgu.su",
-          "subgroup": null,
-          "notes": ""
-        },
-        {
-          "slot": null,
+          "slot": 3,
           "time_start": "12:40",
           "time_end": "14:10",
           "subject": "Дифференциальные уравнения",
@@ -441,20 +441,20 @@
           "notes": ""
         },
         {
-          "slot": null,
-          "time_start": "10:40",
-          "time_end": "12:10",
-          "subject": "Элективные курсы по физической культуре",
-          "type": "practice",
-          "teacher": "доц. Игнаточкина Л.А.",
-          "room": "206",
+          "slot": 4,
+          "time_start": "14:20",
+          "time_end": "15:50",
+          "subject": "Технология и организация воспитательных практик (классное руководство) (ЛК по 31.03)",
+          "type": "other",
+          "teacher": "доц. Соколова Е.В.",
+          "room": "el.mpgu.su",
           "subgroup": null,
           "notes": ""
         }
       ],
       "wednesday": [
         {
-          "slot": null,
+          "slot": 1,
           "time_start": "09:00",
           "time_end": "10:30",
           "subject": "Математическая логика и",
@@ -465,40 +465,7 @@
           "notes": ""
         },
         {
-          "slot": null,
-          "time_start": "10:40",
-          "time_end": "12:10",
-          "subject": "Математическая логика и",
-          "type": "practice",
-          "teacher": "доц. Лукьянова Е.В.",
-          "room": "304",
-          "subgroup": null,
-          "notes": ""
-        },
-        {
-          "slot": null,
-          "time_start": "12:40",
-          "time_end": "14:10",
-          "subject": "Методика обучения",
-          "type": "practice",
-          "teacher": "доц. Соколова Е.В.",
-          "room": "301",
-          "subgroup": null,
-          "notes": ""
-        },
-        {
-          "slot": null,
-          "time_start": "12:40",
-          "time_end": "14:10",
-          "subject": "Численные методы",
-          "type": "lecture",
-          "teacher": "проф. Деза Е.И.",
-          "room": "205",
-          "subgroup": null,
-          "notes": ""
-        },
-        {
-          "slot": null,
+          "slot": 1,
           "time_start": "09:00",
           "time_end": "10:30",
           "subject": "Дифференциальная геометрия и топология",
@@ -509,14 +476,25 @@
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 2,
+          "time_start": "10:40",
+          "time_end": "12:10",
+          "subject": "Математическая логика и",
+          "type": "practice",
+          "teacher": "доц. Лукьянова Е.В.",
+          "room": "304",
+          "subgroup": null,
+          "notes": ""
+        },
+        {
+          "slot": 2,
           "time_start": "10:40",
           "time_end": "12:10",
           "subject": "Методика обучения и воспитания",
           "type": "lab",
-          "teacher": "проф. Деза Е.И., 1 п/гр",
+          "teacher": "проф. Деза Е.И.",
           "room": "301",
-          "subgroup": null,
+          "subgroup": 1,
           "notes": ""
         },
         {
@@ -529,22 +507,33 @@
           "room": "301",
           "subgroup": null,
           "notes": ""
-        }
-      ],
-      "thursday": [
+        },
         {
-          "slot": null,
-          "time_start": "16:00",
-          "time_end": "17:30",
-          "subject": "Технология и организация",
-          "type": "other",
+          "slot": 3,
+          "time_start": "12:40",
+          "time_end": "14:10",
+          "subject": "Методика обучения",
+          "type": "practice",
           "teacher": "доц. Соколова Е.В.",
-          "room": "el.mpgu.su",
+          "room": "301",
           "subgroup": null,
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 3,
+          "time_start": "12:40",
+          "time_end": "14:10",
+          "subject": "Численные методы",
+          "type": "lecture",
+          "teacher": "проф. Деза Е.И.",
+          "room": "205",
+          "subgroup": null,
+          "notes": ""
+        }
+      ],
+      "thursday": [
+        {
+          "slot": 1,
           "time_start": "09:00",
           "time_end": "10:30",
           "subject": "Числовые системы",
@@ -555,7 +544,7 @@
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 2,
           "time_start": "10:40",
           "time_end": "12:10",
           "subject": "Числовые системы",
@@ -566,7 +555,7 @@
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 3,
           "time_start": "12:40",
           "time_end": "14:10",
           "subject": "Элективные курсы по",
@@ -577,7 +566,18 @@
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 5,
+          "time_start": "16:00",
+          "time_end": "17:30",
+          "subject": "Технология и организация",
+          "type": "other",
+          "teacher": "доц. Соколова Е.В.",
+          "room": "el.mpgu.su",
+          "subgroup": null,
+          "notes": ""
+        },
+        {
+          "slot": 5,
           "time_start": "16:00",
           "time_end": "17:00",
           "subject": "Математическая логика и",
@@ -590,29 +590,7 @@
       ],
       "friday": [
         {
-          "slot": null,
-          "time_start": "10:40",
-          "time_end": "12:10",
-          "subject": "Методы количественного и",
-          "type": "practice",
-          "teacher": "доц. Шаронова О.В.",
-          "room": "208",
-          "subgroup": null,
-          "notes": ""
-        },
-        {
-          "slot": null,
-          "time_start": "12:40",
-          "time_end": "14:10",
-          "subject": "Численные методы",
-          "type": "practice",
-          "teacher": "проф. Деза Е.И., 1 п/гр",
-          "room": "ауд. 210, 209",
-          "subgroup": null,
-          "notes": ""
-        },
-        {
-          "slot": null,
+          "slot": 1,
           "time_start": "09:00",
           "time_end": "10:30",
           "subject": "Математическая логика и теория",
@@ -623,24 +601,13 @@
           "notes": ""
         },
         {
-          "slot": null,
-          "time_start": "14:20",
-          "time_end": "15:50",
-          "subject": "Д/В 1.1 Технология воспитания средствами",
+          "slot": 2,
+          "time_start": "10:40",
+          "time_end": "12:10",
+          "subject": "Методы количественного и",
           "type": "practice",
-          "teacher": "проф. Федосов А.Ю.",
-          "room": "el.mpgu.su",
-          "subgroup": null,
-          "notes": ""
-        },
-        {
-          "slot": null,
-          "time_start": "16:00",
-          "time_end": "17:30",
-          "subject": "Д/В 1.1 Технология воспитания средствами",
-          "type": "practice",
-          "teacher": "проф. Федосов А.Ю.",
-          "room": "el.mpgu.su",
+          "teacher": "доц. Шаронова О.В.",
+          "room": "208",
           "subgroup": null,
           "notes": ""
         },
@@ -654,22 +621,44 @@
           "room": "206",
           "subgroup": null,
           "notes": ""
-        }
-      ],
-      "saturday": [
+        },
         {
-          "slot": null,
-          "time_start": "16:00",
-          "time_end": "17:30",
-          "subject": "Методика обучения",
-          "type": "lecture",
-          "teacher": "проф. Егупова М.В",
-          "room": null,
+          "slot": 3,
+          "time_start": "12:40",
+          "time_end": "14:10",
+          "subject": "Численные методы",
+          "type": "practice",
+          "teacher": "проф. Деза Е.И.",
+          "room": "210, 209",
+          "subgroup": 1,
+          "notes": ""
+        },
+        {
+          "slot": 4,
+          "time_start": "14:20",
+          "time_end": "15:50",
+          "subject": "Д/В 1.1 Технология воспитания средствами",
+          "type": "practice",
+          "teacher": "проф. Федосов А.Ю.",
+          "room": "el.mpgu.su",
           "subgroup": null,
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 5,
+          "time_start": "16:00",
+          "time_end": "17:30",
+          "subject": "Д/В 1.1 Технология воспитания средствами",
+          "type": "practice",
+          "teacher": "проф. Федосов А.Ю.",
+          "room": "el.mpgu.su",
+          "subgroup": null,
+          "notes": ""
+        }
+      ],
+      "saturday": [
+        {
+          "slot": 1,
           "time_start": "09:00",
           "time_end": "10:30",
           "subject": "День самостоятельных",
@@ -680,13 +669,24 @@
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 5,
+          "time_start": "16:00",
+          "time_end": "17:30",
+          "subject": "Методика обучения",
+          "type": "lecture",
+          "teacher": "проф. Егупова М.В",
+          "room": null,
+          "subgroup": null,
+          "notes": ""
+        },
+        {
+          "slot": 5,
           "time_start": "16:00",
           "time_end": "17:00",
           "subject": "Практикум по решению задач",
           "type": "other",
           "teacher": "Асс. Матвеев А.С",
-          "room": "ауд. 209",
+          "room": "209",
           "subgroup": null,
           "notes": ""
         }

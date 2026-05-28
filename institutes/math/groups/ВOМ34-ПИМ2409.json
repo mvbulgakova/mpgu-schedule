@@ -7,7 +7,29 @@
     "odd_week": {
       "monday": [
         {
-          "slot": null,
+          "slot": 1,
+          "time_start": "09:00",
+          "time_end": "10:30",
+          "subject": "Философия",
+          "type": "practice",
+          "teacher": "доц. Филатова М.И",
+          "room": null,
+          "subgroup": null,
+          "notes": ""
+        },
+        {
+          "slot": 2,
+          "time_start": "10:40",
+          "time_end": "12:10",
+          "subject": "Философия (ПЗ 25.05)",
+          "type": "other",
+          "teacher": "доц. Филатова М.И",
+          "room": null,
+          "subgroup": null,
+          "notes": ""
+        },
+        {
+          "slot": 4,
           "time_start": "14:20",
           "time_end": "15:50",
           "subject": "Методы исследовательской и",
@@ -18,7 +40,7 @@
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 5,
           "time_start": "16:00",
           "time_end": "17:30",
           "subject": "Философия",
@@ -27,33 +49,55 @@
           "room": null,
           "subgroup": null,
           "notes": ""
-        },
-        {
-          "slot": null,
-          "time_start": "09:00",
-          "time_end": "10:30",
-          "subject": "Философия",
-          "type": "practice",
-          "teacher": "доц. Филатова М.И",
-          "room": null,
-          "subgroup": null,
-          "notes": ""
-        },
-        {
-          "slot": null,
-          "time_start": "10:40",
-          "time_end": "12:10",
-          "subject": "Философия (ПЗ 25.05)",
-          "type": "other",
-          "teacher": "доц. Филатова М.И",
-          "room": null,
-          "subgroup": null,
-          "notes": ""
         }
       ],
       "tuesday": [
         {
-          "slot": null,
+          "slot": 1,
+          "time_start": "09:00",
+          "time_end": "10:30",
+          "subject": "Компьютерные сети",
+          "type": "lab",
+          "teacher": "доц. Иванова Н.Ю.",
+          "room": "208",
+          "subgroup": 1,
+          "notes": ""
+        },
+        {
+          "slot": 2,
+          "time_start": "10:40",
+          "time_end": "12:10",
+          "subject": "ИКТ и математические",
+          "type": "practice",
+          "teacher": "доц. Иванова Н.Ю.",
+          "room": "208",
+          "subgroup": 1,
+          "notes": ""
+        },
+        {
+          "slot": 3,
+          "time_start": "12:40",
+          "time_end": "14:10",
+          "subject": "Математический анализ",
+          "type": "practice",
+          "teacher": "доц. Иванова Н.Ю.",
+          "room": "304",
+          "subgroup": 1,
+          "notes": "доц. Лукьянова Е.В., ауд. 304"
+        },
+        {
+          "slot": 4,
+          "time_start": "14:20",
+          "time_end": "15:50",
+          "subject": "Компьютерные сети",
+          "type": "lab",
+          "teacher": "доц. Иванова Н.Ю.",
+          "room": "208",
+          "subgroup": 2,
+          "notes": ""
+        },
+        {
+          "slot": 6,
           "time_start": "17:40",
           "time_end": "19:10",
           "subject": "Философия (ПЗ 18.05, 01.06, 15.06)",
@@ -62,55 +106,11 @@
           "room": null,
           "subgroup": null,
           "notes": ""
-        },
-        {
-          "slot": null,
-          "time_start": "09:00",
-          "time_end": "10:30",
-          "subject": "Компьютерные сети",
-          "type": "lab",
-          "teacher": "доц. Иванова Н.Ю., 1 п/гр",
-          "room": "ауд. 208",
-          "subgroup": null,
-          "notes": ""
-        },
-        {
-          "slot": null,
-          "time_start": "10:40",
-          "time_end": "12:10",
-          "subject": "ИКТ и математические",
-          "type": "practice",
-          "teacher": "доц. Иванова Н.Ю., 1 п/гр",
-          "room": "ауд. 208",
-          "subgroup": null,
-          "notes": ""
-        },
-        {
-          "slot": null,
-          "time_start": "12:40",
-          "time_end": "14:10",
-          "subject": "Математический анализ",
-          "type": "practice",
-          "teacher": "доц. Иванова Н.Ю., 1 п/гр",
-          "room": "304",
-          "subgroup": null,
-          "notes": "доц. Лукьянова Е.В., ауд. 304"
-        },
-        {
-          "slot": null,
-          "time_start": "14:20",
-          "time_end": "15:50",
-          "subject": "Компьютерные сети",
-          "type": "lab",
-          "teacher": "доц. Иванова Н.Ю., 2 п/гр",
-          "room": "ауд. 208",
-          "subgroup": null,
-          "notes": ""
         }
       ],
       "wednesday": [
         {
-          "slot": null,
+          "slot": 2,
           "time_start": "10:40",
           "time_end": "12:10",
           "subject": "Алгоритмы и структуры",
@@ -121,53 +121,42 @@
           "notes": ""
         },
         {
-          "slot": null,
-          "time_start": "16:00",
-          "time_end": "17:30",
-          "subject": "ИКТ и математические",
-          "type": "practice",
-          "teacher": "доц. Иванова Н.Ю., 2 п/гр",
-          "room": "ауд. 208",
-          "subgroup": null,
-          "notes": ""
-        },
-        {
-          "slot": null,
+          "slot": 3,
           "time_start": "12:40",
           "time_end": "14:10",
           "subject": "Практикум по решению",
           "type": "lab",
-          "teacher": "доц. Стесева О.И., 1 п/гр",
-          "room": "ауд. 211",
-          "subgroup": null,
+          "teacher": "доц. Стесева О.И.",
+          "room": "211",
+          "subgroup": 1,
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 4,
           "time_start": "14:20",
           "time_end": "15:50",
           "subject": "Распределенные базы данных",
           "type": "lab",
-          "teacher": "доц. Шишарина Е.В., 1 п/гр",
-          "room": "ауд. 308а",
-          "subgroup": null,
+          "teacher": "доц. Шишарина Е.В.",
+          "room": "308а",
+          "subgroup": 1,
+          "notes": ""
+        },
+        {
+          "slot": 5,
+          "time_start": "16:00",
+          "time_end": "17:30",
+          "subject": "ИКТ и математические",
+          "type": "practice",
+          "teacher": "доц. Иванова Н.Ю.",
+          "room": "208",
+          "subgroup": 2,
           "notes": ""
         }
       ],
       "thursday": [
         {
-          "slot": null,
-          "time_start": "16:00",
-          "time_end": "17:30",
-          "subject": "Математическая логика",
-          "type": "lecture",
-          "teacher": "доц. Инишева Н.В.",
-          "room": "305",
-          "subgroup": null,
-          "notes": ""
-        },
-        {
-          "slot": null,
+          "slot": 1,
           "time_start": "09:00",
           "time_end": "10:30",
           "subject": "Основы робототехники",
@@ -178,7 +167,7 @@
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 3,
           "time_start": "12:40",
           "time_end": "14:10",
           "subject": "Информационные сервисы в",
@@ -187,11 +176,33 @@
           "room": "105",
           "subgroup": null,
           "notes": ""
+        },
+        {
+          "slot": 5,
+          "time_start": "16:00",
+          "time_end": "17:30",
+          "subject": "Математическая логика",
+          "type": "lecture",
+          "teacher": "доц. Инишева Н.В.",
+          "room": "305",
+          "subgroup": null,
+          "notes": ""
         }
       ],
       "friday": [
         {
-          "slot": null,
+          "slot": 1,
+          "time_start": "09:00",
+          "time_end": "10:30",
+          "subject": "Программирование",
+          "type": "lab",
+          "teacher": "доц. Муратова Д.А.",
+          "room": "210",
+          "subgroup": null,
+          "notes": ""
+        },
+        {
+          "slot": 3,
           "time_start": "12:40",
           "time_end": "14:10",
           "subject": "Алгебра",
@@ -202,42 +213,20 @@
           "notes": ""
         },
         {
-          "slot": null,
-          "time_start": "09:00",
-          "time_end": "10:30",
-          "subject": "Программирование",
-          "type": "lab",
-          "teacher": "доц. Муратова Д.А.",
-          "room": "ауд. 210",
-          "subgroup": null,
-          "notes": ""
-        },
-        {
-          "slot": null,
+          "slot": 4,
           "time_start": "14:20",
           "time_end": "15:50",
           "subject": "Программирование",
           "type": "lab",
-          "teacher": "доц. Муратова Д.А., 1 п/гр",
-          "room": "ауд. 108, 210",
-          "subgroup": null,
+          "teacher": "доц. Муратова Д.А.",
+          "room": "108, 210",
+          "subgroup": 1,
           "notes": ""
         }
       ],
       "saturday": [
         {
-          "slot": null,
-          "time_start": "16:00",
-          "time_end": "17:30",
-          "subject": "День самостоятельных",
-          "type": "other",
-          "teacher": null,
-          "room": null,
-          "subgroup": null,
-          "notes": ""
-        },
-        {
-          "slot": null,
+          "slot": 4,
           "time_start": "14:20",
           "time_end": "15:50",
           "subject": "Компьютерные сети",
@@ -246,13 +235,46 @@
           "room": "108",
           "subgroup": null,
           "notes": "доц. Иванова Н.Ю., ауд. 108"
+        },
+        {
+          "slot": 5,
+          "time_start": "16:00",
+          "time_end": "17:30",
+          "subject": "День самостоятельных",
+          "type": "other",
+          "teacher": null,
+          "room": null,
+          "subgroup": null,
+          "notes": ""
         }
       ]
     },
     "even_week": {
       "monday": [
         {
-          "slot": null,
+          "slot": 1,
+          "time_start": "09:00",
+          "time_end": "10:30",
+          "subject": "Философия",
+          "type": "practice",
+          "teacher": "доц. Филатова М.И",
+          "room": null,
+          "subgroup": null,
+          "notes": ""
+        },
+        {
+          "slot": 2,
+          "time_start": "10:40",
+          "time_end": "12:10",
+          "subject": "Философия (ПЗ 25.05)",
+          "type": "other",
+          "teacher": "доц. Филатова М.И",
+          "room": null,
+          "subgroup": null,
+          "notes": ""
+        },
+        {
+          "slot": 4,
           "time_start": "14:20",
           "time_end": "15:50",
           "subject": "Методы исследовательской и",
@@ -263,7 +285,7 @@
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 5,
           "time_start": "16:00",
           "time_end": "17:30",
           "subject": "Философия",
@@ -272,33 +294,55 @@
           "room": null,
           "subgroup": null,
           "notes": ""
-        },
-        {
-          "slot": null,
-          "time_start": "09:00",
-          "time_end": "10:30",
-          "subject": "Философия",
-          "type": "practice",
-          "teacher": "доц. Филатова М.И",
-          "room": null,
-          "subgroup": null,
-          "notes": ""
-        },
-        {
-          "slot": null,
-          "time_start": "10:40",
-          "time_end": "12:10",
-          "subject": "Философия (ПЗ 25.05)",
-          "type": "other",
-          "teacher": "доц. Филатова М.И",
-          "room": null,
-          "subgroup": null,
-          "notes": ""
         }
       ],
       "tuesday": [
         {
-          "slot": null,
+          "slot": 1,
+          "time_start": "09:00",
+          "time_end": "10:30",
+          "subject": "Компьютерные сети",
+          "type": "lab",
+          "teacher": "доц. Иванова Н.Ю.",
+          "room": "208",
+          "subgroup": 1,
+          "notes": ""
+        },
+        {
+          "slot": 2,
+          "time_start": "10:40",
+          "time_end": "12:10",
+          "subject": "ИКТ и математические",
+          "type": "practice",
+          "teacher": "доц. Иванова Н.Ю.",
+          "room": "208",
+          "subgroup": 1,
+          "notes": ""
+        },
+        {
+          "slot": 3,
+          "time_start": "12:40",
+          "time_end": "14:10",
+          "subject": "Математический анализ",
+          "type": "practice",
+          "teacher": "доц. Иванова Н.Ю.",
+          "room": "304",
+          "subgroup": 1,
+          "notes": "доц. Лукьянова Е.В., ауд. 304"
+        },
+        {
+          "slot": 4,
+          "time_start": "14:20",
+          "time_end": "15:50",
+          "subject": "Компьютерные сети",
+          "type": "lab",
+          "teacher": "доц. Иванова Н.Ю.",
+          "room": "208",
+          "subgroup": 2,
+          "notes": ""
+        },
+        {
+          "slot": 6,
           "time_start": "17:40",
           "time_end": "19:10",
           "subject": "Философия (ПЗ 18.05, 01.06, 15.06)",
@@ -307,55 +351,11 @@
           "room": null,
           "subgroup": null,
           "notes": ""
-        },
-        {
-          "slot": null,
-          "time_start": "09:00",
-          "time_end": "10:30",
-          "subject": "Компьютерные сети",
-          "type": "lab",
-          "teacher": "доц. Иванова Н.Ю., 1 п/гр",
-          "room": "ауд. 208",
-          "subgroup": null,
-          "notes": ""
-        },
-        {
-          "slot": null,
-          "time_start": "10:40",
-          "time_end": "12:10",
-          "subject": "ИКТ и математические",
-          "type": "practice",
-          "teacher": "доц. Иванова Н.Ю., 1 п/гр",
-          "room": "ауд. 208",
-          "subgroup": null,
-          "notes": ""
-        },
-        {
-          "slot": null,
-          "time_start": "12:40",
-          "time_end": "14:10",
-          "subject": "Математический анализ",
-          "type": "practice",
-          "teacher": "доц. Иванова Н.Ю., 1 п/гр",
-          "room": "304",
-          "subgroup": null,
-          "notes": "доц. Лукьянова Е.В., ауд. 304"
-        },
-        {
-          "slot": null,
-          "time_start": "14:20",
-          "time_end": "15:50",
-          "subject": "Компьютерные сети",
-          "type": "lab",
-          "teacher": "доц. Иванова Н.Ю., 2 п/гр",
-          "room": "ауд. 208",
-          "subgroup": null,
-          "notes": ""
         }
       ],
       "wednesday": [
         {
-          "slot": null,
+          "slot": 2,
           "time_start": "10:40",
           "time_end": "12:10",
           "subject": "Алгоритмы и структуры",
@@ -366,53 +366,42 @@
           "notes": ""
         },
         {
-          "slot": null,
-          "time_start": "16:00",
-          "time_end": "17:30",
-          "subject": "ИКТ и математические",
-          "type": "practice",
-          "teacher": "доц. Иванова Н.Ю., 2 п/гр",
-          "room": "ауд. 208",
-          "subgroup": null,
-          "notes": ""
-        },
-        {
-          "slot": null,
+          "slot": 3,
           "time_start": "12:40",
           "time_end": "14:10",
           "subject": "Практикум по решению",
           "type": "lab",
-          "teacher": "доц. Стесева О.И., 1 п/гр",
-          "room": "ауд. 211",
-          "subgroup": null,
+          "teacher": "доц. Стесева О.И.",
+          "room": "211",
+          "subgroup": 1,
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 4,
           "time_start": "14:20",
           "time_end": "15:50",
           "subject": "Распределенные базы данных",
           "type": "lab",
-          "teacher": "доц. Шишарина Е.В., 1 п/гр",
-          "room": "ауд. 308а",
-          "subgroup": null,
+          "teacher": "доц. Шишарина Е.В.",
+          "room": "308а",
+          "subgroup": 1,
+          "notes": ""
+        },
+        {
+          "slot": 5,
+          "time_start": "16:00",
+          "time_end": "17:30",
+          "subject": "ИКТ и математические",
+          "type": "practice",
+          "teacher": "доц. Иванова Н.Ю.",
+          "room": "208",
+          "subgroup": 2,
           "notes": ""
         }
       ],
       "thursday": [
         {
-          "slot": null,
-          "time_start": "16:00",
-          "time_end": "17:30",
-          "subject": "Математическая логика",
-          "type": "lecture",
-          "teacher": "доц. Инишева Н.В.",
-          "room": "305",
-          "subgroup": null,
-          "notes": ""
-        },
-        {
-          "slot": null,
+          "slot": 1,
           "time_start": "09:00",
           "time_end": "10:30",
           "subject": "Основы робототехники",
@@ -423,7 +412,7 @@
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 3,
           "time_start": "12:40",
           "time_end": "14:10",
           "subject": "Информационные сервисы в",
@@ -432,11 +421,33 @@
           "room": "105",
           "subgroup": null,
           "notes": ""
+        },
+        {
+          "slot": 5,
+          "time_start": "16:00",
+          "time_end": "17:30",
+          "subject": "Математическая логика",
+          "type": "lecture",
+          "teacher": "доц. Инишева Н.В.",
+          "room": "305",
+          "subgroup": null,
+          "notes": ""
         }
       ],
       "friday": [
         {
-          "slot": null,
+          "slot": 1,
+          "time_start": "09:00",
+          "time_end": "10:30",
+          "subject": "Программирование",
+          "type": "lab",
+          "teacher": "доц. Муратова Д.А.",
+          "room": "210",
+          "subgroup": null,
+          "notes": ""
+        },
+        {
+          "slot": 3,
           "time_start": "12:40",
           "time_end": "14:10",
           "subject": "Алгебра",
@@ -447,42 +458,20 @@
           "notes": ""
         },
         {
-          "slot": null,
-          "time_start": "09:00",
-          "time_end": "10:30",
-          "subject": "Программирование",
-          "type": "lab",
-          "teacher": "доц. Муратова Д.А.",
-          "room": "ауд. 210",
-          "subgroup": null,
-          "notes": ""
-        },
-        {
-          "slot": null,
+          "slot": 4,
           "time_start": "14:20",
           "time_end": "15:50",
           "subject": "Программирование",
           "type": "lab",
-          "teacher": "доц. Муратова Д.А., 1 п/гр",
-          "room": "ауд. 108, 210",
-          "subgroup": null,
+          "teacher": "доц. Муратова Д.А.",
+          "room": "108, 210",
+          "subgroup": 1,
           "notes": ""
         }
       ],
       "saturday": [
         {
-          "slot": null,
-          "time_start": "16:00",
-          "time_end": "17:30",
-          "subject": "День самостоятельных",
-          "type": "other",
-          "teacher": null,
-          "room": null,
-          "subgroup": null,
-          "notes": ""
-        },
-        {
-          "slot": null,
+          "slot": 4,
           "time_start": "14:20",
           "time_end": "15:50",
           "subject": "Компьютерные сети",
@@ -491,6 +480,17 @@
           "room": "108",
           "subgroup": null,
           "notes": "доц. Иванова Н.Ю., ауд. 108"
+        },
+        {
+          "slot": 5,
+          "time_start": "16:00",
+          "time_end": "17:30",
+          "subject": "День самостоятельных",
+          "type": "other",
+          "teacher": null,
+          "room": null,
+          "subgroup": null,
+          "notes": ""
         }
       ]
     }

@@ -7,7 +7,7 @@
     "odd_week": {
       "monday": [
         {
-          "slot": null,
+          "slot": 1,
           "time_start": "09:00",
           "time_end": "10:30",
           "subject": "Индивидуальные занятия и",
@@ -18,13 +18,13 @@
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 2,
           "time_start": "10:40",
           "time_end": "12:10",
           "subject": "Методика музыкального",
           "type": "other",
           "teacher": "доцент Л.Э. Шевчук",
-          "room": "ауд. 207",
+          "room": "207",
           "subgroup": null,
           "notes": ""
         },
@@ -35,25 +35,14 @@
           "subject": "История России",
           "type": "lecture",
           "teacher": "доцент А.В. Ефремов",
-          "room": "ауд. 316",
+          "room": "316",
           "subgroup": null,
           "notes": ""
         }
       ],
       "tuesday": [
         {
-          "slot": null,
-          "time_start": "15:50",
-          "time_end": "17:20",
-          "subject": "Хоровое пение и",
-          "type": "other",
-          "teacher": "доцент И.А. Свиридова",
-          "room": "ауд. 315",
-          "subgroup": null,
-          "notes": ""
-        },
-        {
-          "slot": null,
+          "slot": 1,
           "time_start": "09:00",
           "time_end": "10:30",
           "subject": "Индивидуальные занятия и",
@@ -64,13 +53,13 @@
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 2,
           "time_start": "10:40",
           "time_end": "12:10",
           "subject": "История зарубежной музыки",
           "type": "lecture",
           "teacher": "доцент Е.Е. Володина",
-          "room": "ауд. 312",
+          "room": "312",
           "subgroup": null,
           "notes": ""
         },
@@ -93,6 +82,17 @@
           "type": "other",
           "teacher": null,
           "room": null,
+          "subgroup": null,
+          "notes": ""
+        },
+        {
+          "slot": null,
+          "time_start": "15:50",
+          "time_end": "17:20",
+          "subject": "Хоровое пение и",
+          "type": "other",
+          "teacher": "доцент И.А. Свиридова",
+          "room": "315",
           "subgroup": null,
           "notes": ""
         },
@@ -121,24 +121,24 @@
       ],
       "wednesday": [
         {
-          "slot": null,
+          "slot": 1,
           "time_start": "09:00",
           "time_end": "10:30",
           "subject": "Сольфеджио",
           "type": "lab",
           "teacher": "доцент М.А. Румянцева",
-          "room": "ауд. 308",
+          "room": "308",
           "subgroup": null,
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 2,
           "time_start": "10:40",
           "time_end": "12:10",
           "subject": "Речевые",
           "type": "practice",
           "teacher": "доцент",
-          "room": "ауд. 316",
+          "room": "316",
           "subgroup": null,
           "notes": ""
         },
@@ -149,7 +149,7 @@
           "subject": "Речевые",
           "type": "practice",
           "teacher": "доцент",
-          "room": "ауд. 316",
+          "room": "316",
           "subgroup": null,
           "notes": ""
         },
@@ -160,7 +160,7 @@
           "subject": "Хоровое пение и",
           "type": "other",
           "teacher": "профессор Е.Н. Никитина",
-          "room": "ауд. 315",
+          "room": "315",
           "subgroup": null,
           "notes": ""
         },
@@ -171,25 +171,14 @@
           "subject": "Сольфеджио",
           "type": "lab",
           "teacher": "доцент М.А. Румянцева",
-          "room": "ауд. 308",
+          "room": "308",
           "subgroup": null,
           "notes": ""
         }
       ],
       "thursday": [
         {
-          "slot": null,
-          "time_start": "17:30",
-          "time_end": "19:00",
-          "subject": "Иностранный",
-          "type": "practice",
-          "teacher": "ассистент А.А. Голубева",
-          "room": "ауд. 445",
-          "subgroup": null,
-          "notes": ""
-        },
-        {
-          "slot": null,
+          "slot": 1,
           "time_start": "09:00",
           "time_end": "10:30",
           "subject": "Индивидуальные занятия и",
@@ -200,13 +189,13 @@
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 2,
           "time_start": "10:40",
           "time_end": "12:10",
           "subject": "Основы медицинских знаний",
           "type": "lecture",
           "teacher": "доцент Э.В. Айриян",
-          "room": "ауд. 316",
+          "room": "316",
           "subgroup": null,
           "notes": ""
         },
@@ -217,7 +206,7 @@
           "subject": "Основы медицинских знаний",
           "type": "practice",
           "teacher": "доцент Э.В. Айриян",
-          "room": "ауд. 316",
+          "room": "316",
           "subgroup": null,
           "notes": ""
         },
@@ -228,14 +217,25 @@
           "subject": "Сольфеджио",
           "type": "lab",
           "teacher": "доцент Б.Р. Иофис",
-          "room": "ауд. 310",
+          "room": "310",
+          "subgroup": null,
+          "notes": ""
+        },
+        {
+          "slot": null,
+          "time_start": "17:30",
+          "time_end": "19:00",
+          "subject": "Иностранный",
+          "type": "practice",
+          "teacher": "ассистент А.А. Голубева",
+          "room": "445",
           "subgroup": null,
           "notes": ""
         }
       ],
       "friday": [
         {
-          "slot": null,
+          "slot": 1,
           "time_start": "09:00",
           "time_end": "10:30",
           "subject": "Индивидуальные занятия и",
@@ -246,7 +246,7 @@
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 2,
           "time_start": "10:40",
           "time_end": "12:10",
           "subject": "Индивидуальные занятия и",
@@ -285,7 +285,7 @@
           "subject": "Хоровое пение и практическая",
           "type": "lecture",
           "teacher": "доцент И.А. Свиридова",
-          "room": "ауд. 315",
+          "room": "315",
           "subgroup": null,
           "notes": ""
         }
@@ -295,7 +295,7 @@
     "even_week": {
       "monday": [
         {
-          "slot": null,
+          "slot": 1,
           "time_start": "09:00",
           "time_end": "10:30",
           "subject": "Индивидуальные занятия и",
@@ -306,13 +306,13 @@
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 2,
           "time_start": "10:40",
           "time_end": "12:10",
           "subject": "Методика музыкального",
           "type": "other",
           "teacher": "доцент Л.Э. Шевчук",
-          "room": "ауд. 207",
+          "room": "207",
           "subgroup": null,
           "notes": ""
         },
@@ -323,25 +323,14 @@
           "subject": "История России",
           "type": "lecture",
           "teacher": "доцент А.В. Ефремов",
-          "room": "ауд. 316",
+          "room": "316",
           "subgroup": null,
           "notes": ""
         }
       ],
       "tuesday": [
         {
-          "slot": null,
-          "time_start": "15:50",
-          "time_end": "17:20",
-          "subject": "Хоровое пение и",
-          "type": "other",
-          "teacher": "доцент И.А. Свиридова",
-          "room": "ауд. 315",
-          "subgroup": null,
-          "notes": ""
-        },
-        {
-          "slot": null,
+          "slot": 1,
           "time_start": "09:00",
           "time_end": "10:30",
           "subject": "Индивидуальные занятия и",
@@ -352,13 +341,13 @@
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 2,
           "time_start": "10:40",
           "time_end": "12:10",
           "subject": "История зарубежной музыки",
           "type": "lecture",
           "teacher": "доцент Е.Е. Володина",
-          "room": "ауд. 312",
+          "room": "312",
           "subgroup": null,
           "notes": ""
         },
@@ -381,6 +370,17 @@
           "type": "other",
           "teacher": null,
           "room": null,
+          "subgroup": null,
+          "notes": ""
+        },
+        {
+          "slot": null,
+          "time_start": "15:50",
+          "time_end": "17:20",
+          "subject": "Хоровое пение и",
+          "type": "other",
+          "teacher": "доцент И.А. Свиридова",
+          "room": "315",
           "subgroup": null,
           "notes": ""
         },
@@ -409,24 +409,24 @@
       ],
       "wednesday": [
         {
-          "slot": null,
+          "slot": 1,
           "time_start": "09:00",
           "time_end": "10:30",
           "subject": "Сольфеджио",
           "type": "lab",
           "teacher": "доцент М.А. Румянцева",
-          "room": "ауд. 308",
+          "room": "308",
           "subgroup": null,
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 2,
           "time_start": "10:40",
           "time_end": "12:10",
           "subject": "Речевые",
           "type": "practice",
           "teacher": "доцент",
-          "room": "ауд. 316",
+          "room": "316",
           "subgroup": null,
           "notes": ""
         },
@@ -437,7 +437,7 @@
           "subject": "Речевые",
           "type": "practice",
           "teacher": "доцент",
-          "room": "ауд. 316",
+          "room": "316",
           "subgroup": null,
           "notes": ""
         },
@@ -448,7 +448,7 @@
           "subject": "Хоровое пение и",
           "type": "other",
           "teacher": "профессор Е.Н. Никитина",
-          "room": "ауд. 315",
+          "room": "315",
           "subgroup": null,
           "notes": ""
         },
@@ -459,25 +459,14 @@
           "subject": "Сольфеджио",
           "type": "lab",
           "teacher": "доцент М.А. Румянцева",
-          "room": "ауд. 308",
+          "room": "308",
           "subgroup": null,
           "notes": ""
         }
       ],
       "thursday": [
         {
-          "slot": null,
-          "time_start": "17:30",
-          "time_end": "19:00",
-          "subject": "Иностранный",
-          "type": "practice",
-          "teacher": "ассистент А.А. Голубева",
-          "room": "ауд. 445",
-          "subgroup": null,
-          "notes": ""
-        },
-        {
-          "slot": null,
+          "slot": 1,
           "time_start": "09:00",
           "time_end": "10:30",
           "subject": "Индивидуальные занятия и",
@@ -488,13 +477,13 @@
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 2,
           "time_start": "10:40",
           "time_end": "12:10",
           "subject": "Основы медицинских знаний",
           "type": "lecture",
           "teacher": "доцент Э.В. Айриян",
-          "room": "ауд. 316",
+          "room": "316",
           "subgroup": null,
           "notes": ""
         },
@@ -505,7 +494,7 @@
           "subject": "Основы медицинских знаний",
           "type": "practice",
           "teacher": "доцент Э.В. Айриян",
-          "room": "ауд. 316",
+          "room": "316",
           "subgroup": null,
           "notes": ""
         },
@@ -516,14 +505,25 @@
           "subject": "Сольфеджио",
           "type": "lab",
           "teacher": "доцент Б.Р. Иофис",
-          "room": "ауд. 310",
+          "room": "310",
+          "subgroup": null,
+          "notes": ""
+        },
+        {
+          "slot": null,
+          "time_start": "17:30",
+          "time_end": "19:00",
+          "subject": "Иностранный",
+          "type": "practice",
+          "teacher": "ассистент А.А. Голубева",
+          "room": "445",
           "subgroup": null,
           "notes": ""
         }
       ],
       "friday": [
         {
-          "slot": null,
+          "slot": 1,
           "time_start": "09:00",
           "time_end": "10:30",
           "subject": "Индивидуальные занятия и",
@@ -534,7 +534,7 @@
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 2,
           "time_start": "10:40",
           "time_end": "12:10",
           "subject": "Индивидуальные занятия и",
@@ -573,7 +573,7 @@
           "subject": "Хоровое пение и практическая",
           "type": "lecture",
           "teacher": "доцент И.А. Свиридова",
-          "room": "ауд. 315",
+          "room": "315",
           "subgroup": null,
           "notes": ""
         }

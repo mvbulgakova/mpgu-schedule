@@ -7,40 +7,7 @@
     "odd_week": {
       "monday": [
         {
-          "slot": null,
-          "time_start": "10:40",
-          "time_end": "12:10",
-          "subject": "Элементарная",
-          "type": "practice",
-          "teacher": "проф. Смирнов В.А.",
-          "room": "404",
-          "subgroup": null,
-          "notes": ""
-        },
-        {
-          "slot": null,
-          "time_start": "12:40",
-          "time_end": "14:10",
-          "subject": "Теоретические основы",
-          "type": "lecture",
-          "teacher": "доц. Муравьева О.В.",
-          "room": "205",
-          "subgroup": null,
-          "notes": ""
-        },
-        {
-          "slot": null,
-          "time_start": "14:20",
-          "time_end": "15:50",
-          "subject": "Дифференциальные",
-          "type": "practice",
-          "teacher": "доц. Удовенко Л.Н.",
-          "room": "304",
-          "subgroup": null,
-          "notes": ""
-        },
-        {
-          "slot": null,
+          "slot": 1,
           "time_start": "09:00",
           "time_end": "16:00",
           "subject": "Производственная практика, педагогическая практика",
@@ -51,42 +18,64 @@
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 2,
+          "time_start": "10:40",
+          "time_end": "12:10",
+          "subject": "Элементарная",
+          "type": "practice",
+          "teacher": "проф. Смирнов В.А.",
+          "room": "404",
+          "subgroup": null,
+          "notes": ""
+        },
+        {
+          "slot": 3,
+          "time_start": "12:40",
+          "time_end": "14:10",
+          "subject": "Теоретические основы",
+          "type": "lecture",
+          "teacher": "доц. Муравьева О.В.",
+          "room": "205",
+          "subgroup": null,
+          "notes": ""
+        },
+        {
+          "slot": 4,
+          "time_start": "14:20",
+          "time_end": "15:50",
+          "subject": "Дифференциальные",
+          "type": "practice",
+          "teacher": "доц. Удовенко Л.Н.",
+          "room": "304",
+          "subgroup": null,
+          "notes": ""
+        },
+        {
+          "slot": 4,
           "time_start": "14:20",
           "time_end": "15:50",
           "subject": "ИТОГОВАЯ КОНФЕРЕНЦИЯ",
           "type": "other",
           "teacher": "Доцент Орлова Т.С., доц. Фирстова Н.И.,проф.  Егупова М.В., доц",
-          "room": "Павлов Д.И.., ауд. 402",
+          "room": "Павлов Д.И.., 402",
           "subgroup": null,
           "notes": ""
         }
       ],
       "tuesday": [
         {
-          "slot": null,
-          "time_start": "16:00",
-          "time_end": "17:30",
-          "subject": "Теоретические основы",
-          "type": "lab",
-          "teacher": "доц. Муравьева О.В., 1 п/гр",
-          "room": "ауд. 209",
-          "subgroup": null,
-          "notes": ""
-        },
-        {
-          "slot": null,
+          "slot": 1,
           "time_start": "09:00",
           "time_end": "10:30",
           "subject": "Теория функций комплексного",
           "type": "lab",
-          "teacher": "проф. Деза Е.И., 1 п/гр",
+          "teacher": "проф. Деза Е.И.",
           "room": "405",
-          "subgroup": null,
+          "subgroup": 1,
           "notes": "доц. Удовенко Л.Н., ауд. 405"
         },
         {
-          "slot": null,
+          "slot": 2,
           "time_start": "10:40",
           "time_end": "12:10",
           "subject": "Теория функций комплексного",
@@ -97,7 +86,7 @@
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 3,
           "time_start": "12:40",
           "time_end": "14:10",
           "subject": "Веб-технологии",
@@ -106,11 +95,22 @@
           "room": "208",
           "subgroup": null,
           "notes": ""
+        },
+        {
+          "slot": 5,
+          "time_start": "16:00",
+          "time_end": "17:30",
+          "subject": "Теоретические основы",
+          "type": "lab",
+          "teacher": "доц. Муравьева О.В.",
+          "room": "209",
+          "subgroup": 1,
+          "notes": ""
         }
       ],
       "wednesday": [
         {
-          "slot": null,
+          "slot": 1,
           "time_start": "09:00",
           "time_end": "10:30",
           "subject": "Д/В 1.1 Актуальные",
@@ -121,79 +121,24 @@
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 2,
           "time_start": "10:40",
           "time_end": "12:10",
           "subject": "Методика обучения",
           "type": "lab",
-          "teacher": "проф. Самылкина Н.Н., 1 п/гр",
-          "room": "ауд. 108",
-          "subgroup": null,
+          "teacher": "проф. Самылкина Н.Н.",
+          "room": "108",
+          "subgroup": 1,
           "notes": ""
         },
         {
-          "slot": null,
-          "time_start": "12:40",
-          "time_end": "14:10",
-          "subject": "Методика обучения",
-          "type": "lecture",
-          "teacher": "проф. Самылкина Н.Н",
-          "room": "ауд. 404",
-          "subgroup": null,
-          "notes": ""
-        },
-        {
-          "slot": null,
+          "slot": 2,
           "time_start": "10:40",
           "time_end": "12:10",
           "subject": "Управление ИТ-инфраструктурой",
           "type": "lab",
           "teacher": "доц. Ковалев Е.Е.",
           "room": "211",
-          "subgroup": null,
-          "notes": ""
-        },
-        {
-          "slot": null,
-          "time_start": "16:00",
-          "time_end": "18:00",
-          "subject": "Производственная практика",
-          "type": "other",
-          "teacher": "Доцент Павлов Д.И., доц. Орлова",
-          "room": "Фирстова Н.И.,  ауд. 402",
-          "subgroup": null,
-          "notes": ""
-        },
-        {
-          "slot": null,
-          "time_start": "16:00",
-          "time_end": "17:30",
-          "subject": "УСТАНОВОЧНАЯ",
-          "type": "other",
-          "teacher": "Доцент Павлов Д.И.",
-          "room": "402",
-          "subgroup": null,
-          "notes": ""
-        },
-        {
-          "slot": null,
-          "time_start": "16:00",
-          "time_end": "17:30",
-          "subject": "ИТОГОВАЯ КОНФЕРЕНЦИЯ",
-          "type": "other",
-          "teacher": "Доцент Павлов Д.И.",
-          "room": "402",
-          "subgroup": null,
-          "notes": ""
-        },
-        {
-          "slot": null,
-          "time_start": "14:20",
-          "time_end": "15:50",
-          "subject": "УСТАНОВОЧНАЯ КОНФЕРЕНЦИЯ",
-          "type": "other",
-          "teacher": "Доцент Орлова Т.С., доц. Фирстова Н.И.,проф.  Егупова М.В., доц",
-          "room": "Павлов Д.И.., ауд. 402",
           "subgroup": null,
           "notes": ""
         },
@@ -207,33 +152,77 @@
           "room": "305Г",
           "subgroup": null,
           "notes": ""
+        },
+        {
+          "slot": 3,
+          "time_start": "12:40",
+          "time_end": "14:10",
+          "subject": "Методика обучения",
+          "type": "lecture",
+          "teacher": "проф. Самылкина Н.Н",
+          "room": "404",
+          "subgroup": null,
+          "notes": ""
+        },
+        {
+          "slot": 4,
+          "time_start": "14:20",
+          "time_end": "15:50",
+          "subject": "УСТАНОВОЧНАЯ КОНФЕРЕНЦИЯ",
+          "type": "other",
+          "teacher": "Доцент Орлова Т.С., доц. Фирстова Н.И.,проф.  Егупова М.В., доц",
+          "room": "Павлов Д.И.., 402",
+          "subgroup": null,
+          "notes": ""
+        },
+        {
+          "slot": 5,
+          "time_start": "16:00",
+          "time_end": "18:00",
+          "subject": "Производственная практика",
+          "type": "other",
+          "teacher": "Доцент Павлов Д.И., доц. Орлова",
+          "room": "Фирстова Н.И., 402",
+          "subgroup": null,
+          "notes": ""
+        },
+        {
+          "slot": 5,
+          "time_start": "16:00",
+          "time_end": "17:30",
+          "subject": "УСТАНОВОЧНАЯ",
+          "type": "other",
+          "teacher": "Доцент Павлов Д.И.",
+          "room": "402",
+          "subgroup": null,
+          "notes": ""
+        },
+        {
+          "slot": 5,
+          "time_start": "16:00",
+          "time_end": "17:30",
+          "subject": "ИТОГОВАЯ КОНФЕРЕНЦИЯ",
+          "type": "other",
+          "teacher": "Доцент Павлов Д.И.",
+          "room": "402",
+          "subgroup": null,
+          "notes": ""
         }
       ],
       "thursday": [
         {
-          "slot": null,
-          "time_start": "14:20",
-          "time_end": "15:50",
-          "subject": "Методика обучения",
-          "type": "lab",
-          "teacher": "проф. Самылкина Н.Н., 2 п/гр",
-          "room": "ауд. 108",
-          "subgroup": null,
-          "notes": ""
-        },
-        {
-          "slot": null,
+          "slot": 2,
           "time_start": "10:40",
           "time_end": "12:10",
           "subject": "Веб-технологии",
           "type": "lab",
-          "teacher": "доц. Иванова Н.Ю., 1 п/гр",
-          "room": "ауд. 108",
-          "subgroup": null,
+          "teacher": "доц. Иванова Н.Ю.",
+          "room": "108",
+          "subgroup": 1,
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 3,
           "time_start": "12:40",
           "time_end": "14:10",
           "subject": "Методика обучения",
@@ -244,7 +233,18 @@
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 4,
+          "time_start": "14:20",
+          "time_end": "15:50",
+          "subject": "Методика обучения",
+          "type": "lab",
+          "teacher": "проф. Самылкина Н.Н.",
+          "room": "108",
+          "subgroup": 2,
+          "notes": ""
+        },
+        {
+          "slot": 4,
           "time_start": "14:20",
           "time_end": "15:50",
           "subject": "Корпоративные информационные",
@@ -255,7 +255,7 @@
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 5,
           "time_start": "16:00",
           "time_end": "17:00",
           "subject": "Дифференциальные уравнения",
@@ -268,7 +268,7 @@
       ],
       "friday": [
         {
-          "slot": null,
+          "slot": 1,
           "time_start": "09:00",
           "time_end": "10:30",
           "subject": "Численные методы",
@@ -279,18 +279,18 @@
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 2,
           "time_start": "10:40",
           "time_end": "12:10",
           "subject": "Численные методы",
           "type": "lab",
-          "teacher": "проф. Деза Е.И., 1 п/гр",
-          "room": "ауд. 210, 209",
-          "subgroup": null,
+          "teacher": "проф. Деза Е.И.",
+          "room": "210, 209",
+          "subgroup": 1,
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 3,
           "time_start": "12:40",
           "time_end": "14:10",
           "subject": "Корпоративные информационные",
@@ -303,7 +303,18 @@
       ],
       "saturday": [
         {
-          "slot": null,
+          "slot": 1,
+          "time_start": "09:00",
+          "time_end": "10:30",
+          "subject": "Д/В 1.1 Профессионально-ориентированные",
+          "type": "practice",
+          "teacher": "доц. Ковалев Е.Е.",
+          "room": "el.mpgu.su",
+          "subgroup": null,
+          "notes": ""
+        },
+        {
+          "slot": 2,
           "time_start": "10:40",
           "time_end": "12:10",
           "subject": "Д/В 1.2 Основы криптографии и методы",
@@ -315,17 +326,17 @@
         },
         {
           "slot": null,
-          "time_start": "09:00",
-          "time_end": "10:30",
-          "subject": "Д/В 1.1 Профессионально-ориентированные",
-          "type": "practice",
-          "teacher": "доц. Ковалев Е.Е.",
-          "room": "el.mpgu.su",
+          "time_start": "12:10",
+          "time_end": "12:40",
+          "subject": "Разработка компонентов",
+          "type": "lecture",
+          "teacher": "ст. пр. Гаранин И.В.",
+          "room": "207",
           "subgroup": null,
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 5,
           "time_start": "16:00",
           "time_end": "17:00",
           "subject": "Методика обучения",
@@ -343,17 +354,6 @@
           "type": "other",
           "teacher": "ст. пр. Ковалева Н.А.",
           "room": "208",
-          "subgroup": null,
-          "notes": ""
-        },
-        {
-          "slot": null,
-          "time_start": "12:10",
-          "time_end": "12:40",
-          "subject": "Разработка компонентов",
-          "type": "lecture",
-          "teacher": "ст. пр. Гаранин И.В.",
-          "room": "207",
           "subgroup": null,
           "notes": ""
         }
@@ -362,40 +362,7 @@
     "even_week": {
       "monday": [
         {
-          "slot": null,
-          "time_start": "10:40",
-          "time_end": "12:10",
-          "subject": "Элементарная",
-          "type": "practice",
-          "teacher": "проф. Смирнов В.А.",
-          "room": "404",
-          "subgroup": null,
-          "notes": ""
-        },
-        {
-          "slot": null,
-          "time_start": "12:40",
-          "time_end": "14:10",
-          "subject": "Теоретические основы",
-          "type": "lecture",
-          "teacher": "доц. Муравьева О.В.",
-          "room": "205",
-          "subgroup": null,
-          "notes": ""
-        },
-        {
-          "slot": null,
-          "time_start": "14:20",
-          "time_end": "15:50",
-          "subject": "Дифференциальные",
-          "type": "practice",
-          "teacher": "доц. Удовенко Л.Н.",
-          "room": "304",
-          "subgroup": null,
-          "notes": ""
-        },
-        {
-          "slot": null,
+          "slot": 1,
           "time_start": "09:00",
           "time_end": "16:00",
           "subject": "Производственная практика, педагогическая практика",
@@ -406,42 +373,64 @@
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 2,
+          "time_start": "10:40",
+          "time_end": "12:10",
+          "subject": "Элементарная",
+          "type": "practice",
+          "teacher": "проф. Смирнов В.А.",
+          "room": "404",
+          "subgroup": null,
+          "notes": ""
+        },
+        {
+          "slot": 3,
+          "time_start": "12:40",
+          "time_end": "14:10",
+          "subject": "Теоретические основы",
+          "type": "lecture",
+          "teacher": "доц. Муравьева О.В.",
+          "room": "205",
+          "subgroup": null,
+          "notes": ""
+        },
+        {
+          "slot": 4,
+          "time_start": "14:20",
+          "time_end": "15:50",
+          "subject": "Дифференциальные",
+          "type": "practice",
+          "teacher": "доц. Удовенко Л.Н.",
+          "room": "304",
+          "subgroup": null,
+          "notes": ""
+        },
+        {
+          "slot": 4,
           "time_start": "14:20",
           "time_end": "15:50",
           "subject": "ИТОГОВАЯ КОНФЕРЕНЦИЯ",
           "type": "other",
           "teacher": "Доцент Орлова Т.С., доц. Фирстова Н.И.,проф.  Егупова М.В., доц",
-          "room": "Павлов Д.И.., ауд. 402",
+          "room": "Павлов Д.И.., 402",
           "subgroup": null,
           "notes": ""
         }
       ],
       "tuesday": [
         {
-          "slot": null,
-          "time_start": "16:00",
-          "time_end": "17:30",
-          "subject": "Теоретические основы",
-          "type": "lab",
-          "teacher": "доц. Муравьева О.В., 1 п/гр",
-          "room": "ауд. 209",
-          "subgroup": null,
-          "notes": ""
-        },
-        {
-          "slot": null,
+          "slot": 1,
           "time_start": "09:00",
           "time_end": "10:30",
           "subject": "Теория функций комплексного",
           "type": "lab",
-          "teacher": "проф. Деза Е.И., 1 п/гр",
+          "teacher": "проф. Деза Е.И.",
           "room": "405",
-          "subgroup": null,
+          "subgroup": 1,
           "notes": "доц. Удовенко Л.Н., ауд. 405"
         },
         {
-          "slot": null,
+          "slot": 2,
           "time_start": "10:40",
           "time_end": "12:10",
           "subject": "Теория функций комплексного",
@@ -452,7 +441,7 @@
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 3,
           "time_start": "12:40",
           "time_end": "14:10",
           "subject": "Веб-технологии",
@@ -461,11 +450,22 @@
           "room": "208",
           "subgroup": null,
           "notes": ""
+        },
+        {
+          "slot": 5,
+          "time_start": "16:00",
+          "time_end": "17:30",
+          "subject": "Теоретические основы",
+          "type": "lab",
+          "teacher": "доц. Муравьева О.В.",
+          "room": "209",
+          "subgroup": 1,
+          "notes": ""
         }
       ],
       "wednesday": [
         {
-          "slot": null,
+          "slot": 1,
           "time_start": "09:00",
           "time_end": "10:30",
           "subject": "Д/В 1.1 Актуальные",
@@ -476,79 +476,24 @@
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 2,
           "time_start": "10:40",
           "time_end": "12:10",
           "subject": "Методика обучения",
           "type": "lab",
-          "teacher": "проф. Самылкина Н.Н., 1 п/гр",
-          "room": "ауд. 108",
-          "subgroup": null,
+          "teacher": "проф. Самылкина Н.Н.",
+          "room": "108",
+          "subgroup": 1,
           "notes": ""
         },
         {
-          "slot": null,
-          "time_start": "12:40",
-          "time_end": "14:10",
-          "subject": "Методика обучения",
-          "type": "lecture",
-          "teacher": "проф. Самылкина Н.Н",
-          "room": "ауд. 404",
-          "subgroup": null,
-          "notes": ""
-        },
-        {
-          "slot": null,
+          "slot": 2,
           "time_start": "10:40",
           "time_end": "12:10",
           "subject": "Управление ИТ-инфраструктурой",
           "type": "lab",
           "teacher": "доц. Ковалев Е.Е.",
           "room": "211",
-          "subgroup": null,
-          "notes": ""
-        },
-        {
-          "slot": null,
-          "time_start": "16:00",
-          "time_end": "18:00",
-          "subject": "Производственная практика",
-          "type": "other",
-          "teacher": "Доцент Павлов Д.И., доц. Орлова",
-          "room": "Фирстова Н.И.,  ауд. 402",
-          "subgroup": null,
-          "notes": ""
-        },
-        {
-          "slot": null,
-          "time_start": "16:00",
-          "time_end": "17:30",
-          "subject": "УСТАНОВОЧНАЯ",
-          "type": "other",
-          "teacher": "Доцент Павлов Д.И.",
-          "room": "402",
-          "subgroup": null,
-          "notes": ""
-        },
-        {
-          "slot": null,
-          "time_start": "16:00",
-          "time_end": "17:30",
-          "subject": "ИТОГОВАЯ КОНФЕРЕНЦИЯ",
-          "type": "other",
-          "teacher": "Доцент Павлов Д.И.",
-          "room": "402",
-          "subgroup": null,
-          "notes": ""
-        },
-        {
-          "slot": null,
-          "time_start": "14:20",
-          "time_end": "15:50",
-          "subject": "УСТАНОВОЧНАЯ КОНФЕРЕНЦИЯ",
-          "type": "other",
-          "teacher": "Доцент Орлова Т.С., доц. Фирстова Н.И.,проф.  Егупова М.В., доц",
-          "room": "Павлов Д.И.., ауд. 402",
           "subgroup": null,
           "notes": ""
         },
@@ -562,33 +507,77 @@
           "room": "305Г",
           "subgroup": null,
           "notes": ""
+        },
+        {
+          "slot": 3,
+          "time_start": "12:40",
+          "time_end": "14:10",
+          "subject": "Методика обучения",
+          "type": "lecture",
+          "teacher": "проф. Самылкина Н.Н",
+          "room": "404",
+          "subgroup": null,
+          "notes": ""
+        },
+        {
+          "slot": 4,
+          "time_start": "14:20",
+          "time_end": "15:50",
+          "subject": "УСТАНОВОЧНАЯ КОНФЕРЕНЦИЯ",
+          "type": "other",
+          "teacher": "Доцент Орлова Т.С., доц. Фирстова Н.И.,проф.  Егупова М.В., доц",
+          "room": "Павлов Д.И.., 402",
+          "subgroup": null,
+          "notes": ""
+        },
+        {
+          "slot": 5,
+          "time_start": "16:00",
+          "time_end": "18:00",
+          "subject": "Производственная практика",
+          "type": "other",
+          "teacher": "Доцент Павлов Д.И., доц. Орлова",
+          "room": "Фирстова Н.И., 402",
+          "subgroup": null,
+          "notes": ""
+        },
+        {
+          "slot": 5,
+          "time_start": "16:00",
+          "time_end": "17:30",
+          "subject": "УСТАНОВОЧНАЯ",
+          "type": "other",
+          "teacher": "Доцент Павлов Д.И.",
+          "room": "402",
+          "subgroup": null,
+          "notes": ""
+        },
+        {
+          "slot": 5,
+          "time_start": "16:00",
+          "time_end": "17:30",
+          "subject": "ИТОГОВАЯ КОНФЕРЕНЦИЯ",
+          "type": "other",
+          "teacher": "Доцент Павлов Д.И.",
+          "room": "402",
+          "subgroup": null,
+          "notes": ""
         }
       ],
       "thursday": [
         {
-          "slot": null,
-          "time_start": "14:20",
-          "time_end": "15:50",
-          "subject": "Методика обучения",
-          "type": "lab",
-          "teacher": "проф. Самылкина Н.Н., 2 п/гр",
-          "room": "ауд. 108",
-          "subgroup": null,
-          "notes": ""
-        },
-        {
-          "slot": null,
+          "slot": 2,
           "time_start": "10:40",
           "time_end": "12:10",
           "subject": "Веб-технологии",
           "type": "lab",
-          "teacher": "доц. Иванова Н.Ю., 1 п/гр",
-          "room": "ауд. 108",
-          "subgroup": null,
+          "teacher": "доц. Иванова Н.Ю.",
+          "room": "108",
+          "subgroup": 1,
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 3,
           "time_start": "12:40",
           "time_end": "14:10",
           "subject": "Методика обучения",
@@ -599,7 +588,18 @@
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 4,
+          "time_start": "14:20",
+          "time_end": "15:50",
+          "subject": "Методика обучения",
+          "type": "lab",
+          "teacher": "проф. Самылкина Н.Н.",
+          "room": "108",
+          "subgroup": 2,
+          "notes": ""
+        },
+        {
+          "slot": 4,
           "time_start": "14:20",
           "time_end": "15:50",
           "subject": "Корпоративные информационные",
@@ -610,7 +610,7 @@
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 5,
           "time_start": "16:00",
           "time_end": "17:00",
           "subject": "Дифференциальные уравнения",
@@ -623,7 +623,7 @@
       ],
       "friday": [
         {
-          "slot": null,
+          "slot": 1,
           "time_start": "09:00",
           "time_end": "10:30",
           "subject": "Численные методы",
@@ -634,18 +634,18 @@
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 2,
           "time_start": "10:40",
           "time_end": "12:10",
           "subject": "Численные методы",
           "type": "lab",
-          "teacher": "проф. Деза Е.И., 1 п/гр",
-          "room": "ауд. 210, 209",
-          "subgroup": null,
+          "teacher": "проф. Деза Е.И.",
+          "room": "210, 209",
+          "subgroup": 1,
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 3,
           "time_start": "12:40",
           "time_end": "14:10",
           "subject": "Корпоративные информационные",
@@ -658,7 +658,18 @@
       ],
       "saturday": [
         {
-          "slot": null,
+          "slot": 1,
+          "time_start": "09:00",
+          "time_end": "10:30",
+          "subject": "Д/В 1.1 Профессионально-ориентированные",
+          "type": "practice",
+          "teacher": "доц. Ковалев Е.Е.",
+          "room": "el.mpgu.su",
+          "subgroup": null,
+          "notes": ""
+        },
+        {
+          "slot": 2,
           "time_start": "10:40",
           "time_end": "12:10",
           "subject": "Д/В 1.2 Основы криптографии и методы",
@@ -670,17 +681,17 @@
         },
         {
           "slot": null,
-          "time_start": "09:00",
-          "time_end": "10:30",
-          "subject": "Д/В 1.1 Профессионально-ориентированные",
-          "type": "practice",
-          "teacher": "доц. Ковалев Е.Е.",
-          "room": "el.mpgu.su",
+          "time_start": "12:10",
+          "time_end": "12:40",
+          "subject": "Разработка компонентов",
+          "type": "lecture",
+          "teacher": "ст. пр. Гаранин И.В.",
+          "room": "207",
           "subgroup": null,
           "notes": ""
         },
         {
-          "slot": null,
+          "slot": 5,
           "time_start": "16:00",
           "time_end": "17:00",
           "subject": "Методика обучения",
@@ -698,17 +709,6 @@
           "type": "other",
           "teacher": "ст. пр. Ковалева Н.А.",
           "room": "208",
-          "subgroup": null,
-          "notes": ""
-        },
-        {
-          "slot": null,
-          "time_start": "12:10",
-          "time_end": "12:40",
-          "subject": "Разработка компонентов",
-          "type": "lecture",
-          "teacher": "ст. пр. Гаранин И.В.",
-          "room": "207",
           "subgroup": null,
           "notes": ""
         }
