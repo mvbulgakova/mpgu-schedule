@@ -12,21 +12,46 @@
   "schedule": {
     "odd_week": {
       "monday": [],
-      "tuesday": [],
-      "wednesday": [],
-      "thursday": [],
-      "friday": [
+      "tuesday": [
         {
-          "slot": 3,
-          "time_start": "12:40",
-          "time_end": "14:20",
+          "slot": null,
+          "time_start": "16:00",
+          "time_end": "17:30",
+          "subject": "Академическая риторика",
+          "type": "seminar",
+          "room": "513",
+          "subgroup": null,
+          "notes": "",
+          "institute_id": "international",
+          "group_name": "МОО-СТ-82401"
+        },
+        {
+          "slot": null,
+          "time_start": "17:40",
+          "time_end": "19:10",
           "subject": "Академическая риторика",
           "type": "seminar",
           "room": "519",
           "subgroup": null,
-          "notes": "ЛЗ 6 часов зачет",
+          "notes": "",
           "institute_id": "international",
-          "group_name": "МЗИО34-СТ42401"
+          "group_name": "МОО-СТ-82401"
+        }
+      ],
+      "wednesday": [],
+      "thursday": [],
+      "friday": [
+        {
+          "slot": null,
+          "time_start": "12:40",
+          "time_end": "14:20",
+          "subject": "Академическая риторика",
+          "type": "seminar",
+          "room": "521",
+          "subgroup": null,
+          "notes": "ПЗ 6 часов, зачет",
+          "institute_id": "international",
+          "group_name": "MZIO34-СТЧ2401"
         }
       ],
       "saturday": []
@@ -35,34 +60,59 @@
       "monday": [],
       "tuesday": [
         {
-          "slot": 4,
+          "slot": null,
+          "time_start": "16:00",
+          "time_end": "17:30",
+          "subject": "Академическая риторика",
+          "type": "seminar",
+          "room": "513",
+          "subgroup": null,
+          "notes": "",
+          "institute_id": "international",
+          "group_name": "МОО-СТ-82401"
+        },
+        {
+          "slot": null,
+          "time_start": "17:40",
+          "time_end": "19:10",
+          "subject": "Академическая риторика",
+          "type": "seminar",
+          "room": "519",
+          "subgroup": null,
+          "notes": "",
+          "institute_id": "international",
+          "group_name": "МОО-СТ-82401"
+        }
+      ],
+      "wednesday": [
+        {
+          "slot": null,
           "time_start": "12:40",
           "time_end": "14:20",
           "subject": "Академическая риторика",
           "type": "seminar",
           "room": "521",
           "subgroup": null,
-          "notes": "ЛЗ 6 часов зачет",
+          "notes": "ПЗ 6 часов, зачет",
           "institute_id": "international",
-          "group_name": "МЗИО34-СТ42401"
+          "group_name": "MZIO34-СТЧ2401"
         }
       ],
-      "wednesday": [],
-      "thursday": [
+      "thursday": [],
+      "friday": [
         {
-          "slot": 3,
+          "slot": null,
           "time_start": "12:40",
           "time_end": "14:20",
           "subject": "Академическая риторика",
           "type": "seminar",
           "room": "519",
           "subgroup": null,
-          "notes": "ЛЗ 6 часов зачет",
+          "notes": "ПЗ 6 часов, зачет",
           "institute_id": "international",
-          "group_name": "МЗИО34-СТ42401"
+          "group_name": "MZIO34-СТЧ2401"
         }
       ],
-      "friday": [],
       "saturday": []
     }
   }

@@ -11,7 +11,20 @@
   "kafedra_name": "",
   "schedule": {
     "odd_week": {
-      "monday": [],
+      "monday": [
+        {
+          "slot": 1,
+          "time_start": "09:00",
+          "time_end": "10:30",
+          "subject": "Управление бизнесом",
+          "type": "lecture",
+          "room": "519",
+          "subgroup": null,
+          "notes": "",
+          "institute_id": "international",
+          "group_name": "БOIO24-УПБ2301"
+        }
+      ],
       "tuesday": [],
       "wednesday": [],
       "thursday": [],
@@ -42,6 +55,18 @@
         }
       ],
       "saturday": [
+        {
+          "slot": null,
+          "time_start": "09:00",
+          "time_end": "10:30",
+          "subject": "Разработка программ и дидактических материалов",
+          "type": "lecture",
+          "room": "519",
+          "subgroup": null,
+          "notes": "",
+          "institute_id": "international",
+          "group_name": "СУБ2025"
+        },
         {
           "slot": null,
           "time_start": "15:20",

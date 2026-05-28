@@ -12,32 +12,94 @@
   "schedule": {
     "odd_week": {
       "monday": [],
-      "tuesday": [],
-      "wednesday": [],
+      "tuesday": [
+        {
+          "slot": 1,
+          "time_start": "09:00",
+          "time_end": "10:40",
+          "subject": "Психология образования",
+          "type": "lecture",
+          "room": "525",
+          "subgroup": null,
+          "notes": "8 ак.ч., ЛК, 6 ак.ч., ПЗ, экзамен",
+          "institute_id": "international",
+          "group_name": "MZIO34-ПОП2501"
+        }
+      ],
+      "wednesday": [
+        {
+          "slot": 1,
+          "time_start": "09:00",
+          "time_end": "10:40",
+          "subject": "Теория и практика обучения английскому языку (Language learning skills and materials)",
+          "type": "lecture",
+          "room": "534",
+          "subgroup": null,
+          "notes": "ДК 6 час., ПЗ 40 час., зачет",
+          "institute_id": "international",
+          "group_name": "МОО34-СТИ2501"
+        },
+        {
+          "slot": 2,
+          "time_start": "10:40",
+          "time_end": "12:20",
+          "subject": "Теория и практика обучения английскому языку (Language learning skills and materials)",
+          "type": "practice",
+          "room": "538",
+          "subgroup": null,
+          "notes": "ДК 6 час., ПЗ 40 час., зачет",
+          "institute_id": "international",
+          "group_name": "МОО34-СТИ2501"
+        },
+        {
+          "slot": 3,
+          "time_start": "12:40",
+          "time_end": "14:20",
+          "subject": "Тестирование и оценивание в обучении иностранным языкам (Testing and assessment in language learning)",
+          "type": "lecture",
+          "room": "538",
+          "subgroup": null,
+          "notes": "ДК 6 час., ПЗ 12 час., зачет",
+          "institute_id": "international",
+          "group_name": "МОО34-СТИ2501"
+        }
+      ],
       "thursday": [
         {
           "slot": 1,
           "time_start": "09:00",
           "time_end": "10:40",
-          "subject": "Современные формы и методы оценивания результатов обучения",
-          "type": "seminar",
-          "room": "ИЗ",
+          "subject": "Психология образования",
+          "type": "lecture",
+          "room": "525",
           "subgroup": null,
-          "notes": "6 акч. ЛК, 6 акч. ПЗ, зачет",
+          "notes": "8 ак.ч., ЛК, 6 ак.ч., ПЗ, экзамен",
           "institute_id": "international",
-          "group_name": "МZIO34-ПОI12501"
+          "group_name": "MZIO34-ПОП2501"
         },
         {
           "slot": 2,
           "time_start": "10:40",
-          "time_end": "12:40",
-          "subject": "Современные формы и методы оценивания результатов обучения",
-          "type": "seminar",
-          "room": "ИЗ",
+          "time_end": "12:20",
+          "subject": "Психология образования",
+          "type": "lecture",
+          "room": "525",
           "subgroup": null,
-          "notes": "6 акч. ЛК, 6 акч. ПЗ, зачет",
+          "notes": "8 ак.ч., ЛК, 6 ак.ч., ПЗ, экзамен",
           "institute_id": "international",
-          "group_name": "МZIO34-ПОI12501"
+          "group_name": "MZIO34-ПОП2501"
+        },
+        {
+          "slot": 3,
+          "time_start": "16:00",
+          "time_end": "17:40",
+          "subject": "Теория и практика обучения английскому языку (Language learning skills and materials)",
+          "type": "practice",
+          "room": "536",
+          "subgroup": null,
+          "notes": "ДК 6 час., ПЗ 40 час., зачет",
+          "institute_id": "international",
+          "group_name": "МОО34-СТИ2501"
         }
       ],
       "friday": [],
@@ -46,44 +108,42 @@
           "slot": 1,
           "time_start": "09:00",
           "time_end": "10:40",
-          "subject": "Современные формы и методы оценивания результатов обучения",
-          "type": "seminar",
-          "room": "ИЗ",
+          "subject": "Психология образования",
+          "type": "lecture",
+          "room": "525",
           "subgroup": null,
-          "notes": "6 акч. ЛК, 6 акч. ПЗ, зачет",
+          "notes": "8 ак.ч., ЛК, 6 ак.ч., ПЗ, экзамен",
           "institute_id": "international",
-          "group_name": "Магистратура 1 курс (суббота)"
+          "group_name": "MZIO34-ПОП2501"
         },
         {
           "slot": 2,
           "time_start": "10:40",
-          "time_end": "12:40",
-          "subject": "Современные формы и методы оценивания результатов обучения",
-          "type": "seminar",
-          "room": "ИЗ",
+          "time_end": "12:20",
+          "subject": "Психология образования",
+          "type": "lecture",
+          "room": "525",
           "subgroup": null,
-          "notes": "6 акч. ЛК, 6 акч. ПЗ, зачет",
+          "notes": "8 ак.ч., ЛК, 6 ак.ч., ПЗ, экзамен",
           "institute_id": "international",
-          "group_name": "Магистратура 1 курс (суббота)"
+          "group_name": "MZIO34-ПОП2501"
         }
       ]
     },
     "even_week": {
       "monday": [],
-      "tuesday": [],
-      "wednesday": [],
-      "thursday": [
+      "tuesday": [
         {
           "slot": 1,
           "time_start": "09:00",
           "time_end": "10:40",
           "subject": "Современные формы и методы оценивания результатов обучения",
           "type": "seminar",
-          "room": "ИЗ",
+          "room": null,
           "subgroup": null,
-          "notes": "6 акч. ЛК, 6 акч. ПЗ, зачет",
+          "notes": "6 ак.ч. ЛК, 6 ак.ч. ПЗ, зачет",
           "institute_id": "international",
-          "group_name": "МZIO34-ПОI12501"
+          "group_name": "MZIO34-ПОI12501"
         },
         {
           "slot": 2,
@@ -91,11 +151,99 @@
           "time_end": "12:40",
           "subject": "Современные формы и методы оценивания результатов обучения",
           "type": "seminar",
-          "room": "ИЗ",
+          "room": null,
           "subgroup": null,
-          "notes": "6 акч. ЛК, 6 акч. ПЗ, зачет",
+          "notes": "6 ак.ч. ЛК, 6 ак.ч. ПЗ, зачет",
           "institute_id": "international",
-          "group_name": "МZIO34-ПОI12501"
+          "group_name": "MZIO34-ПОI12501"
+        },
+        {
+          "slot": 1,
+          "time_start": "09:00",
+          "time_end": "10:40",
+          "subject": "Психология образования",
+          "type": "lecture",
+          "room": "525",
+          "subgroup": null,
+          "notes": "8 ак.ч., ЛК, 6 ак.ч., ПЗ, экзамен",
+          "institute_id": "international",
+          "group_name": "MZIO34-ПОП2501"
+        }
+      ],
+      "wednesday": [
+        {
+          "slot": 1,
+          "time_start": "09:00",
+          "time_end": "10:40",
+          "subject": "Теория и практика обучения английскому языку (Language learning skills and materials)",
+          "type": "lecture",
+          "room": "538",
+          "subgroup": null,
+          "notes": "ДК 6 час., ПЗ 40 час., зачет",
+          "institute_id": "international",
+          "group_name": "МОО34-СТИ2501"
+        },
+        {
+          "slot": 2,
+          "time_start": "10:40",
+          "time_end": "12:20",
+          "subject": "Теория и практика обучения английскому языку (Language learning skills and materials)",
+          "type": "practice",
+          "room": "538",
+          "subgroup": null,
+          "notes": "ДК 6 час., ПЗ 40 час., зачет",
+          "institute_id": "international",
+          "group_name": "МОО34-СТИ2501"
+        },
+        {
+          "slot": 3,
+          "time_start": "12:40",
+          "time_end": "14:20",
+          "subject": "Тестирование и оценивание в обучении иностранным языкам (Testing and assessment in language learning)",
+          "type": "practice",
+          "room": "538",
+          "subgroup": null,
+          "notes": "ДК 6 час., ПЗ 12 час., зачет",
+          "institute_id": "international",
+          "group_name": "МОО34-СТИ2501"
+        }
+      ],
+      "thursday": [
+        {
+          "slot": 1,
+          "time_start": "09:00",
+          "time_end": "10:40",
+          "subject": "Психология образования",
+          "type": "lecture",
+          "room": "525",
+          "subgroup": null,
+          "notes": "8 ак.ч., ЛК, 6 ак.ч., ПЗ, экзамен",
+          "institute_id": "international",
+          "group_name": "MZIO34-ПОП2501"
+        },
+        {
+          "slot": 2,
+          "time_start": "10:40",
+          "time_end": "12:20",
+          "subject": "Психология образования",
+          "type": "lecture",
+          "room": "525",
+          "subgroup": null,
+          "notes": "8 ак.ч., ЛК, 6 ак.ч., ПЗ, экзамен",
+          "institute_id": "international",
+          "group_name": "MZIO34-ПОП2501"
+        },
+        {
+          "slot": 3,
+          "time_start": "16:00",
+          "time_end": "17:40",
+          "subject": "Теория и практика обучения английскому языку (Language learning skills and materials)",
+          "type": "practice",
+          "room": "536",
+          "subgroup": null,
+          "notes": "ДК 6 час., ПЗ 40 час., зачет",
+          "institute_id": "international",
+          "group_name": "МОО34-СТИ2501"
         }
       ],
       "friday": [],
@@ -104,25 +252,25 @@
           "slot": 1,
           "time_start": "09:00",
           "time_end": "10:40",
-          "subject": "Современные формы и методы оценивания результатов обучения",
-          "type": "seminar",
-          "room": "ИЗ",
+          "subject": "Психология образования",
+          "type": "lecture",
+          "room": "525",
           "subgroup": null,
-          "notes": "6 акч. ЛК, 6 акч. ПЗ, зачет",
+          "notes": "8 ак.ч., ЛК, 6 ак.ч., ПЗ, экзамен",
           "institute_id": "international",
-          "group_name": "Магистратура 1 курс (суббота)"
+          "group_name": "MZIO34-ПОП2501"
         },
         {
           "slot": 2,
           "time_start": "10:40",
-          "time_end": "12:40",
-          "subject": "Современные формы и методы оценивания результатов обучения",
-          "type": "seminar",
-          "room": "ИЗ",
+          "time_end": "12:20",
+          "subject": "Психология образования",
+          "type": "lecture",
+          "room": "525",
           "subgroup": null,
-          "notes": "6 акч. ЛК, 6 акч. ПЗ, зачет",
+          "notes": "8 ак.ч., ЛК, 6 ак.ч., ПЗ, экзамен",
           "institute_id": "international",
-          "group_name": "Магистратура 1 курс (суббота)"
+          "group_name": "MZIO34-ПОП2501"
         }
       ]
     }
