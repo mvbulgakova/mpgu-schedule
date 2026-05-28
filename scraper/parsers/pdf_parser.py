@@ -754,7 +754,11 @@ def _fill_mpgu_schedule_multi(
             pending = {}
             return
         t_start, t_end = current_time
-        for (gname, ci), frags in pending.items():
+
+        # Parse each column's fragments, then merge orphan-subject + orphan-teacher
+        # pairs that occur when a lecture's subject spans col N and type/teacher spans col N+1.
+        by_group: dict[str, list[tuple[str, str, dict]]] = {}  # gname → [(week, lesson)]
+        for (gname, ci), frags in sorted(pending.items()):
             sched = schedules.get(gname)
             if sched is None:
                 continue
@@ -762,10 +766,35 @@ def _fill_mpgu_schedule_multi(
             for seg_content, week_type in _split_timetable_content(content):
                 lesson = _parse_timetable_cell(seg_content, t_start, t_end, None)
                 if lesson:
-                    if week_type in ("odd", "both"):
-                        sched["odd_week"][current_day].append(lesson)
-                    if week_type in ("even", "both"):
-                        sched["even_week"][current_day].append({**lesson})
+                    by_group.setdefault(gname, []).append((week_type, lesson))
+
+        for gname, entries in by_group.items():
+            sched = schedules.get(gname)
+            if sched is None:
+                continue
+            # Merge orphan subjects (no teacher) with orphan teachers (no subject)
+            orphan_subj = [(i, wt, l) for i, (wt, l) in enumerate(entries)
+                           if l["subject"] and not l["teacher"]]
+            orphan_teach = [(i, wt, l) for i, (wt, l) in enumerate(entries)
+                            if l["teacher"] and not l["subject"]]
+            merged_indices: set[int] = set()
+            for si, swt, sl in orphan_subj:
+                for ti, twt, tl in orphan_teach:
+                    if ti in merged_indices:
+                        continue
+                    if swt == twt:  # same week type
+                        merged = {**tl, "subject": sl["subject"],
+                                  "type": tl["type"] if tl["type"] != "other" else sl["type"]}
+                        entries[si] = (swt, merged)
+                        merged_indices.add(ti)
+                        break
+            final = [(wt, l) for i, (wt, l) in enumerate(entries)
+                     if i not in merged_indices and l["subject"]]
+            for week_type, lesson in final:
+                if week_type in ("odd", "both"):
+                    sched["odd_week"][current_day].append(lesson)
+                if week_type in ("even", "both"):
+                    sched["even_week"][current_day].append({**lesson})
         pending = {}
 
     for row in table:
