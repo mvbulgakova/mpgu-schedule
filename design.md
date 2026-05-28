@@ -37,18 +37,22 @@ fetchers/
   file_fetcher.py        — скачивает файлы, считает MD5
 parsers/
   base.py                — BaseParser + ParseResult(groups, confidence, warnings)
-  pdf_parser.py          — pdfplumber → camelot → Gemini vision
+  pdf_parser.py          — pdfplumber → camelot → Tesseract OCR → Gemini → Claude vision
   docx_parser.py         — python-docx, три формата таблиц
   excel_parser.py        — openpyxl
   gsheets_parser.py      — CSV-экспорт Google Sheets
   nextcloud_parser.py    — определяет формат файла, диспатчит в нужный парсер
+  exam_parser.py         — расписание экзаменов/сессии
 normalizer/
-  schedule_normalizer.py — normalize_day, normalize_time, normalize_lesson_type
+  schedule_normalizer.py — normalize_day/time/lesson_type + sanitize_groups (финальная очистка)
 storage/
   git_storage.py         — запись JSON, git add/commit/push в ветку data
 utils/
   hash_tracker.py        — MD5 кеш, CHANGED_ONLY режим
   gemini_client.py       — Gemini vision fallback для image-based PDF
+  claude_client.py       — Claude vision fallback для image-based PDF
+teachers/
+  crawler.py, normalizer.py — БД преподавателей и их расписаний
 ```
 
 ### Поток данных
@@ -69,20 +73,27 @@ parser.parse()  →  ParseResult
   └── groups: [{name, year, form, degree, schedule}, ...]
       schedule: {odd_week: {monday: [Lesson, ...], ...}, even_week: {...}}
       │
+      ├── _filter_invalid_groups + _merge_duplicate_groups (дедуп групп)
+      ├── sanitize_groups (финальная очистка пар, см. ниже)
+      │
       ▼
-GitStorage.write_schedule()  →  data/institutes/{id}/schedule.json
+GitStorage.write_schedule()  →  data/institutes/{id}/schedule.json   (манифест)
+                                 data/institutes/{id}/groups/{name}.json
 GitStorage.write_index()     →  data/meta/index.json
 ```
 
-### PDF-парсер: три уровня
+### PDF-парсер: пять уровней
 
 | Уровень | Инструмент | Когда |
 |---------|-----------|-------|
 | 1 | pdfplumber | всегда первый; confidence ≥ 0.65 → готово |
 | 2 | camelot | если pdfplumber не справился и PDF не image-based |
-| 3 | Gemini vision | для image-based PDF (нужен GEMINI_API_KEY) |
+| 3 | Tesseract OCR | распознавание текста на image-based PDF |
+| 4 | Gemini vision | image-based PDF (нужен GEMINI_API_KEY) |
+| 5 | Claude vision | image-based PDF (нужен ANTHROPIC_API_KEY) |
 
 Confidence считается как доля строк расписания с распознанными временем и занятием.
+Поле `parser_used` в данных показывает, какой уровень сработал по факту.
 
 #### Форматы МПГУ-таблиц в PDF
 
@@ -106,6 +117,24 @@ Confidence считается как доля строк расписания с
 | Несколько групп | `\d{2,3} ГРУППА` в строке заголовка | `_parse_multi_group_cols` |
 | Плоский (строки = занятия) | день + время в колонках | `_parse_flat` |
 
+### Финальная очистка: `sanitize_groups`
+
+Единая нормализация, применяемая к результату **любого** парсера перед записью
+(`scraper/normalizer/schedule_normalizer.py`, тесты — `scraper/tests/test_sanitize.py`):
+
+- **Дедупликация пар** — внутри дня удаляются только полностью идентичные записи
+  (двойной append из нескольких файлов/страниц); различающиеся по преподавателю,
+  типу или подгруппе сохраняются.
+- **Сортировка** пар внутри дня по времени начала.
+- **Подгруппа** — извлекается из subject/teacher/room/notes: скобочный формат
+  `(п/г 1)` и свободный `1 п/гр`; длинные слепленные ячейки не трогаются.
+- **Аудитория** — убираются маркеры `ауд.` (`ауд. 403` → `403`; PWA сама дописывает
+  «ауд. », иначе выходило «ауд. ауд. 403»); несколько аудиторий сохраняются
+  (`332 / ауд. 333` → `332 / 333`); препод, затесавшийся в `room`, выносится в `teacher`.
+- **slot** — достраивается из времени начала по сетке `TIME_SLOTS`.
+
+Одноразовый backfill уже сохранённых данных без перепарса — `scraper/backfill_sanitize.py`.
+
 ---
 
 ## Формат данных (ветка `data`)
@@ -115,13 +144,21 @@ data/
   meta/
     index.json          — список институтов, groups_count, статус, updated_at
     hashes.json         — MD5 всех скачанных файлов (для CHANGED_ONLY)
-    alerts.json         — аномалии последнего прогона (если есть)
+    teachers.json       — индекс преподавателей
+    alerts.json         — аномалии последнего прогона (только если они есть)
   institutes/
     {id}/
-      schedule.json     — полные данные института
+      schedule.json         — манифест института (список групп без расписаний)
+      groups/{name}.json    — расписание одной группы
+      exams.json            — расписание экзаменов/сессии (если есть)
+  teachers/
+    {slug}.json             — расписание одного преподавателя
 ```
 
-### schedule.json
+Расписания вынесены в отдельный файл на группу, чтобы PWA грузила только
+нужную группу, а не весь институт. `schedule.json` хранит лёгкий манифест.
+
+### schedule.json (манифест)
 
 ```json
 {
@@ -131,18 +168,26 @@ data/
   "academic_year": "2025-2026",
   "updated_at": "2026-05-20T19:31:04Z",
   "parser_used": "pdfplumber",
+  "version": 1,
   "groups": [
-    {
-      "name": "БOФ34-ГЕО2501",
-      "year": null,
-      "form": "full_time",
-      "degree": "bachelor",
-      "schedule": {
-        "odd_week":  { "monday": [Lesson, ...], "tuesday": [...], ... },
-        "even_week": { "monday": [Lesson, ...], ... }
-      }
-    }
+    { "name": "БOФ34-ГЕО2501", "file": "БOФ34-ГЕО2501",
+      "year": null, "form": "full_time", "degree": "bachelor" }
   ]
+}
+```
+
+### institutes/{id}/groups/{name}.json (одна группа)
+
+```json
+{
+  "name": "БOФ34-ГЕО2501",
+  "year": null,
+  "form": "full_time",
+  "degree": "bachelor",
+  "schedule": {
+    "odd_week":  { "monday": [Lesson, ...], "tuesday": [...], ... },
+    "even_week": { "monday": [Lesson, ...], ... }
+  }
 }
 ```
 
@@ -175,16 +220,20 @@ data/
 ```
 App.tsx                  — корневой компонент, навигация по состоянию
 store/index.ts           — Zustand: selectedInstituteId, selectedGroupName, showEvenWeek
-services/scheduleApi.ts  — fetch index.json / institutes/{id}/schedule.json
+services/scheduleApi.ts  — fetch index.json, манифеста, групп, преподавателей, экзаменов
+                           (с fallback-зеркалом данных)
 hooks/
   useSchedule.ts         — TanStack Query обёртки
   useOfflineCache.ts     — IndexedDB кеш для офлайн-режима
+  useNotifications.ts    — push-уведомления о ближайшей паре
 components/
-  InstituteSelector      — список 16 институтов
+  InstituteSelector      — список институтов
   GroupSelector          — список групп института
   WeekSchedule           — расписание на неделю (чётная/нечётная)
   DayCard                — расписание одного дня
   LessonCard             — одно занятие
+  TeacherSearch/View     — поиск и расписание преподавателя
+  ExamScheduleView       — расписание экзаменов
 ```
 
 ### Офлайн-режим
@@ -218,8 +267,7 @@ components/
 
 | Ограничение | Причина |
 |-------------|---------|
-| Image-based PDF | Требует Gemini API Key; без него группы не извлекаются |
+| Image-based PDF | Требует GEMINI_API_KEY / ANTHROPIC_API_KEY; без них группы не извлекаются |
 | ЗФО (заочная форма) | Использует даты вместо дней недели; парсер не поддерживает |
 | DOCX старые форматы | python-docx иногда не читает `.doc` (только `.docx`) |
-| childhood, international | Файлы либо image-based, либо недоступны без авторизации |
-| Дублирующиеся группы | Одна группа в нескольких файлах → несколько записей в списке |
+| Двухподгрупповые ячейки | Препод/аудитория второй подгруппы иногда лежат в `notes`, а не отдельной парой |
