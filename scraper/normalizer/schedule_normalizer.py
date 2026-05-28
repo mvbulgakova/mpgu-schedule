@@ -18,23 +18,23 @@ LESSON_TYPES = {
     "семинар": "seminar", "сем": "seminar", "сем.": "seminar",
 }
 
-# стандартные временные слоты МПГУ
+# стандартные временные слоты МПГУ (актуальная звонковая сетка основного корпуса)
 TIME_SLOTS = {
-    1: ("08:00", "09:35"),
-    2: ("09:45", "11:20"),
-    3: ("11:30", "13:05"),
-    4: ("13:30", "15:05"),
-    5: ("15:15", "16:50"),
-    6: ("17:00", "18:35"),
-    7: ("18:45", "20:20"),
-    8: ("20:30", "22:05"),
+    1: ("09:00", "10:30"),
+    2: ("10:40", "12:10"),
+    3: ("12:40", "14:10"),
+    4: ("14:20", "15:50"),
+    5: ("16:00", "17:30"),
+    6: ("17:40", "19:10"),
+    7: ("19:20", "20:50"),
 }
 
 WEEK_ODD = {"числитель", "числ", "н", "н/", "над", "нечётная", "нечетная", "i", "1"}
 WEEK_EVEN = {"знаменатель", "знам", "з", "з/", "под", "чётная", "четная", "ii", "2"}
 
 _TEACHER_TITLE_RE = re.compile(
-    r"((?:проф|доц|ст\.?\s*преп|асс|преп)\.?\s+[А-ЯЁ][а-яё]+(?:\s+[А-ЯЁ]\.[А-ЯЁ]\.?)?)",
+    r"((?:проф|доц|ст\.?\s*преп(?:од)?|ассистент|ассист|асс|преп)\.?\s+"
+    r"[А-ЯЁ][а-яё]+(?:\s+[А-ЯЁ]\.[А-ЯЁ]\.?)?)",
     re.IGNORECASE,
 )
 
@@ -186,3 +186,149 @@ def lesson_obj(
         "subgroup": subgroup,
         "notes": notes,
     }
+
+
+# ---------------------------------------------------------------------------
+# Финальная очистка (применяется ко всем парсерам перед записью в data-ветку)
+# ---------------------------------------------------------------------------
+
+# Подгруппа без скобок: "1 п/гр", "2 п/г", "п/г 1", "подгр. 2", "1-я подгруппа"
+_SUBGROUP_LOOSE_RE = re.compile(
+    r"(?<!\w)(\d)\s*[-–]?\s*(?:я\s+)?п[/.]?\s*г(?:р|руппа)?\.?(?!\w)"
+    r"|(?<!\w)п[/.]?\s*г(?:р|руппа)?\.?\s*[№#]?\s*(\d)(?!\w)",
+    re.IGNORECASE,
+)
+
+# Префикс "ауд." / "ауд" перед номером аудитории
+_AUD_PREFIX_RE = re.compile(r"ауд(?:итория)?\.?\s*", re.IGNORECASE)
+
+
+def pull_subgroup(text: str | None) -> tuple[str | None, int | None]:
+    """Достаёт номер подгруппы (скобочный или свободный формат) и чистит текст."""
+    if not text:
+        return text, None
+    cleaned, sg = extract_subgroup(text)  # скобочный формат: (п/г 1)
+    if sg is not None:
+        return cleaned, sg
+    # Свободный паттерн ("1 п/гр") применяем только к коротким полям —
+    # в длинных слепленных ячейках он ловит ложные совпадения.
+    if len(text) > 60:
+        return text, None
+    m = _SUBGROUP_LOOSE_RE.search(text)
+    if not m:
+        return text, None
+    sg = int(m.group(1) or m.group(2))
+    cleaned = text[: m.start()] + text[m.end() :]
+    # не срезаем точку — она часть инициалов ("О.И.")
+    cleaned = re.sub(r"\s{2,}", " ", cleaned).strip(" ,;")
+    return cleaned, sg
+
+
+def clean_room(room: str | None) -> str | None:
+    """Убирает префикс 'ауд.' и мусор перед ним.
+
+    PWA сама дописывает 'ауд. ' перед номером, поэтому 'ауд. 403' в данных
+    превращается в 'ауд. ауд. 403'. Берём всё после последнего маркера 'ауд.'.
+    Залы, онлайн-ссылки и буквенные значения (без 'ауд') не трогаем.
+    """
+    if not room:
+        return None
+    r = room.strip()
+    if "ауд" not in r.lower():
+        return r or None
+    # Заменяем маркеры "ауд." пробелом, сохраняя несколько аудиторий
+    # ("332 / ауд. 333" -> "332 / 333", "411ауд. 302" -> "411 302").
+    r = _AUD_PREFIX_RE.sub(" ", r)
+    r = re.sub(r"\s{2,}", " ", r).strip(" ,;/")
+    return r or None
+
+
+def sanitize_lesson(lesson: dict) -> dict:
+    """Финальная нормализация одной пары независимо от парсера-источника."""
+    subject = (lesson.get("subject") or "").strip()
+    teacher = lesson.get("teacher")
+    room = lesson.get("room")
+    notes = (lesson.get("notes") or "").strip()
+    subgroup = lesson.get("subgroup")
+
+    # 1. Если в room затесались "Звание Фамилия И.О." — вынести в teacher
+    room, teacher = _split_room_teacher(room, teacher)
+
+    # 2. Вытащить подгруппу из любого поля и убрать токен везде, где встретился
+    found_sg = subgroup
+    subject, sg = pull_subgroup(subject)
+    if found_sg is None:
+        found_sg = sg
+    if teacher:
+        teacher, sg = pull_subgroup(teacher)
+        if found_sg is None:
+            found_sg = sg
+    if room:
+        room, sg = pull_subgroup(room)
+        if found_sg is None:
+            found_sg = sg
+    if notes:
+        notes, sg = pull_subgroup(notes)
+        if found_sg is None:
+            found_sg = sg
+    subgroup = found_sg
+
+    # 3. Почистить аудиторию ("ауд. 403" -> "403", "Имя, ауд. 301" -> "301")
+    room = clean_room(room)
+
+    teacher = teacher.strip(" ,;") if teacher else None
+    room = room.strip(" ,;") if room else None
+
+    # 4. Достроить slot из времени, если не задан
+    slot = lesson.get("slot")
+    if slot is None and lesson.get("time_start"):
+        slot = infer_slot(lesson["time_start"])
+
+    return {
+        "slot": slot,
+        "time_start": lesson.get("time_start"),
+        "time_end": lesson.get("time_end"),
+        "subject": subject,
+        "type": lesson.get("type", "other"),
+        "teacher": teacher or None,
+        "room": room or None,
+        "subgroup": subgroup,
+        "notes": notes,
+    }
+
+
+def _lesson_key(l: dict) -> tuple:
+    return (
+        l.get("time_start"), l.get("time_end"), l.get("subject"),
+        l.get("type"), l.get("teacher"), l.get("room"),
+        l.get("subgroup"), l.get("notes"),
+    )
+
+
+def sanitize_groups(groups: list[dict]) -> list[dict]:
+    """Чистит расписание всех групп: подгруппы, аудитории, slot,
+    удаление точных дублей и сортировка пар внутри дня по времени.
+    Мутирует и возвращает тот же список."""
+    days = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
+    for group in groups:
+        schedule = group.get("schedule") or {}
+        for week_key in ("odd_week", "even_week"):
+            week = schedule.get(week_key)
+            if not week:
+                continue
+            for day in days:
+                lessons = week.get(day)
+                if not lessons:
+                    continue
+                cleaned: list[dict] = []
+                seen: set[tuple] = set()
+                for raw in lessons:
+                    lesson = sanitize_lesson(raw)
+                    key = _lesson_key(lesson)
+                    if key in seen:
+                        continue
+                    seen.add(key)
+                    cleaned.append(lesson)
+                cleaned.sort(key=lambda l: (l.get("time_start") or "99:99", l.get("slot") or 99))
+                week[day] = cleaned
+    return groups

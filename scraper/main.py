@@ -28,6 +28,7 @@ def gdrive_to_download_url(url: str) -> str:
     return url
 from scraper.parsers.docx_parser import DocxParser
 from scraper.storage.git_storage import GitStorage
+from scraper.normalizer.schedule_normalizer import sanitize_groups
 from scraper.utils.hash_tracker import HashTracker, md5_of_bytes
 
 try:
@@ -239,6 +240,7 @@ async def process_institute(
 
     all_groups = _filter_invalid_groups(all_groups)
     all_groups = _merge_duplicate_groups(all_groups)
+    all_groups = sanitize_groups(all_groups)
 
     now = datetime.now(timezone.utc).isoformat()
     schedule_doc = {
