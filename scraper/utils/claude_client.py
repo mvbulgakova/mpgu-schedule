@@ -14,11 +14,19 @@ _JSON_BLOCK_RE = re.compile(r'\{[\s\S]*\}', re.DOTALL)
 SYSTEM_PROMPT = """Ты — парсер расписания занятий российского университета.
 Тебе дают изображения страниц расписания МПГУ (Московский педагогический государственный университет).
 
+ВАЖНО про структуру таблицы:
+- Каждая вертикальная колонка со своим заголовком-кодом группы (например
+  ВОС34-ДОШ2501, БОМ35-ПИМ2308) или номером ("105 группа") — ОТДЕЛЬНАЯ группа.
+- На одной странице обычно несколько групп-колонок — извлекай ВСЕ до единой.
+- Левый узкий столбец — день недели (часто написан вертикально, по буквам) +
+  номер пары + время; он общий для всех групп-колонок.
+- name = код группы ровно как на странице (кириллицей, без латинских подмен).
+
 Верни JSON строго по следующей схеме:
 {
   "groups": [
     {
-      "name": "название группы или курс",
+      "name": "код группы как на странице",
       "year": число (1-6),
       "form": "full_time" | "part_time" | "correspondence",
       "degree": "bachelor" | "specialist" | "master",
@@ -57,6 +65,10 @@ SYSTEM_PROMPT = """Ты — парсер расписания занятий р�
 
 _SESSION_TOKEN_FILE = "/home/claude/.claude/remote/.session_ingress_token"
 
+# Модель vision можно переопределить через ANTHROPIC_VISION_MODEL.
+# Sonnet надёжно разбирает плотные многоколоночные сетки МПГУ (Haiku их схлопывает).
+_VISION_MODEL = os.environ.get("ANTHROPIC_VISION_MODEL", "claude-sonnet-4-6")
+
 
 def _get_anthropic_client() -> anthropic.Anthropic:
     """Создаёт клиент Anthropic, пробуя несколько источников авторизации."""
@@ -89,7 +101,7 @@ class ClaudeClient:
         а группы с одинаковым именем (продолжение на следующей странице)
         склеиваем.
         """
-        images = convert_from_path(pdf_path, dpi=150, fmt="jpeg")[:max_pages]
+        images = convert_from_path(pdf_path, dpi=200, fmt="jpeg")[:max_pages]
         merged: dict[str, dict] = {}
         order: list[str] = []
 
@@ -123,8 +135,8 @@ class ClaudeClient:
         content.append({"type": "text", "text": "Распарси расписание с этих страниц."})
 
         response = self.client.messages.create(
-            model="claude-haiku-4-5-20251001",
-            max_tokens=16000,
+            model=_VISION_MODEL,
+            max_tokens=20000,
             system=[{
                 "type": "text",
                 "text": SYSTEM_PROMPT,
