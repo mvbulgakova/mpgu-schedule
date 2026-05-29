@@ -8,7 +8,7 @@ oc.mpgu.su, в т.ч. ZIP), распознаёт через ClaudeClient, ост
 Usage: python -m scraper.reparse_vision <institute_id> <page_url>
          [--out FILE] [--exclude SUBSTR ...] [--allow-numeric]
 """
-import sys, re, json, ssl, argparse, urllib.request, urllib.parse, tempfile, os, io, zipfile
+import sys, re, json, ssl, argparse, urllib.request, urllib.parse, tempfile, os, io, zipfile, subprocess
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from scraper.utils.claude_client import ClaudeClient
@@ -82,12 +82,40 @@ def infer_form_degree(fname):
     return form, degree
 
 
-def clean_name(raw, allow_numeric):
+CORE_RE = re.compile(r'[А-Я]{2,4}\d{4}')
+
+
+def authoritative(path):
+    """Коды групп из текстового слоя PDF: (полные коды, ядра). Пусто для скана."""
+    try:
+        txt = subprocess.run(["pdftotext", path, "-"], capture_output=True,
+                             text=True, timeout=60).stdout
+    except Exception:
+        return set(), set()
+    txt = fix_homoglyphs(txt)
+    return set(FULL_CODE_RE.findall(txt)), set(CORE_RE.findall(txt))
+
+
+def clean_name(raw, allow_numeric, full_codes, cores):
+    """Возвращает чистое имя группы или None.
+
+    Если у файла есть текстовый слой (cores непусто) — код ОБЯЗАН совпасть с
+    эталоном (иначе это misread vision → отбрасываем). Полный код берём из
+    эталона, если он там есть."""
     name = fix_homoglyphs((raw or "").strip())
     m = FULL_CODE_RE.search(name)
     if m:
-        return m.group(0)
-    if allow_numeric:
+        code = m.group(0)
+        core = CORE_RE.search(code).group(0)
+        if cores:  # текстовый источник — валидируем по эталону
+            if core not in cores:
+                return None
+            for fc in full_codes:  # предпочитаем полный эталонный код
+                if fc.endswith(core):
+                    return fc
+            return code
+        return code  # скан — без валидации, как прочитал vision
+    if allow_numeric and not cores:
         m = NUMERIC_RE.match(name)
         if m:
             return f"{m.group(1)} группа"
@@ -120,6 +148,7 @@ def main():
             print(f"  -- {fname[:50]}: не PDF/ZIP (возможно требует логина)", file=sys.stderr); continue
         kept = 0
         for path in pdfs:
+            full_codes, cores = authoritative(path)
             try:
                 res = client.parse_pdf_pages(path, batch_size=1)
             except Exception as e:
@@ -128,7 +157,7 @@ def main():
                 try: os.unlink(path)
                 except OSError: pass
             for g in res.get("groups", []):
-                name = clean_name(g.get("name"), args.allow_numeric)
+                name = clean_name(g.get("name"), args.allow_numeric, full_codes, cores)
                 if not name:
                     continue
                 g["name"] = name; g["form"] = form; g["degree"] = degree

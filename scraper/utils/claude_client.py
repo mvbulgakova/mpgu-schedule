@@ -5,8 +5,15 @@ import re
 from pathlib import Path
 
 import anthropic
+from PIL import Image
 from pdf2image import convert_from_path
 from tenacity import retry, stop_after_attempt, wait_exponential
+
+# Расписания МПГУ бывают огромного формата (A1/A2) — снимаем защиту PIL от
+# "decompression bomb", иначе рендер больших страниц падает. Размер ограничиваем
+# даунскейлом вручную (см. _image_to_base64).
+Image.MAX_IMAGE_PIXELS = None
+_MAX_SIDE = 2200  # Claude всё равно работает с ~1568px; больше не нужно
 
 # Регулярка для поиска JSON-объекта верхнего уровня в ответе
 _JSON_BLOCK_RE = re.compile(r'\{[\s\S]*\}', re.DOTALL)
@@ -150,8 +157,12 @@ class ClaudeClient:
 
 def _image_to_base64(pil_image) -> str:
     import io
+    w, h = pil_image.size
+    if max(w, h) > _MAX_SIDE:
+        scale = _MAX_SIDE / max(w, h)
+        pil_image = pil_image.resize((max(1, int(w * scale)), max(1, int(h * scale))))
     buf = io.BytesIO()
-    pil_image.save(buf, format="JPEG", quality=85)
+    pil_image.convert("RGB").save(buf, format="JPEG", quality=85)
     return base64.b64encode(buf.getvalue()).decode("utf-8")
 
 
