@@ -130,6 +130,9 @@ def main():
     ap.add_argument("--exclude", nargs="*",
                     default=["задолжен", "zadolzh", "ликвидац", "адаптацион"])
     ap.add_argument("--allow-numeric", action="store_true")
+    ap.add_argument("--batch", type=int, default=12,
+                    help="страниц за вызов; крупно = весь документ сразу "
+                         "(сохраняет связь колонка→код через страницы-продолжения)")
     args = ap.parse_args()
 
     client = ClaudeClient()
@@ -150,7 +153,7 @@ def main():
         for path in pdfs:
             full_codes, cores = authoritative(path)
             try:
-                res = client.parse_pdf_pages(path, batch_size=1)
+                res = client.parse_pdf_pages(path, batch_size=args.batch)
             except Exception as e:
                 print(f"  ERR parse {fname}: {e}", file=sys.stderr); res = {"groups": []}
             finally:
