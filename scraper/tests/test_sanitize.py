@@ -10,7 +10,25 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 from scraper.normalizer.schedule_normalizer import (
     clean_room, pull_subgroup, sanitize_lesson, sanitize_groups, infer_slot,
+    fix_homoglyphs,
 )
+
+
+def test_fix_homoglyphs_latin_to_cyrillic():
+    out = fix_homoglyphs("БOМ35-МДО2201")  # latin O
+    assert out == "БОМ35-МДО2201"
+    assert all(ord(c) >= 0x400 or not c.isalpha() for c in out)
+
+
+def test_fix_homoglyphs_leaves_non_homoglyph_latin():
+    # Z and I have no cyrillic look-alike — must stay untouched
+    assert fix_homoglyphs("MZIO34-СТ2501") == "МZIО34-СТ2501"
+
+
+def test_sanitize_groups_normalizes_name():
+    g = [{"name": "ВOМ34-ПИМ2408", "schedule": {}}]  # latin O
+    sanitize_groups(g)
+    assert g[0]["name"] == "ВОМ34-ПИМ2408"
 
 
 # --- clean_room -------------------------------------------------------------

@@ -305,12 +305,30 @@ def _lesson_key(l: dict) -> tuple:
     )
 
 
+# Латинские буквы, визуально идентичные кириллическим (гомоглифы).
+# Коды групп МПГУ всегда кириллические, но vision/OCR часто подставляет
+# латиницу ("БOМ35" с латинской O). Нормализуем ТОЛЬКО в именах групп —
+# в предметах/преподавателях латиница может быть легитимной.
+_HOMOGLYPHS = str.maketrans({
+    "A": "А", "B": "В", "C": "С", "E": "Е", "H": "Н", "K": "К", "M": "М",
+    "O": "О", "P": "Р", "T": "Т", "X": "Х", "Y": "У",
+    "a": "а", "c": "с", "e": "е", "o": "о", "p": "р", "x": "х", "y": "у",
+})
+
+
+def fix_homoglyphs(name: str) -> str:
+    """Заменяет латинские гомоглифы на кириллицу в коде группы."""
+    return name.translate(_HOMOGLYPHS) if name else name
+
+
 def sanitize_groups(groups: list[dict]) -> list[dict]:
-    """Чистит расписание всех групп: подгруппы, аудитории, slot,
-    удаление точных дублей и сортировка пар внутри дня по времени.
+    """Чистит расписание всех групп: имена (гомоглифы), подгруппы, аудитории,
+    slot, удаление точных дублей и сортировка пар внутри дня по времени.
     Мутирует и возвращает тот же список."""
     days = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
     for group in groups:
+        if group.get("name"):
+            group["name"] = fix_homoglyphs(group["name"]).strip()
         schedule = group.get("schedule") or {}
         for week_key in ("odd_week", "even_week"):
             week = schedule.get(week_key)
