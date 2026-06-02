@@ -26,7 +26,7 @@ class ExcelParser(BaseParser):
 
 
 def _parse_sheet(sheet) -> list[dict]:
-    rows = [[_cell_str(c) for c in row] for row in sheet.iter_rows(values_only=True)]
+    rows = _rows_with_merged(sheet)
     if not rows:
         return []
 
@@ -60,6 +60,23 @@ def _try_mpgu_format(rows: list[list[str]], sheet_title: str = "") -> list[dict]
     if not group_cols:
         return []
 
+    # Если в строке заголовка не коды групп, а описания курсов
+    # («1 курс (1 группа)»), а строкой ниже стоят реальные коды (ВVИ34-ИСТ2501) —
+    # берём имена из строки с кодами и сдвигаем header_idx на неё.
+    # допускаем латинские гомоглифы (V/O/I и т.п.), встречающиеся в кодах МПГУ
+    _CODE = re.compile(r"[А-ЯA-Z]{2,3}\d{2}[-\s]?[А-ЯA-Z]{2,4}\s?\d{4}")
+    if not any(_CODE.search(n) for n in group_cols.values()):
+        for look in range(header_idx + 1, min(header_idx + 3, len(rows))):
+            cand = rows[look]
+            codes = {ci: cand[ci].strip() for ci in group_cols
+                     if ci < len(cand) and _CODE.search(cand[ci] or "")}
+            if len(codes) >= max(1, len(group_cols) // 2):
+                for ci, code in codes.items():
+                    group_cols[ci] = re.sub(r"\s+", "", code)
+                header_idx = look
+                header_row = rows[header_idx]
+                break
+
     # Detect ZFO (date strings in day_col) vs full-time (day names)
     is_fulltime = True
     for row in rows[header_idx + 1: header_idx + 6]:
@@ -92,6 +109,7 @@ def _try_mpgu_format(rows: list[list[str]], sheet_title: str = "") -> list[dict]
 def _find_mpgu_header(rows: list[list[str]]) -> tuple | None:
     """Find header row; returns (idx, day_col, time_col, data_col) or None."""
     for i, row in enumerate(rows[:25]):
+        a = row[0].lower() if len(row) > 0 else ""
         b = row[1].lower() if len(row) > 1 else ""
         c = row[2].lower() if len(row) > 2 else ""
 
@@ -102,6 +120,12 @@ def _find_mpgu_header(rows: list[list[str]]) -> tuple | None:
         # Shifted: день/группы in col C (idx 2), groups from col E (idx 4)
         if ("день" in c or "группы" in c) and any(row[j] for j in range(4, min(len(row), 15))):
             return i, 2, 3, 4
+
+        # ОЗФО/ЗФО: «День недели» in col A (idx 0), «Группа / Время» in col B,
+        # group codes from col C (idx 2)
+        if ("день" in a) and ("группа" in b or "время" in b) \
+                and any(row[j] for j in range(2, min(len(row), 15))):
+            return i, 0, 1, 2
 
     return None
 
@@ -400,6 +424,37 @@ def _parse_simple_cell(cell: str, time_start: str, time_end: str):
 
 def _cell_str(v) -> str:
     return str(v).strip() if v is not None else ""
+
+
+def _rows_with_merged(sheet) -> list[list[str]]:
+    """Читает лист, «разливая» объединённые ячейки.
+
+    В .xlsx значение merged-диапазона хранится только в левой-верхней ячейке,
+    остальные пустые. У МПГУ заголовки групп, дни недели и слоты времени почти
+    всегда объединены по нескольким строкам/столбцам, поэтому без разливки
+    парсер теряет привязку занятий к группе/дню. Копируем значение во все
+    ячейки каждого merged-диапазона.
+    """
+    grid = [[_cell_str(c) for c in row] for row in sheet.iter_rows(values_only=True)]
+    if not grid:
+        return grid
+    width = max((len(r) for r in grid), default=0)
+    for r in grid:
+        if len(r) < width:
+            r.extend([""] * (width - len(r)))
+    for rng in list(sheet.merged_cells.ranges):
+        r0, r1 = rng.min_row - 1, rng.max_row - 1
+        c0, c1 = rng.min_col - 1, rng.max_col - 1
+        if r0 >= len(grid) or c0 >= width:
+            continue
+        val = grid[r0][c0]
+        if not val:
+            continue
+        for ri in range(r0, min(r1, len(grid) - 1) + 1):
+            for ci in range(c0, min(c1, width - 1) + 1):
+                if not grid[ri][ci]:
+                    grid[ri][ci] = val
+    return grid
 
 
 def _first_nonempty(cells: list[str]) -> str:
