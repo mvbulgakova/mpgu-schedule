@@ -133,9 +133,16 @@ def main():
     ap.add_argument("--batch", type=int, default=12,
                     help="страниц за вызов; крупно = весь документ сразу "
                          "(сохраняет связь колонка→код через страницы-продолжения)")
+    ap.add_argument("--surya", action="store_true",
+                    help="для сканов: Surya разбивает на колонки-группы, "
+                         "каждая читается отдельно (чистые коды без слияния)")
     args = ap.parse_args()
 
     client = ClaudeClient()
+    surya = None
+    if args.surya:
+        from scraper.parsers.surya_column_parser import SuryaColumnParser
+        surya = SuryaColumnParser()
     sources = list_sources(args.page_url, args.exclude)
     print(f"источников: {len(sources)}", file=sys.stderr)
 
@@ -153,14 +160,20 @@ def main():
         for path in pdfs:
             full_codes, cores = authoritative(path)
             try:
-                res = client.parse_pdf_pages(path, batch_size=args.batch)
+                if surya is not None:
+                    res = {"groups": surya.parse(path)}
+                else:
+                    res = client.parse_pdf_pages(path, batch_size=args.batch)
             except Exception as e:
                 print(f"  ERR parse {fname}: {e}", file=sys.stderr); res = {"groups": []}
             finally:
                 try: os.unlink(path)
                 except OSError: pass
             for g in res.get("groups", []):
-                name = clean_name(g.get("name"), args.allow_numeric, full_codes, cores)
+                # Surya уже отдаёт чистый валидный код; для сканов нет текстового
+                # слоя, поэтому не отбрасываем по cores — доверяем мажоритарному коду.
+                name = clean_name(g.get("name"), args.allow_numeric,
+                                  full_codes, set() if surya is not None else cores)
                 if not name:
                     continue
                 g["name"] = name; g["form"] = form; g["degree"] = degree
