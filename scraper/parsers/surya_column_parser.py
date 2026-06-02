@@ -54,24 +54,33 @@ class SuryaColumnParser:
     def parse(self, pdf_path: str) -> list[dict]:
         self._lazy()
         pages = convert_from_path(pdf_path, dpi=self.render_dpi)
-        merged: dict[str, dict] = {}
-        order: list[str] = []
+        # колонка #i — одна и та же группа на всех страницах; собираем её чтения,
+        # код берём мажоритарным голосом (устойчиво к редким мисридам VLM)
+        slots: dict[int, list[dict]] = {}
         for img in pages:
-            for grp in self._parse_page(img.convert("RGB")):
-                code = self._code(grp.get("name"))
-                if not code:
-                    continue
-                grp["name"] = code
-                if code in merged:
-                    _merge(merged[code], grp)
-                else:
-                    merged[code] = grp
-                    order.append(code)
-        groups = [merged[c] for c in order]
+            for idx, grp in self._parse_page(img.convert("RGB")):
+                slots.setdefault(idx, []).append(grp)
+        groups: list[dict] = []
+        for idx in sorted(slots):
+            reads = slots[idx]
+            code = self._vote_code(reads)
+            if not code:
+                continue
+            acc = {"name": code, "schedule": {}}
+            for g in reads:
+                _merge(acc, g)
+            groups.append(acc)
         sanitize_groups(groups)
         return [g for g in groups if _count(g) > 0]
 
-    def _parse_page(self, img: Image.Image) -> list[dict]:
+    def _vote_code(self, reads: list[dict]) -> str | None:
+        from collections import Counter
+        codes = [c for c in (self._code(g.get("name")) for g in reads) if c]
+        if not codes:
+            return None
+        return Counter(codes).most_common(1)[0][0]
+
+    def _parse_page(self, img: Image.Image) -> list[tuple[int, dict]]:
         W, H = img.size
         tr = self._table_rec([img])[0]
         cols = sorted(tr.cols, key=lambda c: c.bbox[0])
@@ -80,6 +89,7 @@ class SuryaColumnParser:
         serv_x1 = max((c.bbox[2] for c in cols if c.bbox[2] < 0.2 * W), default=0.10 * W)
         time_zone = img.crop((0, 0, int(serv_x1), H))
         out = []
+        idx = 0
         for c in cols:
             x0, _, x1, _ = c.bbox
             if x0 < serv_x1 - 5 or (x1 - x0) < 0.08 * W:
@@ -88,7 +98,8 @@ class SuryaColumnParser:
             comp = self._compose(time_zone, strip)
             grp = self._read_column(comp)
             if grp:
-                out.append(grp)
+                out.append((idx, grp))
+            idx += 1
         return out
 
     def _compose(self, time_zone: Image.Image, strip: Image.Image) -> Image.Image:
