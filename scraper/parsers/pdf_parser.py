@@ -435,6 +435,9 @@ def _parse_tables(tables: list[list[list]]) -> list[dict]:
 
 _SKIP_CELLS = {"День самоподготовки", "—", "-", "–"}
 
+# Код группы МПГУ (с возможными пробелами вокруг дефиса), для сегментации страниц
+_GROUP_CODE_RE = re.compile(r"[А-ЯЁа-яёA-Za-z]{2,6}\d{2}\s*-\s*[А-ЯЁа-яёA-Za-z]{2,6}\d{4}")
+
 
 def _try_parse_time_cell(c1: str) -> tuple[str, str] | None:
     """Extracts (HH:MM, HH:MM) from a time cell string, trying multiple formats."""
@@ -552,7 +555,36 @@ def _parse_mpgu_timetable_pages(tables: list[list[list]]) -> list[dict]:
     - Один PDF = одна группа (Format 1a: перевёрнутое название дня)
     - Один PDF = несколько групп (Format 3: прямое название дня, несколько колонок-групп)
     - Продолжение страниц без заголовка (Format 2: буквы по одной в отдельных строках)
+    - Несколько групп-сеток в одном PDF: каждая страница со СВОИМИ кодами групп
+      (напр. «1 курс»/«2 курс» на разных страницах) — отдельный сегмент.
     """
+    if not tables:
+        return []
+
+    # Разбиваем таблицы на сегменты: новый сегмент начинается там, где у таблицы
+    # есть собственные коды групп (а не унаследованные от предыдущей страницы).
+    # «Продолжения» (Format 2, без кодов) приклеиваются к текущему сегменту.
+    segments: list[list[list]] = []
+    for t in tables:
+        gc, _, _, _ = _extract_timetable_groups(t)
+        has_own_codes = gc != [("группа", 2)] and any(
+            _GROUP_CODE_RE.search(name) for name, _ in gc
+        )
+        if has_own_codes or not segments:
+            segments.append([t])
+        else:
+            segments[-1].append(t)
+
+    if len(segments) > 1:
+        result: list[dict] = []
+        for seg in segments:
+            result.extend(_parse_mpgu_segment(seg, all_tables=tables))
+        return result
+    return _parse_mpgu_segment(tables, all_tables=tables)
+
+
+def _parse_mpgu_segment(tables: list[list[list]], all_tables: list[list[list]]) -> list[dict]:
+    """Парсит один сегмент (одна группа-сетка + её продолжения)."""
     if not tables:
         return []
 
