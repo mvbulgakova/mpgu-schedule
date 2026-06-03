@@ -22,11 +22,12 @@ from pdf2image import convert_from_path
 from scraper.utils.claude_client import _get_anthropic_client, _VISION_MODEL
 from scraper.normalizer.schedule_normalizer import sanitize_groups, fix_homoglyphs
 
-FULL_CODE_RE = re.compile(r'[А-Я]{2,3}\d{2}-[А-Я]{2,4}\d{4}')
+FULL_CODE_RE = re.compile(r'[А-Я]{2,3}\d{2}-[А-Я]{2,4}\s?\d{4}')
 # Терпимый шаблон: в числовых позициях допускаем гомоглифы-буквы (З/О/Ч),
-# которые VLM иногда выдаёт вместо цифр 3/0/4.
+# которые VLM иногда выдаёт вместо цифр 3/0/4. Пробел перед годом
+# (напр. «ММК 2501») допускается и затем убирается.
 _CODE_TOLERANT_RE = re.compile(
-    r'([А-Я]{2,3})([\dЗОЧ]{2})-([А-Я]{2,4})([\dЗОЧ]{4})')
+    r'([А-Я]{2,3})([\dЗОЧ]{2})-([А-Я]{2,4})\s?([\dЗОЧ]{4})')
 DAYS = ("monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday")
 
 _COLUMN_PROMPT = (
@@ -137,7 +138,7 @@ class SuryaColumnParser:
         s = fix_homoglyphs((name or "").strip())
         m = FULL_CODE_RE.search(s)
         if m:
-            return m.group(0)
+            return m.group(0).replace(" ", "")
         # VLM иногда читает цифру как похожую кириллическую букву (3→З, 0→О,
         # 4→Ч) внутри числовых частей кода. Матчим терпимым шаблоном и нормализуем
         # обратно в цифры ТОЛЬКО числовые позиции (буквенный префикс не трогаем).
