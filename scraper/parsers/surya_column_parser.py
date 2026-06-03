@@ -23,6 +23,10 @@ from scraper.utils.claude_client import _get_anthropic_client, _VISION_MODEL
 from scraper.normalizer.schedule_normalizer import sanitize_groups, fix_homoglyphs
 
 FULL_CODE_RE = re.compile(r'[А-Я]{2,3}\d{2}-[А-Я]{2,4}\d{4}')
+# Терпимый шаблон: в числовых позициях допускаем гомоглифы-буквы (З/О/Ч),
+# которые VLM иногда выдаёт вместо цифр 3/0/4.
+_CODE_TOLERANT_RE = re.compile(
+    r'([А-Я]{2,3})([\dЗОЧ]{2})-([А-Я]{2,4})([\dЗОЧ]{4})')
 DAYS = ("monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday")
 
 _COLUMN_PROMPT = (
@@ -130,8 +134,19 @@ class SuryaColumnParser:
 
     @staticmethod
     def _code(name: str | None) -> str | None:
-        m = FULL_CODE_RE.search(fix_homoglyphs((name or "").strip()))
-        return m.group(0) if m else None
+        s = fix_homoglyphs((name or "").strip())
+        m = FULL_CODE_RE.search(s)
+        if m:
+            return m.group(0)
+        # VLM иногда читает цифру как похожую кириллическую букву (3→З, 0→О,
+        # 4→Ч) внутри числовых частей кода. Матчим терпимым шаблоном и нормализуем
+        # обратно в цифры ТОЛЬКО числовые позиции (буквенный префикс не трогаем).
+        m = _CODE_TOLERANT_RE.search(s)
+        if not m:
+            return None
+        pre, num1, mid, num2 = m.groups()
+        tr = str.maketrans("ЗОЧ", "304")
+        return f"{pre}{num1.translate(tr)}-{mid}{num2.translate(tr)}"
 
 
 def _merge(into: dict, other: dict) -> None:
