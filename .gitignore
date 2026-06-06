@@ -27,7 +27,10 @@ Thumbs.db
 # IDE
 .vscode/
 .idea/
-.claude/
+# ignore local Claude config but keep the committed skills library
+.claude/*
+!.claude/skills/
+.claude/settings.local.json
 data_test/
 data_teachers_tmp/
 meta/
