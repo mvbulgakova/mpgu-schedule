@@ -29,6 +29,11 @@ Two families:
   For ANY task touching `institutes/*` schedule data, start with
   `parsing-mpgu-schedules`.
 
+- **Maintaining the skills library itself:** `maintaining-project-skills`
+  (house style, project-vs-vendored split, the gitignore tracking gotcha,
+  turning a session lesson into a skill). Use it whenever you add or edit a
+  skill here.
+
 ## Project shape
 
 - **Scraper / parsers:** `scraper/parsers/` (`pdf_parser`, `excel_parser`,
