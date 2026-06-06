@@ -385,7 +385,34 @@ def _detect_anomalies(
             "changed_files": changed,
         })
 
+    # Всплеск мусорных имён: большинство групп без распознаваемого кода
+    # (как international 81/125). Сигнал, что парс развалился по содержанию,
+    # даже когда счётчик выглядит нормально.
+    if new_count >= 10:
+        garbage = [g["name"] for g in new_groups
+                   if not _GROUP_CODE_NAME.match((g.get("name") or "").strip())]
+        ratio = len(garbage) / new_count
+        if ratio > 0.3:
+            alerts.append({
+                "type": "garbage_names",
+                "severity": "high",
+                "institute_id": inst_id,
+                "institute_name": inst_name,
+                "message": (
+                    f"{len(garbage)} из {new_count} групп ({ratio:.0%}) без "
+                    f"распознаваемого кода группы — вероятно, парс развалился. "
+                    f"Примеры: {', '.join(repr(n) for n in garbage[:5])}."
+                ),
+                "garbage_count": len(garbage),
+                "new_count": new_count,
+            })
+
     return alerts
+
+
+# Имя-код группы: 2-3 буквы, 2 цифры, дефис, 2-4 буквы, 4 цифры
+# (кириллица + латинские гомоглифы, которые встречаются в кодах МПГУ).
+_GROUP_CODE_NAME = re.compile(r"^[А-ЯA-Z]{2,3}\d{2}-?[А-ЯA-Z]{2,4}\s?\d{4}")
 
 
 _DAY_NAMES_RU = {
