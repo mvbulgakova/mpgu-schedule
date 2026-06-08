@@ -260,13 +260,19 @@ jobs:
           PYTHONPATH: ${{ github.workspace }}/main-branch
         run: cd main-branch && python -m scraper.build_ical
 
+      - name: Build group search index
+        env:
+          DATA_PATH: ${{ github.workspace }}/data-branch
+          PYTHONPATH: ${{ github.workspace }}/main-branch
+        run: cd main-branch && python -m scraper.build_group_index
+
       - name: Push teachers index
         env:
           GITHUB_TOKEN: ${{ github.token }}
         run: |
           cd data-branch
           git remote set-url origin https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git
-          git add meta/teachers.json teachers/ ical/ 2>/dev/null || git add meta/teachers.json
+          git add meta/teachers.json meta/groups.json teachers/ ical/ 2>/dev/null || git add meta/teachers.json
           git diff --staged --quiet && echo "No changes" && exit 0
           git commit -m "Rebuild teachers index + iCal $(date -u '+%Y-%m-%d %H:%M UTC')"
           for i in 1 2 3; do
