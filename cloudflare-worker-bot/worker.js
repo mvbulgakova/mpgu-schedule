@@ -14,7 +14,9 @@
  * Данные берутся через прокси-воркер (DATA_BASE), который уже кэширует data-ветку.
  */
 
-const DATA_BASE = "https://mpgu-schedule.workers.dev"; // прокси данных; переопредели при необходимости
+// Источник данных: публичный CDN jsDelivr отдаёт data-ветку с кэшем — никакой
+// дополнительной инфраструктуры не требуется. Можно переопределить через env.DATA_BASE.
+const DEFAULT_DATA_BASE = "https://cdn.jsdelivr.net/gh/mvbulgakova/mpgu-schedule@data";
 
 const DAYS = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
 const DAY_RU = {
@@ -44,7 +46,7 @@ export default {
     if (!chatId || !text) return new Response("ok");
 
     try {
-      const reply = await handle(text);
+      const reply = await handle(text, env.DATA_BASE || DEFAULT_DATA_BASE);
       await send(env, chatId, reply);
     } catch (e) {
       await send(env, chatId, "Что-то пошло не так. Попробуйте позже.");
@@ -53,7 +55,7 @@ export default {
   },
 };
 
-async function handle(text) {
+async function handle(text, base) {
   if (text.startsWith("/start") || text.startsWith("/help")) {
     return "👋 Бот расписания МПГУ.\n\nПришлите код группы — например <b>ВОП40-ПФК2501</b> " +
       "(можно часть кода) — и я покажу пары на сегодня.";
@@ -61,7 +63,7 @@ async function handle(text) {
   const q = searchKey(text.replace(/^\/\S+\s*/, ""));
   if (q.length < 3) return "Пришлите код группы (минимум 3 символа), например ВОП40-ПФК2501.";
 
-  const index = await getJson(`${DATA_BASE}/meta/groups.json`);
+  const index = await getJson(`${base}/meta/groups.json`);
   const all = (index.groups || []);
   const exact = all.filter((g) => g.key === q);
   const matches = exact.length ? exact : all.filter((g) => g.key.includes(q));
@@ -74,7 +76,7 @@ async function handle(text) {
   }
 
   const g = matches[0];
-  const group = await getJson(`${DATA_BASE}/institutes/${g.institute}/groups/${encodeURIComponent(g.file)}.json`);
+  const group = await getJson(`${base}/institutes/${g.institute}/groups/${encodeURIComponent(g.file)}.json`);
   return formatToday(group, g);
 }
 

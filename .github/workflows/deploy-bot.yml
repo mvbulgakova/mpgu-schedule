@@ -1,0 +1,55 @@
+name: Deploy Telegram Bot
+
+# Ручной запуск с телефона: вкладка Actions → Deploy Telegram Bot → Run workflow.
+# Нужны секреты репозитория (Settings → Secrets and variables → Actions):
+#   CLOUDFLARE_API_TOKEN   — токен Cloudflare с правом Edit Workers
+#   CLOUDFLARE_ACCOUNT_ID  — ID аккаунта Cloudflare
+#   BOT_TOKEN              — токен бота от @BotFather
+#   WEBHOOK_SECRET         — любая длинная случайная строка (придумай)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy worker + upload secrets
+        id: deploy
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: cloudflare-worker-bot
+          secrets: |
+            BOT_TOKEN
+            WEBHOOK_SECRET
+        env:
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+          WEBHOOK_SECRET: ${{ secrets.WEBHOOK_SECRET }}
+
+      - name: Register Telegram webhook
+        env:
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+          WEBHOOK_SECRET: ${{ secrets.WEBHOOK_SECRET }}
+          DEPLOY_URL: ${{ steps.deploy.outputs.deployment-url }}
+        run: |
+          if [ -z "$DEPLOY_URL" ]; then
+            echo "Не удалось определить URL воркера автоматически."
+            echo "Открой в браузере (подставь токен и URL воркера):"
+            echo "https://api.telegram.org/bot<ТОКЕН>/setWebhook?url=<URL_ВОРКЕРА>&secret_token=<WEBHOOK_SECRET>"
+            exit 0
+          fi
+          echo "URL воркера: $DEPLOY_URL"
+          RESP=$(curl -sS --max-time 20 \
+            "https://api.telegram.org/bot${BOT_TOKEN}/setWebhook" \
+            --data-urlencode "url=${DEPLOY_URL}" \
+            --data-urlencode "secret_token=${WEBHOOK_SECRET}")
+          echo "Ответ Telegram: $RESP"
+          echo "$RESP" | grep -q '"ok":true' || { echo "Вебхук не зарегистрирован"; exit 1; }
+          echo "✅ Бот развёрнут и вебхук установлен. Напиши боту код группы."
