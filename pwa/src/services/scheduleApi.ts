@@ -51,3 +51,15 @@ export const scheduleApi = {
   fetchExams: (id: string) =>
     get<InstituteExams>(`institutes/${id}/exams.json`),
 };
+
+/** Имя файла .ics из кода группы — должно совпадать с _safe() в build_ical.py. */
+function safeIcalName(groupName: string): string {
+  return groupName.trim().replace(/[^\p{L}\p{N}_-]/gu, "_");
+}
+
+/** webcal:// ссылка для подписки на расписание группы в календаре. */
+export function groupIcalUrl(instituteId: string, groupName: string): string {
+  const httpUrl = `${PRIMARY}/ical/${instituteId}/${safeIcalName(groupName)}.ics`;
+  return httpUrl.replace(/^https?:\/\//, "webcal://");
+}
+

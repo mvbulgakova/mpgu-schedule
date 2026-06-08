@@ -11,6 +11,7 @@ import {
 } from "./hooks/useSchedule";
 import { useOfflineCache } from "./hooks/useOfflineCache";
 import { useNotifications } from "./hooks/useNotifications";
+import { groupIcalUrl } from "./services/scheduleApi";
 import InstituteSelector from "./components/InstituteSelector";
 import GroupSelector from "./components/GroupSelector";
 import WeekSchedule from "./components/WeekSchedule";
@@ -163,6 +164,18 @@ function ScheduleApp() {
 
           {groupMeta && !selectedTeacher && (
             <>
+              <button
+                onClick={() => {
+                  if (instituteId && groupName) {
+                    window.location.href = groupIcalUrl(instituteId, groupName);
+                  }
+                }}
+                className="text-xs bg-indigo-700 hover:bg-indigo-600 rounded-lg px-2.5 py-1.5 border border-indigo-600"
+                aria-label="Подписаться в календаре (iCal)"
+                title="Добавить расписание в календарь"
+              >
+                📅
+              </button>
               <button
                 onClick={() => setShowNotifSettings(true)}
                 className="text-xs bg-indigo-700 hover:bg-indigo-600 rounded-lg px-2.5 py-1.5 border border-indigo-600"
