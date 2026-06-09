@@ -111,7 +111,8 @@ def main() -> int:
         return 0
     token = os.environ.get("BOT_TOKEN")
     if not token:
-        print("BOT_TOKEN не задан"); return 1
+        print("BOT_TOKEN не задан — пропускаю (добавь секрет репозитория). Выход.")
+        return 0
     deadline = time.time() + RUN_SECONDS
     offset = None
     print(f"Бот запущен на {RUN_SECONDS}s")
