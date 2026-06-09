@@ -3,15 +3,21 @@ plugins {
 }
 
 android {
-    namespace 'com.hyperbolic.geometry'
+    namespace 'ru.mpgu.schedule'
     compileSdk 34
 
     defaultConfig {
-        applicationId "com.hyperbolic.geometry"
-        minSdk 24
+        applicationId "ru.mpgu.schedule"
+        minSdk 26
         targetSdk 34
         versionCode 1
-        versionName "1.0"
+        versionName "1.0.0"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+        }
     }
 
     compileOptions {
@@ -22,5 +28,4 @@ android {
 
 dependencies {
     implementation 'androidx.appcompat:appcompat:1.6.1'
-    implementation 'androidx.swiperefreshlayout:swiperefreshlayout:1.1.0'
 }

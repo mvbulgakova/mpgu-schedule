@@ -33,14 +33,24 @@ export interface Group {
   schedule: WeekSchedule;
 }
 
-export interface InstituteSchedule {
+// Лёгкий манифест института (без данных расписания)
+export interface GroupMeta {
+  name: string;
+  file: string;        // имя файла без .json в groups/
+  year: number | null;
+  form: StudyForm;
+  degree: Degree;
+}
+
+export interface InstituteManifest {
+  version?: number;
   institute_id: string;
   institute_name: string;
   short_name: string;
   academic_year: string;
   updated_at: string;
   parser_used: string;
-  groups: Group[];
+  groups: GroupMeta[];
 }
 
 export interface InstituteIndexEntry {
@@ -49,6 +59,7 @@ export interface InstituteIndexEntry {
   short_name: string;
   campus?: string;
   campus_address?: string;
+  campus_note?: string;
   groups_count: number;
   updated_at: string;
   status: "ok" | "error";
@@ -60,4 +71,67 @@ export interface ScheduleIndex {
   generated_at: string;
   academic_year: string;
   institutes: InstituteIndexEntry[];
+}
+
+// ──────────────────────────────────────────────
+// Exam / session types
+// ──────────────────────────────────────────────
+
+export type ExamType = "exam" | "credit" | "unknown";
+
+export interface ExamEntry {
+  date: string;          // "YYYY-MM-DD"
+  time_start: string;    // "HH:MM"
+  time_end: string | null;
+  subject: string;
+  type: ExamType;
+  teacher: string | null;
+  room: string | null;
+  groups: string[];
+}
+
+export interface InstituteExams {
+  institute_id: string;
+  updated_at: string;
+  entries: ExamEntry[];
+}
+
+// ──────────────────────────────────────────────
+// Teacher types
+// ──────────────────────────────────────────────
+
+export interface TeacherMeta {
+  id: number;
+  staff_slug: string;
+  full_name: string;
+  last: string;
+  first: string;
+  patronymic: string;
+  abbreviated: string;
+  position: string;
+  institute_id: string;
+  kafedra_name: string;
+  has_schedule?: boolean;
+}
+
+export interface TeachersIndex {
+  generated_at: string;
+  count: number;
+  teachers: TeacherMeta[];
+}
+
+export interface TeacherLesson extends Omit<Lesson, "teacher"> {
+  institute_id: string;
+  group_name: string;
+}
+
+export type TeacherDaySchedule = Record<DayKey, TeacherLesson[]>;
+
+export interface TeacherWeekSchedule {
+  odd_week: TeacherDaySchedule;
+  even_week: TeacherDaySchedule;
+}
+
+export interface TeacherScheduleDoc extends TeacherMeta {
+  schedule: TeacherWeekSchedule;
 }

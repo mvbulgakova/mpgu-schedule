@@ -9,7 +9,7 @@ import aiohttp
 from scraper.parsers.base import BaseParser, ParseResult
 from scraper.normalizer.schedule_normalizer import (
     normalize_day, normalize_lesson_type, normalize_time,
-    normalize_week_type, make_schedule_skeleton, lesson_obj,
+    normalize_week_type, make_schedule_skeleton, lesson_obj, extract_subgroup,
 )
 
 
@@ -264,13 +264,13 @@ def _parse_isgo_cell(content: str, t_start: str, t_end: str) -> dict | None:
     else:
         subject_raw = first
 
-    # Убираем скобки с типом занятия и лишние пробелы
+    # Убираем скобки с типом занятия и лишние пробелы; извлекаем подгруппу
     subject = _TYPE_BRACKET_RE.sub("", subject_raw).strip(" ,.")
+    subject, subgroup = extract_subgroup(subject)
     if not subject:
         return None
 
-    from scraper.normalizer.schedule_normalizer import lesson_obj
-    return lesson_obj(None, t_start, t_end, subject, lesson_type, teacher, room)
+    return lesson_obj(None, t_start, t_end, subject, lesson_type, teacher, room, subgroup)
 
 
 def _clean_teacher(text: str) -> str:

@@ -1,0 +1,63 @@
+name: Fetch Exam Schedules
+
+on:
+  workflow_dispatch:
+    inputs:
+      institute:
+        description: "Institute ID to process (leave empty for all)"
+        required: false
+        default: ""
+  schedule:
+    - cron: "0 4 * * 1,4"  # Mon & Thu at 04:00 UTC (sessions published irregularly)
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code branch
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Checkout data branch
+        uses: actions/checkout@v4
+        with:
+          ref: data
+          path: data
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y tesseract-ocr tesseract-ocr-rus libgl1 poppler-utils
+
+      - name: Install Python dependencies
+        run: |
+          pip install aiohttp beautifulsoup4 lxml tenacity python-dotenv \
+                      pdfplumber camelot-py[cv] pdf2image Pillow pytesseract \
+                      opencv-python-headless openpyxl python-docx
+
+      - name: Fetch exam schedules
+        run: |
+          INST="${{ github.event.inputs.institute }}"
+          if [ -n "$INST" ]; then
+            python -m scraper.fetch_exams --data-path ./data --institute "$INST"
+          else
+            python -m scraper.fetch_exams --data-path ./data
+          fi
+        env:
+          DATA_PATH: ./data
+
+      - name: Commit and push to data branch
+        run: |
+          cd data
+          git config user.name "MPGU Schedule Bot"
+          git config user.email "bot@github-actions"
+          git add institutes/*/exams.json
+          git diff --staged --quiet && echo "No changes" && exit 0
+          git commit -m "chore: update exam schedules [skip ci]"
+          git push origin data

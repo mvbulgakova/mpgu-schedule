@@ -5,8 +5,15 @@ import re
 from pathlib import Path
 
 import anthropic
+from PIL import Image
 from pdf2image import convert_from_path
 from tenacity import retry, stop_after_attempt, wait_exponential
+
+# Расписания МПГУ бывают огромного формата (A1/A2) — снимаем защиту PIL от
+# "decompression bomb", иначе рендер больших страниц падает. Размер ограничиваем
+# даунскейлом вручную (см. _image_to_base64).
+Image.MAX_IMAGE_PIXELS = None
+_MAX_SIDE = 2200  # Claude всё равно работает с ~1568px; больше не нужно
 
 # Регулярка для поиска JSON-объекта верхнего уровня в ответе
 _JSON_BLOCK_RE = re.compile(r'\{[\s\S]*\}', re.DOTALL)
@@ -14,11 +21,19 @@ _JSON_BLOCK_RE = re.compile(r'\{[\s\S]*\}', re.DOTALL)
 SYSTEM_PROMPT = """Ты — парсер расписания занятий российского университета.
 Тебе дают изображения страниц расписания МПГУ (Московский педагогический государственный университет).
 
+ВАЖНО про структуру таблицы:
+- Каждая вертикальная колонка со своим заголовком-кодом группы (например
+  ВОС34-ДОШ2501, БОМ35-ПИМ2308) или номером ("105 группа") — ОТДЕЛЬНАЯ группа.
+- На одной странице обычно несколько групп-колонок — извлекай ВСЕ до единой.
+- Левый узкий столбец — день недели (часто написан вертикально, по буквам) +
+  номер пары + время; он общий для всех групп-колонок.
+- name = код группы ровно как на странице (кириллицей, без латинских подмен).
+
 Верни JSON строго по следующей схеме:
 {
   "groups": [
     {
-      "name": "название группы или курс",
+      "name": "код группы как на странице",
       "year": число (1-6),
       "form": "full_time" | "part_time" | "correspondence",
       "degree": "bachelor" | "specialist" | "master",
@@ -57,6 +72,10 @@ SYSTEM_PROMPT = """Ты — парсер расписания занятий р�
 
 _SESSION_TOKEN_FILE = "/home/claude/.claude/remote/.session_ingress_token"
 
+# Модель vision можно переопределить через ANTHROPIC_VISION_MODEL.
+# Sonnet надёжно разбирает плотные многоколоночные сетки МПГУ (Haiku их схлопывает).
+_VISION_MODEL = os.environ.get("ANTHROPIC_VISION_MODEL", "claude-sonnet-4-6")
+
 
 def _get_anthropic_client() -> anthropic.Anthropic:
     """Создаёт клиент Anthropic, пробуя несколько источников авторизации."""
@@ -79,12 +98,42 @@ class ClaudeClient:
     def __init__(self):
         self.client = _get_anthropic_client()
 
-    @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=4, max=30))
-    def parse_pdf_pages(self, pdf_path: str) -> dict:
-        images = convert_from_path(pdf_path, dpi=150, fmt="jpeg")
+    def parse_pdf_pages(self, pdf_path: str, batch_size: int = 2,
+                        max_pages: int = 60) -> dict:
+        """Распознаёт расписание со сканов PDF постранично.
 
+        Плотные многогрупповые страницы МПГУ дают объёмный JSON: при отправке
+        6 страниц за раз ответ упирался в max_tokens и обрывался → невалидный
+        JSON → парс падал целиком. Поэтому обрабатываем небольшими батчами,
+        а группы с одинаковым именем (продолжение на следующей странице)
+        склеиваем.
+        """
+        images = convert_from_path(pdf_path, dpi=200, fmt="jpeg")[:max_pages]
+        merged: dict[str, dict] = {}
+        order: list[str] = []
+
+        for start in range(0, len(images), batch_size):
+            batch = images[start:start + batch_size]
+            try:
+                groups = self._parse_batch(batch)
+            except Exception:
+                continue  # пропускаем нечитаемый батч, не теряя остальные
+            for g in groups:
+                name = (g.get("name") or "").strip()
+                if not name:
+                    continue
+                if name in merged:
+                    _merge_group_schedule(merged[name], g)
+                else:
+                    merged[name] = g
+                    order.append(name)
+
+        return {"groups": [merged[n] for n in order]}
+
+    @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=4, max=30))
+    def _parse_batch(self, images: list) -> list[dict]:
         content = []
-        for img in images[:6]:  # не более 6 страниц за раз
+        for img in images:
             buf = _image_to_base64(img)
             content.append({
                 "type": "image",
@@ -93,8 +142,8 @@ class ClaudeClient:
         content.append({"type": "text", "text": "Распарси расписание с этих страниц."})
 
         response = self.client.messages.create(
-            model="claude-haiku-4-5-20251001",
-            max_tokens=8192,
+            model=_VISION_MODEL,
+            max_tokens=20000,
             system=[{
                 "type": "text",
                 "text": SYSTEM_PROMPT,
@@ -102,27 +151,65 @@ class ClaudeClient:
             }],
             messages=[{"role": "user", "content": content}],
         )
-
         text = response.content[0].text.strip()
-        # убираем markdown-обёртку если есть
-        if "```" in text:
-            # извлекаем содержимое между ```...```
-            parts = text.split("```")
-            for part in parts[1::2]:  # нечётные части — между ```
-                candidate = part.lstrip("json").strip()
-                try:
-                    return json.loads(candidate)
-                except json.JSONDecodeError:
-                    continue
-        # пробуем найти JSON-объект напрямую (может быть лишний текст вокруг)
-        m = _JSON_BLOCK_RE.search(text)
-        if m:
-            return json.loads(m.group(0))
-        return json.loads(text)
+        return _extract_json(text).get("groups", [])
 
 
 def _image_to_base64(pil_image) -> str:
     import io
+    w, h = pil_image.size
+    if max(w, h) > _MAX_SIDE:
+        scale = _MAX_SIDE / max(w, h)
+        pil_image = pil_image.resize((max(1, int(w * scale)), max(1, int(h * scale))))
     buf = io.BytesIO()
-    pil_image.save(buf, format="JPEG", quality=85)
+    pil_image.convert("RGB").save(buf, format="JPEG", quality=85)
     return base64.b64encode(buf.getvalue()).decode("utf-8")
+
+
+_DAYS = ("monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday")
+
+
+def _merge_group_schedule(into: dict, other: dict) -> None:
+    """Сливает расписание `other` в `into` (одна группа на нескольких страницах)."""
+    si = into.setdefault("schedule", {})
+    so = other.get("schedule", {}) or {}
+    for week in ("odd_week", "even_week"):
+        wi = si.setdefault(week, {})
+        wo = so.get(week, {}) or {}
+        for day in _DAYS:
+            lessons = wo.get(day)
+            if lessons:
+                wi.setdefault(day, []).extend(lessons)
+
+
+def _extract_json(text: str) -> dict:
+    """Достаёт JSON-объект из ответа модели; терпим к markdown-обёртке и обрыву."""
+    text = text.strip()
+    if "```" in text:
+        for part in text.split("```")[1::2]:
+            candidate = part.lstrip("json").strip()
+            try:
+                return json.loads(candidate)
+            except json.JSONDecodeError:
+                continue
+    try:
+        return json.loads(text)
+    except json.JSONDecodeError:
+        pass
+    m = _JSON_BLOCK_RE.search(text)
+    if m:
+        try:
+            return json.loads(m.group(0))
+        except json.JSONDecodeError:
+            pass
+    # последняя попытка: ответ оборван — отрезаем до последней целой группы
+    cut = text.rfind("}, {")
+    if cut > 0:
+        salvaged = text[:cut] + "}]}"
+        # докручиваем закрытие до groups-массива
+        for tail in ("}]}", "]}", "}"):
+            try:
+                return json.loads(text[:cut] + tail)
+            except json.JSONDecodeError:
+                continue
+    return {"groups": []}

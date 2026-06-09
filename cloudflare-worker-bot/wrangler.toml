@@ -1,0 +1,12 @@
+name = "mpgu-schedule-bot"
+main = "worker.js"
+compatibility_date = "2024-09-23"
+
+# Секреты (wrangler secret put ...):
+#   BOT_TOKEN        — токен бота от @BotFather
+#   WEBHOOK_SECRET   — произвольная строка, та же, что в setWebhook?secret_token=
+#
+# Деплой:
+#   wrangler deploy
+# Регистрация вебхука (один раз, подставьте значения):
+#   curl "https://api.telegram.org/bot<BOT_TOKEN>/setWebhook?url=https://mpgu-schedule-bot.<subdomain>.workers.dev&secret_token=<WEBHOOK_SECRET>"
