@@ -11,10 +11,35 @@
   "kafedra_name": "Кафедра английского языка и цифровых образовательных технологий",
   "schedule": {
     "odd_week": {
-      "monday": [],
+      "monday": [
+        {
+          "slot": 1,
+          "time_start": "09:00",
+          "time_end": "10:30",
+          "subject": "Иностранный язык",
+          "type": "practice",
+          "room": "34",
+          "subgroup": null,
+          "notes": "",
+          "institute_id": "pedagogy",
+          "group_name": "СОП13-ПКП2517"
+        },
+        {
+          "slot": 2,
+          "time_start": "10:40",
+          "time_end": "12:10",
+          "subject": "Иностранный язык",
+          "type": "practice",
+          "room": "34",
+          "subgroup": null,
+          "notes": "",
+          "institute_id": "pedagogy",
+          "group_name": "СОП13-ПКП2517"
+        }
+      ],
       "tuesday": [
         {
-          "slot": null,
+          "slot": 2,
           "time_start": "10:40",
           "time_end": "12:10",
           "subject": "Иностранный язык",
@@ -23,12 +48,12 @@
           "subgroup": null,
           "notes": "",
           "institute_id": "math",
-          "group_name": "ВOМ34-ПМЭ2505"
+          "group_name": "ВОМ34-ПМЭ2505"
         }
       ],
       "wednesday": [
         {
-          "slot": null,
+          "slot": 1,
           "time_start": "09:00",
           "time_end": "10:30",
           "subject": "Иностранный язык",
@@ -37,7 +62,19 @@
           "subgroup": null,
           "notes": "",
           "institute_id": "math",
-          "group_name": "ВOМ34-ПМЭ2504"
+          "group_name": "ВОМ34-ПИМ2509"
+        },
+        {
+          "slot": 1,
+          "time_start": "09:00",
+          "time_end": "10:30",
+          "subject": "Иностранный язык",
+          "type": "lab",
+          "room": "305",
+          "subgroup": null,
+          "notes": "",
+          "institute_id": "math",
+          "group_name": "ВОМ34-ПМЭ2504"
         }
       ],
       "thursday": [],
@@ -45,10 +82,35 @@
       "saturday": []
     },
     "even_week": {
-      "monday": [],
+      "monday": [
+        {
+          "slot": 1,
+          "time_start": "09:00",
+          "time_end": "10:30",
+          "subject": "Иностранный язык",
+          "type": "practice",
+          "room": "34",
+          "subgroup": null,
+          "notes": "",
+          "institute_id": "pedagogy",
+          "group_name": "СОП13-ПКП2517"
+        },
+        {
+          "slot": 2,
+          "time_start": "10:40",
+          "time_end": "12:10",
+          "subject": "Иностранный язык",
+          "type": "practice",
+          "room": "34",
+          "subgroup": null,
+          "notes": "",
+          "institute_id": "pedagogy",
+          "group_name": "СОП13-ПКП2517"
+        }
+      ],
       "tuesday": [
         {
-          "slot": null,
+          "slot": 2,
           "time_start": "10:40",
           "time_end": "12:10",
           "subject": "Иностранный язык",
@@ -57,12 +119,12 @@
           "subgroup": null,
           "notes": "",
           "institute_id": "math",
-          "group_name": "ВOМ34-ПМЭ2505"
+          "group_name": "ВОМ34-ПМЭ2505"
         }
       ],
       "wednesday": [
         {
-          "slot": null,
+          "slot": 1,
           "time_start": "09:00",
           "time_end": "10:30",
           "subject": "Иностранный язык",
@@ -71,7 +133,19 @@
           "subgroup": null,
           "notes": "",
           "institute_id": "math",
-          "group_name": "ВOМ34-ПМЭ2504"
+          "group_name": "ВОМ34-ПИМ2509"
+        },
+        {
+          "slot": 1,
+          "time_start": "09:00",
+          "time_end": "10:30",
+          "subject": "Иностранный язык",
+          "type": "lab",
+          "room": "305",
+          "subgroup": null,
+          "notes": "",
+          "institute_id": "math",
+          "group_name": "ВОМ34-ПМЭ2504"
         }
       ],
       "thursday": [],

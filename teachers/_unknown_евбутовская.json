@@ -11,181 +11,90 @@
   "kafedra_name": "",
   "schedule": {
     "odd_week": {
-      "monday": [
-        {
-          "slot": 4,
-          "time_start": "14:20",
-          "time_end": "15:50",
-          "subject": "Психотерапия различных состояний детей и подростков",
-          "type": "practice",
-          "room": "34",
-          "subgroup": null,
-          "notes": "",
-          "institute_id": "pedagogy",
-          "group_name": "316 ГРУППА"
-        }
-      ],
-      "tuesday": [
-        {
-          "slot": 5,
-          "time_start": "16:00",
-          "time_end": "17:30",
-          "subject": "Психотерапия различных состояний детей и подростков",
-          "type": "practice",
-          "room": "34",
-          "subgroup": null,
-          "notes": "",
-          "institute_id": "pedagogy",
-          "group_name": "316 ГРУППА"
-        }
-      ],
-      "wednesday": [
-        {
-          "slot": 5,
-          "time_start": "16:00",
-          "time_end": "18:00",
-          "subject": "Учебные дисциплины по Кафедре психологии труда и психологического консультирования",
-          "type": "lecture",
-          "room": "Ауд.17",
-          "subgroup": null,
-          "notes": "",
-          "institute_id": "pedagogy",
-          "group_name": "1. П курса"
-        },
+      "monday": [],
+      "tuesday": [],
+      "wednesday": [],
+      "thursday": [
         {
           "slot": 6,
           "time_start": "17:40",
           "time_end": "19:10",
-          "subject": "Психотерапия различных состояний детей и подростков",
+          "subject": "Психологическое сопровождение личности",
           "type": "practice",
-          "room": "34",
+          "room": "33",
           "subgroup": null,
           "notes": "",
           "institute_id": "pedagogy",
-          "group_name": "316 ГРУППА"
-        }
-      ],
-      "thursday": [
-        {
-          "slot": 6,
-          "time_start": "21:00",
-          "time_end": "22:00",
-          "subject": "Психологическое сопровождение личности (ПЗ)",
-          "type": "seminar",
-          "room": "Ауд.33",
-          "subgroup": null,
-          "notes": "Ст. преподаватель",
-          "institute_id": "pedagogy",
-          "group_name": "309 ГРУППА"
-        }
-      ],
-      "friday": [
-        {
-          "slot": 5,
-          "time_start": "16:00",
-          "time_end": "18:00",
-          "subject": "Учебные дисциплины по Кафедре психологии труда и психологического консультирования",
-          "type": "lecture",
-          "room": "Ауд.17",
-          "subgroup": null,
-          "notes": "",
-          "institute_id": "pedagogy",
-          "group_name": "1. П курса"
+          "group_name": "БВП39-ПДЛ2309"
         },
         {
-          "slot": 6,
+          "slot": 7,
           "time_start": "19:20",
           "time_end": "20:50",
-          "subject": "Основы тренировочной работы (ПЗ)",
+          "subject": "Психологическое сопровождение личности",
           "type": "practice",
-          "room": "Ауд.33",
+          "room": "33",
           "subgroup": null,
           "notes": "",
           "institute_id": "pedagogy",
-          "group_name": "209 ГРУППА"
+          "group_name": "БВП39-ПДЛ2309"
+        },
+        {
+          "slot": 7,
+          "time_start": "19:20",
+          "time_end": "20:50",
+          "subject": "Психотерапия различных состояний детей и подростков",
+          "type": "practice",
+          "room": "35",
+          "subgroup": null,
+          "notes": "",
+          "institute_id": "pedagogy",
+          "group_name": "БЗП40-ПВП2316"
+        },
+        {
+          "slot": null,
+          "time_start": "21:00",
+          "time_end": "22:00",
+          "subject": "Психотерапия различных состояний детей и подростков",
+          "type": "practice",
+          "room": "35",
+          "subgroup": null,
+          "notes": "",
+          "institute_id": "pedagogy",
+          "group_name": "БЗП40-ПВП2316"
         }
       ],
+      "friday": [],
       "saturday": []
     },
     "even_week": {
-      "monday": [
-        {
-          "slot": 4,
-          "time_start": "14:20",
-          "time_end": "15:50",
-          "subject": "Психотерапия различных состояний детей и подростков",
-          "type": "practice",
-          "room": "34",
-          "subgroup": 1,
-          "notes": "",
-          "institute_id": "pedagogy",
-          "group_name": "316 ГРУППА"
-        },
-        {
-          "slot": 4,
-          "time_start": "14:20",
-          "time_end": "15:50",
-          "subject": "Психотерапия различных состояний детей и подростков",
-          "type": "practice",
-          "room": "34",
-          "subgroup": 2,
-          "notes": "",
-          "institute_id": "pedagogy",
-          "group_name": "316 ГРУППА (подгруппа 2)"
-        }
-      ],
-      "tuesday": [
-        {
-          "slot": 5,
-          "time_start": "16:00",
-          "time_end": "17:30",
-          "subject": "Психотерапия различных состояний детей и подростков",
-          "type": "practice",
-          "room": "34",
-          "subgroup": 1,
-          "notes": "",
-          "institute_id": "pedagogy",
-          "group_name": "316 ГРУППА"
-        },
-        {
-          "slot": 5,
-          "time_start": "16:00",
-          "time_end": "17:30",
-          "subject": "Психотерапия различных состояний детей и подростков",
-          "type": "practice",
-          "room": "34",
-          "subgroup": 2,
-          "notes": "",
-          "institute_id": "pedagogy",
-          "group_name": "316 ГРУППА (подгруппа 2)"
-        }
-      ],
-      "wednesday": [
-        {
-          "slot": 5,
-          "time_start": "16:00",
-          "time_end": "18:00",
-          "subject": "Учебные дисциплины по Кафедре психологии труда и психологического консультирования",
-          "type": "lecture",
-          "room": "Ауд.17",
-          "subgroup": null,
-          "notes": "",
-          "institute_id": "pedagogy",
-          "group_name": "1. П курса"
-        }
-      ],
+      "monday": [],
+      "tuesday": [],
+      "wednesday": [],
       "thursday": [
         {
           "slot": 6,
-          "time_start": "21:00",
-          "time_end": "22:00",
-          "subject": "Психологическое сопровождение личности (ПЗ)",
-          "type": "seminar",
-          "room": "Ауд.33",
+          "time_start": "17:40",
+          "time_end": "19:10",
+          "subject": "Психологическое сопровождение личности",
+          "type": "practice",
+          "room": "33",
           "subgroup": null,
-          "notes": "Ст. преподаватель",
+          "notes": "",
           "institute_id": "pedagogy",
-          "group_name": "309 ГРУППА"
+          "group_name": "БВП39-ПДЛ2309"
+        },
+        {
+          "slot": 7,
+          "time_start": "19:20",
+          "time_end": "20:50",
+          "subject": "Психологическое сопровождение личности",
+          "type": "practice",
+          "room": "33",
+          "subgroup": null,
+          "notes": "",
+          "institute_id": "pedagogy",
+          "group_name": "БВП39-ПДЛ2309"
         },
         {
           "slot": 7,
@@ -194,86 +103,25 @@
           "subject": "Психотерапия различных состояний детей и подростков",
           "type": "practice",
           "room": "35",
-          "subgroup": 1,
+          "subgroup": null,
           "notes": "",
           "institute_id": "pedagogy",
-          "group_name": "316 ГРУППА"
+          "group_name": "БЗП40-ПВП2316"
         },
         {
-          "slot": 8,
+          "slot": null,
           "time_start": "21:00",
           "time_end": "22:00",
           "subject": "Психотерапия различных состояний детей и подростков",
           "type": "practice",
           "room": "35",
-          "subgroup": 1,
+          "subgroup": null,
           "notes": "",
           "institute_id": "pedagogy",
-          "group_name": "316 ГРУППА"
-        },
-        {
-          "slot": 7,
-          "time_start": "19:20",
-          "time_end": "20:50",
-          "subject": "Психотерапия различных состояний детей и подростков",
-          "type": "practice",
-          "room": "35",
-          "subgroup": 2,
-          "notes": "",
-          "institute_id": "pedagogy",
-          "group_name": "316 ГРУППА (подгруппа 2)"
-        },
-        {
-          "slot": 8,
-          "time_start": "21:00",
-          "time_end": "22:00",
-          "subject": "Психотерапия различных состояний детей и подростков",
-          "type": "practice",
-          "room": "35",
-          "subgroup": 2,
-          "notes": "",
-          "institute_id": "pedagogy",
-          "group_name": "316 ГРУППА (подгруппа 2)"
+          "group_name": "БЗП40-ПВП2316"
         }
       ],
-      "friday": [
-        {
-          "slot": 5,
-          "time_start": "16:00",
-          "time_end": "18:00",
-          "subject": "Учебные дисциплины по Кафедре психологии труда и психологического консультирования",
-          "type": "lecture",
-          "room": "Ауд.17",
-          "subgroup": null,
-          "notes": "",
-          "institute_id": "pedagogy",
-          "group_name": "1. П курса"
-        },
-        {
-          "slot": 6,
-          "time_start": "19:20",
-          "time_end": "20:50",
-          "subject": "Основы тренировочной работы (ПЗ)",
-          "type": "practice",
-          "room": "Ауд.33",
-          "subgroup": null,
-          "notes": "",
-          "institute_id": "pedagogy",
-          "group_name": "209 ГРУППА"
-        },
-        {
-          "slot": 7,
-          "time_start": "21:00",
-          "time_end": "22:00",
-          "subject": "Основы тренировочной работы (ПЗ)",
-          "type": "practice",
-          "room": "Ауд.33",
-          "subgroup": null,
-          "notes": "",
-          "institute_id": "pedagogy",
-          "group_name": "209 ГРУППА (продолжение)"
-        }
-      ],
+      "friday": [],
       "saturday": []
     }
   }

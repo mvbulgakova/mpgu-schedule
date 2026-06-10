@@ -11,10 +11,23 @@
   "kafedra_name": "Кафедра теоретической информатики и дискретной математики",
   "schedule": {
     "odd_week": {
-      "monday": [],
+      "monday": [
+        {
+          "slot": 1,
+          "time_start": "09:00",
+          "time_end": "10:30",
+          "subject": "Технологии цифрового",
+          "type": "other",
+          "room": "208",
+          "subgroup": 1,
+          "notes": "",
+          "institute_id": "math",
+          "group_name": "ВОМ34-ПМЭ2504"
+        }
+      ],
       "tuesday": [
         {
-          "slot": null,
+          "slot": 3,
           "time_start": "12:40",
           "time_end": "14:10",
           "subject": "Веб-технологии",
@@ -23,32 +36,263 @@
           "subgroup": null,
           "notes": "",
           "institute_id": "math",
-          "group_name": "БOМ35-ПИМ2208"
+          "group_name": "БОМ35-ПИМ2208"
+        },
+        {
+          "slot": 1,
+          "time_start": "09:00",
+          "time_end": "10:30",
+          "subject": "Компьютерные сети",
+          "type": "lab",
+          "room": "208",
+          "subgroup": 1,
+          "notes": "",
+          "institute_id": "math",
+          "group_name": "БОМ38-ПРИ2410"
+        },
+        {
+          "slot": 2,
+          "time_start": "10:40",
+          "time_end": "12:10",
+          "subject": "ИКТ и математические",
+          "type": "practice",
+          "room": "208",
+          "subgroup": 1,
+          "notes": "",
+          "institute_id": "math",
+          "group_name": "БОМ38-ПРИ2410"
+        },
+        {
+          "slot": 3,
+          "time_start": "12:40",
+          "time_end": "14:10",
+          "subject": "Математический анализ",
+          "type": "practice",
+          "room": "304",
+          "subgroup": 1,
+          "notes": "",
+          "institute_id": "math",
+          "group_name": "БОМ38-ПРИ2410"
+        },
+        {
+          "slot": 4,
+          "time_start": "14:20",
+          "time_end": "15:50",
+          "subject": "Компьютерные сети",
+          "type": "lab",
+          "room": "208",
+          "subgroup": 2,
+          "notes": "",
+          "institute_id": "math",
+          "group_name": "БОМ38-ПРИ2410"
+        },
+        {
+          "slot": 1,
+          "time_start": "09:00",
+          "time_end": "10:30",
+          "subject": "Компьютерные сети",
+          "type": "lab",
+          "room": "208",
+          "subgroup": 1,
+          "notes": "",
+          "institute_id": "math",
+          "group_name": "ВОМ34-ПИМ2409"
+        },
+        {
+          "slot": 2,
+          "time_start": "10:40",
+          "time_end": "12:10",
+          "subject": "ИКТ и математические",
+          "type": "practice",
+          "room": "208",
+          "subgroup": 1,
+          "notes": "",
+          "institute_id": "math",
+          "group_name": "ВОМ34-ПИМ2409"
+        },
+        {
+          "slot": 3,
+          "time_start": "12:40",
+          "time_end": "14:10",
+          "subject": "Математический анализ",
+          "type": "practice",
+          "room": "304",
+          "subgroup": 1,
+          "notes": "доц. Лукьянова Е.В., ауд. 304",
+          "institute_id": "math",
+          "group_name": "ВОМ34-ПИМ2409"
+        },
+        {
+          "slot": 4,
+          "time_start": "14:20",
+          "time_end": "15:50",
+          "subject": "Компьютерные сети",
+          "type": "lab",
+          "room": "208",
+          "subgroup": 2,
+          "notes": "",
+          "institute_id": "math",
+          "group_name": "ВОМ34-ПИМ2409"
+        },
+        {
+          "slot": 2,
+          "time_start": "10:40",
+          "time_end": "12:10",
+          "subject": "Технологии цифрового",
+          "type": "other",
+          "room": "208",
+          "subgroup": 1,
+          "notes": "",
+          "institute_id": "math",
+          "group_name": "ВОМ34-ПМЭ2504"
         }
       ],
-      "wednesday": [],
+      "wednesday": [
+        {
+          "slot": 5,
+          "time_start": "16:00",
+          "time_end": "17:30",
+          "subject": "ИКТ и математические",
+          "type": "practice",
+          "room": "208",
+          "subgroup": 2,
+          "notes": "",
+          "institute_id": "math",
+          "group_name": "БОМ38-ПРИ2410"
+        },
+        {
+          "slot": 5,
+          "time_start": "16:00",
+          "time_end": "17:30",
+          "subject": "ИКТ и математические",
+          "type": "practice",
+          "room": "208",
+          "subgroup": 2,
+          "notes": "",
+          "institute_id": "math",
+          "group_name": "ВОМ34-ПИМ2409"
+        }
+      ],
       "thursday": [
         {
-          "slot": null,
+          "slot": 2,
+          "time_start": "10:40",
+          "time_end": "12:10",
+          "subject": "Веб-технологии",
+          "type": "lab",
+          "room": "108",
+          "subgroup": 1,
+          "notes": "",
+          "institute_id": "math",
+          "group_name": "БОМ35-ПИМ2208"
+        },
+        {
+          "slot": 3,
           "time_start": "12:40",
           "time_end": "14:10",
           "subject": "Технологии цифрового образования",
           "type": "practice",
-          "room": "2 п/гр, ауд. 108",
+          "room": "108",
           "subgroup": null,
           "notes": "",
           "institute_id": "math",
-          "group_name": "ВOМ34-ПМЭ2504"
+          "group_name": "ВОМ34-ПИМ2509"
+        },
+        {
+          "slot": 3,
+          "time_start": "12:40",
+          "time_end": "14:10",
+          "subject": "Технологии цифрового образования",
+          "type": "practice",
+          "room": "108",
+          "subgroup": 2,
+          "notes": "",
+          "institute_id": "math",
+          "group_name": "ВОМ34-ПМЭ2504"
+        },
+        {
+          "slot": 4,
+          "time_start": "14:20",
+          "time_end": "15:50",
+          "subject": "Технологии цифрового",
+          "type": "other",
+          "room": "208",
+          "subgroup": 1,
+          "notes": "",
+          "institute_id": "math",
+          "group_name": "ВОМ34-ПМЭ2505"
+        },
+        {
+          "slot": 4,
+          "time_start": "14:20",
+          "time_end": "15:50",
+          "subject": "Основы медицинских знаний",
+          "type": "other",
+          "room": "405",
+          "subgroup": 1,
+          "notes": "проф. Лещенко М.В., ауд. 405",
+          "institute_id": "math",
+          "group_name": "ВОМ34-ПМЭ2505"
+        },
+        {
+          "slot": 5,
+          "time_start": "16:00",
+          "time_end": "17:30",
+          "subject": "Технологии цифрового",
+          "type": "other",
+          "room": "108",
+          "subgroup": 1,
+          "notes": "",
+          "institute_id": "math",
+          "group_name": "ВОМ34-ПМЭ2505"
         }
       ],
-      "friday": [],
+      "friday": [
+        {
+          "slot": 5,
+          "time_start": "16:00",
+          "time_end": "17:30",
+          "subject": "Речевые практики",
+          "type": "practice",
+          "room": "304",
+          "subgroup": 1,
+          "notes": "",
+          "institute_id": "math",
+          "group_name": "ВОМ34-ПИМ2509"
+        },
+        {
+          "slot": 5,
+          "time_start": "16:00",
+          "time_end": "17:30",
+          "subject": "Речевые практики",
+          "type": "practice",
+          "room": "304",
+          "subgroup": 1,
+          "notes": "доц. Сабурова С.В., ауд. 304",
+          "institute_id": "math",
+          "group_name": "ВОМ34-ПМЭ2504"
+        }
+      ],
       "saturday": []
     },
     "even_week": {
-      "monday": [],
+      "monday": [
+        {
+          "slot": 1,
+          "time_start": "09:00",
+          "time_end": "10:30",
+          "subject": "Технологии цифрового",
+          "type": "other",
+          "room": "208",
+          "subgroup": 1,
+          "notes": "",
+          "institute_id": "math",
+          "group_name": "ВОМ34-ПМЭ2504"
+        }
+      ],
       "tuesday": [
         {
-          "slot": null,
+          "slot": 3,
           "time_start": "12:40",
           "time_end": "14:10",
           "subject": "Веб-технологии",
@@ -57,25 +301,243 @@
           "subgroup": null,
           "notes": "",
           "institute_id": "math",
-          "group_name": "БOМ35-ПИМ2208"
+          "group_name": "БОМ35-ПИМ2208"
+        },
+        {
+          "slot": 1,
+          "time_start": "09:00",
+          "time_end": "10:30",
+          "subject": "Компьютерные сети",
+          "type": "lab",
+          "room": "208",
+          "subgroup": 1,
+          "notes": "",
+          "institute_id": "math",
+          "group_name": "БОМ38-ПРИ2410"
+        },
+        {
+          "slot": 2,
+          "time_start": "10:40",
+          "time_end": "12:10",
+          "subject": "ИКТ и математические",
+          "type": "practice",
+          "room": "208",
+          "subgroup": 1,
+          "notes": "",
+          "institute_id": "math",
+          "group_name": "БОМ38-ПРИ2410"
+        },
+        {
+          "slot": 3,
+          "time_start": "12:40",
+          "time_end": "14:10",
+          "subject": "Математический анализ",
+          "type": "practice",
+          "room": "304",
+          "subgroup": 1,
+          "notes": "",
+          "institute_id": "math",
+          "group_name": "БОМ38-ПРИ2410"
+        },
+        {
+          "slot": 4,
+          "time_start": "14:20",
+          "time_end": "15:50",
+          "subject": "Компьютерные сети",
+          "type": "lab",
+          "room": "208",
+          "subgroup": 2,
+          "notes": "",
+          "institute_id": "math",
+          "group_name": "БОМ38-ПРИ2410"
+        },
+        {
+          "slot": 1,
+          "time_start": "09:00",
+          "time_end": "10:30",
+          "subject": "Компьютерные сети",
+          "type": "lab",
+          "room": "208",
+          "subgroup": 1,
+          "notes": "",
+          "institute_id": "math",
+          "group_name": "ВОМ34-ПИМ2409"
+        },
+        {
+          "slot": 2,
+          "time_start": "10:40",
+          "time_end": "12:10",
+          "subject": "ИКТ и математические",
+          "type": "practice",
+          "room": "208",
+          "subgroup": 1,
+          "notes": "",
+          "institute_id": "math",
+          "group_name": "ВОМ34-ПИМ2409"
+        },
+        {
+          "slot": 3,
+          "time_start": "12:40",
+          "time_end": "14:10",
+          "subject": "Математический анализ",
+          "type": "practice",
+          "room": "304",
+          "subgroup": 1,
+          "notes": "доц. Лукьянова Е.В., ауд. 304",
+          "institute_id": "math",
+          "group_name": "ВОМ34-ПИМ2409"
+        },
+        {
+          "slot": 4,
+          "time_start": "14:20",
+          "time_end": "15:50",
+          "subject": "Компьютерные сети",
+          "type": "lab",
+          "room": "208",
+          "subgroup": 2,
+          "notes": "",
+          "institute_id": "math",
+          "group_name": "ВОМ34-ПИМ2409"
+        },
+        {
+          "slot": 2,
+          "time_start": "10:40",
+          "time_end": "12:10",
+          "subject": "Технологии цифрового",
+          "type": "other",
+          "room": "208",
+          "subgroup": 1,
+          "notes": "",
+          "institute_id": "math",
+          "group_name": "ВОМ34-ПМЭ2504"
         }
       ],
-      "wednesday": [],
+      "wednesday": [
+        {
+          "slot": 5,
+          "time_start": "16:00",
+          "time_end": "17:30",
+          "subject": "ИКТ и математические",
+          "type": "practice",
+          "room": "208",
+          "subgroup": 2,
+          "notes": "",
+          "institute_id": "math",
+          "group_name": "БОМ38-ПРИ2410"
+        },
+        {
+          "slot": 5,
+          "time_start": "16:00",
+          "time_end": "17:30",
+          "subject": "ИКТ и математические",
+          "type": "practice",
+          "room": "208",
+          "subgroup": 2,
+          "notes": "",
+          "institute_id": "math",
+          "group_name": "ВОМ34-ПИМ2409"
+        }
+      ],
       "thursday": [
         {
-          "slot": null,
+          "slot": 2,
+          "time_start": "10:40",
+          "time_end": "12:10",
+          "subject": "Веб-технологии",
+          "type": "lab",
+          "room": "108",
+          "subgroup": 1,
+          "notes": "",
+          "institute_id": "math",
+          "group_name": "БОМ35-ПИМ2208"
+        },
+        {
+          "slot": 3,
           "time_start": "12:40",
           "time_end": "14:10",
           "subject": "Технологии цифрового образования",
           "type": "practice",
-          "room": "2 п/гр, ауд. 108",
+          "room": "108",
           "subgroup": null,
           "notes": "",
           "institute_id": "math",
-          "group_name": "ВOМ34-ПМЭ2504"
+          "group_name": "ВОМ34-ПИМ2509"
+        },
+        {
+          "slot": 3,
+          "time_start": "12:40",
+          "time_end": "14:10",
+          "subject": "Технологии цифрового образования",
+          "type": "practice",
+          "room": "108",
+          "subgroup": 2,
+          "notes": "",
+          "institute_id": "math",
+          "group_name": "ВОМ34-ПМЭ2504"
+        },
+        {
+          "slot": 4,
+          "time_start": "14:20",
+          "time_end": "15:50",
+          "subject": "Технологии цифрового",
+          "type": "other",
+          "room": "208",
+          "subgroup": 1,
+          "notes": "",
+          "institute_id": "math",
+          "group_name": "ВОМ34-ПМЭ2505"
+        },
+        {
+          "slot": 4,
+          "time_start": "14:20",
+          "time_end": "15:50",
+          "subject": "Основы медицинских знаний",
+          "type": "other",
+          "room": "405",
+          "subgroup": 1,
+          "notes": "проф. Лещенко М.В., ауд. 405",
+          "institute_id": "math",
+          "group_name": "ВОМ34-ПМЭ2505"
+        },
+        {
+          "slot": 5,
+          "time_start": "16:00",
+          "time_end": "17:30",
+          "subject": "Технологии цифрового",
+          "type": "other",
+          "room": "108",
+          "subgroup": 1,
+          "notes": "",
+          "institute_id": "math",
+          "group_name": "ВОМ34-ПМЭ2505"
         }
       ],
-      "friday": [],
+      "friday": [
+        {
+          "slot": 5,
+          "time_start": "16:00",
+          "time_end": "17:30",
+          "subject": "Речевые практики",
+          "type": "practice",
+          "room": "304",
+          "subgroup": 1,
+          "notes": "",
+          "institute_id": "math",
+          "group_name": "ВОМ34-ПИМ2509"
+        },
+        {
+          "slot": 5,
+          "time_start": "16:00",
+          "time_end": "17:30",
+          "subject": "Речевые практики",
+          "type": "practice",
+          "room": "304",
+          "subgroup": 1,
+          "notes": "доц. Сабурова С.В., ауд. 304",
+          "institute_id": "math",
+          "group_name": "ВОМ34-ПМЭ2504"
+        }
+      ],
       "saturday": []
     }
   }

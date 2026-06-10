@@ -11,84 +11,73 @@
   "kafedra_name": "",
   "schedule": {
     "odd_week": {
-      "monday": [],
+      "monday": [
+        {
+          "slot": 4,
+          "time_start": "14:20",
+          "time_end": "15:50",
+          "subject": "Психология безопасности",
+          "type": "practice",
+          "room": "9",
+          "subgroup": null,
+          "notes": "",
+          "institute_id": "pedagogy",
+          "group_name": "БОП39-СПР2303"
+        },
+        {
+          "slot": 5,
+          "time_start": "16:00",
+          "time_end": "17:30",
+          "subject": "Психология безопасности",
+          "type": "practice",
+          "room": "9",
+          "subgroup": null,
+          "notes": "",
+          "institute_id": "pedagogy",
+          "group_name": "БОП39-СПР2303"
+        }
+      ],
       "tuesday": [
         {
           "slot": null,
-          "time_start": "10:40",
-          "time_end": "12:10",
-          "subject": "Технология личностного развития",
+          "time_start": "21:00",
+          "time_end": "22:00",
+          "subject": "Психология безопасности",
           "type": "practice",
-          "room": "33",
+          "room": "9",
           "subgroup": null,
-          "notes": "Кроме 19.05.2026г.",
+          "notes": "",
           "institute_id": "pedagogy",
-          "group_name": "107 ГРУППА"
-        },
+          "group_name": "БВП39-ПДЛ2309"
+        }
+      ],
+      "wednesday": [
         {
           "slot": null,
           "time_start": "12:30",
           "time_end": "14:00",
-          "subject": "Технология личностного развития",
+          "subject": "Кибербезопасность",
           "type": "practice",
-          "room": "33",
+          "room": "9",
           "subgroup": null,
-          "notes": "Кроме 19.05.2026г.",
+          "notes": "",
           "institute_id": "pedagogy",
-          "group_name": "107 ГРУППА"
-        },
-        {
-          "slot": null,
-          "time_start": "10:40",
-          "time_end": "12:10",
-          "subject": "Технология личностного развития",
-          "type": "practice",
-          "room": "25",
-          "subgroup": null,
-          "notes": "Кроме 26.05.2026г.",
-          "institute_id": "pedagogy",
-          "group_name": "117 ГРУППА"
-        },
-        {
-          "slot": null,
-          "time_start": "12:30",
-          "time_end": "14:00",
-          "subject": "Технология личностного развития",
-          "type": "practice",
-          "room": "25",
-          "subgroup": null,
-          "notes": "Кроме 26.05.2026г.",
-          "institute_id": "pedagogy",
-          "group_name": "117 ГРУППА"
+          "group_name": "БЗП30-СОП2218"
         }
       ],
-      "wednesday": [],
-      "thursday": [
-        {
-          "slot": 5,
-          "time_start": "19:20",
-          "time_end": "20:50",
-          "subject": "Психология безопасности (ПЗ)",
-          "type": "seminar",
-          "room": "Ауд.9",
-          "subgroup": null,
-          "notes": "Ассистент",
-          "institute_id": "pedagogy",
-          "group_name": "309 ГРУППА"
-        }
-      ],
+      "thursday": [],
       "friday": [
         {
-          "slot": null,
+          "slot": 2,
           "time_start": "10:40",
           "time_end": "12:10",
-          "subject": "Качественные и количественные методы психологических исследований",
+          "subject": "Качественные и количественные методы психологических исследований (ПЗ)",
           "type": "practice",
-          "room": "35",
+          "room": null,
           "subgroup": null,
           "notes": "",
           "institute_id": "pedagogy",
-          "group_name": "107 ГРУППА"
+          "group_name": "СОП13-ПКП2507"
         },
         {
           "slot": null,
@@ -98,115 +87,81 @@
           "type": "practice",
           "room": "37",
           "subgroup": null,
-          "notes": "Только 27.02.2026г.,13.03.2026г.",
-          "institute_id": "pedagogy",
-          "group_name": "107 ГРУППА"
-        },
-        {
-          "slot": null,
-          "time_start": "10:40",
-          "time_end": "12:10",
-          "subject": "Качественные и количественные методы психологических исследований",
-          "type": "practice",
-          "room": "37",
-          "subgroup": null,
-          "notes": "Только 27.03.2026г.,10.04.2026г.",
-          "institute_id": "pedagogy",
-          "group_name": "117 ГРУППА"
-        },
-        {
-          "slot": null,
-          "time_start": "12:30",
-          "time_end": "14:00",
-          "subject": "Качественные и количественные методы психологических исследований",
-          "type": "practice",
-          "room": "37",
-          "subgroup": null,
-          "notes": "Только 27.03.2026г.,10.04.2026г",
-          "institute_id": "pedagogy",
-          "group_name": "117 ГРУППА"
-        },
-        {
-          "slot": null,
-          "time_start": "14:20",
-          "time_end": "15:50",
-          "subject": "Качественные и количественные методы психологических исследований",
-          "type": "practice",
-          "room": "36",
-          "subgroup": null,
           "notes": "",
           "institute_id": "pedagogy",
-          "group_name": "117 ГРУППА"
+          "group_name": "СОП13-ПКП2507"
         }
       ],
       "saturday": []
     },
     "even_week": {
-      "monday": [],
+      "monday": [
+        {
+          "slot": 4,
+          "time_start": "14:20",
+          "time_end": "15:50",
+          "subject": "Психология безопасности",
+          "type": "practice",
+          "room": "9",
+          "subgroup": null,
+          "notes": "",
+          "institute_id": "pedagogy",
+          "group_name": "БОП39-СПР2303"
+        },
+        {
+          "slot": 5,
+          "time_start": "16:00",
+          "time_end": "17:30",
+          "subject": "Психология безопасности",
+          "type": "practice",
+          "room": "9",
+          "subgroup": null,
+          "notes": "",
+          "institute_id": "pedagogy",
+          "group_name": "БОП39-СПР2303"
+        }
+      ],
       "tuesday": [
         {
           "slot": null,
-          "time_start": "10:40",
-          "time_end": "12:10",
-          "subject": "Технология личностного развития",
+          "time_start": "21:00",
+          "time_end": "22:00",
+          "subject": "Психология безопасности",
           "type": "practice",
-          "room": "33",
+          "room": "9",
           "subgroup": null,
-          "notes": "Кроме 19.05.2026г.",
+          "notes": "",
           "institute_id": "pedagogy",
-          "group_name": "107 ГРУППА"
-        },
-        {
-          "slot": null,
-          "time_start": "12:30",
-          "time_end": "14:00",
-          "subject": "Технология личностного развития",
-          "type": "practice",
-          "room": "33",
-          "subgroup": null,
-          "notes": "Кроме 19.05.2026г.",
-          "institute_id": "pedagogy",
-          "group_name": "107 ГРУППА"
-        },
-        {
-          "slot": null,
-          "time_start": "10:40",
-          "time_end": "12:10",
-          "subject": "Технология личностного развития",
-          "type": "practice",
-          "room": "25",
-          "subgroup": null,
-          "notes": "Кроме 26.05.2026г.",
-          "institute_id": "pedagogy",
-          "group_name": "117 ГРУППА"
-        },
-        {
-          "slot": null,
-          "time_start": "12:30",
-          "time_end": "14:00",
-          "subject": "Технология личностного развития",
-          "type": "practice",
-          "room": "25",
-          "subgroup": null,
-          "notes": "Кроме 26.05.2026г.",
-          "institute_id": "pedagogy",
-          "group_name": "117 ГРУППА"
+          "group_name": "БВП39-ПДЛ2309"
         }
       ],
-      "wednesday": [],
+      "wednesday": [
+        {
+          "slot": null,
+          "time_start": "12:30",
+          "time_end": "14:00",
+          "subject": "Кибербезопасность",
+          "type": "practice",
+          "room": "9",
+          "subgroup": null,
+          "notes": "",
+          "institute_id": "pedagogy",
+          "group_name": "БЗП30-СОП2218"
+        }
+      ],
       "thursday": [],
       "friday": [
         {
-          "slot": null,
+          "slot": 2,
           "time_start": "10:40",
           "time_end": "12:10",
-          "subject": "Качественные и количественные методы психологических исследований",
+          "subject": "Качественные и количественные методы психологических исследований (ПЗ)",
           "type": "practice",
-          "room": "35",
+          "room": null,
           "subgroup": null,
           "notes": "",
           "institute_id": "pedagogy",
-          "group_name": "107 ГРУППА"
+          "group_name": "СОП13-ПКП2507"
         },
         {
           "slot": null,
@@ -216,45 +171,9 @@
           "type": "practice",
           "room": "37",
           "subgroup": null,
-          "notes": "Только 27.02.2026г.,13.03.2026г.",
-          "institute_id": "pedagogy",
-          "group_name": "107 ГРУППА"
-        },
-        {
-          "slot": null,
-          "time_start": "10:40",
-          "time_end": "12:10",
-          "subject": "Качественные и количественные методы психологических исследований",
-          "type": "practice",
-          "room": "37",
-          "subgroup": null,
-          "notes": "Только 27.03.2026г.,10.04.2026г.",
-          "institute_id": "pedagogy",
-          "group_name": "117 ГРУППА"
-        },
-        {
-          "slot": null,
-          "time_start": "12:30",
-          "time_end": "14:00",
-          "subject": "Качественные и количественные методы психологических исследований",
-          "type": "practice",
-          "room": "37",
-          "subgroup": null,
-          "notes": "Только 27.03.2026г.,10.04.2026г",
-          "institute_id": "pedagogy",
-          "group_name": "117 ГРУППА"
-        },
-        {
-          "slot": null,
-          "time_start": "14:20",
-          "time_end": "15:50",
-          "subject": "Качественные и количественные методы психологических исследований",
-          "type": "practice",
-          "room": "36",
-          "subgroup": null,
           "notes": "",
           "institute_id": "pedagogy",
-          "group_name": "117 ГРУППА"
+          "group_name": "СОП13-ПКП2507"
         }
       ],
       "saturday": []

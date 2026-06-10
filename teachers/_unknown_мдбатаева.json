@@ -11,10 +11,35 @@
   "kafedra_name": "",
   "schedule": {
     "odd_week": {
-      "monday": [],
-      "tuesday": [
+      "monday": [
         {
           "slot": null,
+          "time_start": "12:30",
+          "time_end": "14:00",
+          "subject": "Практикум по возрастной психологии",
+          "type": "practice",
+          "room": "9",
+          "subgroup": null,
+          "notes": "",
+          "institute_id": "pedagogy",
+          "group_name": "БОП39-СПР2303"
+        },
+        {
+          "slot": 4,
+          "time_start": "14:20",
+          "time_end": "15:50",
+          "subject": "Практикум по возрастной психологии",
+          "type": "practice",
+          "room": "26",
+          "subgroup": null,
+          "notes": "",
+          "institute_id": "pedagogy",
+          "group_name": "БОП39-СПР2303"
+        }
+      ],
+      "tuesday": [
+        {
+          "slot": 2,
           "time_start": "10:40",
           "time_end": "12:10",
           "subject": "Общий психологический практикум",
@@ -23,7 +48,7 @@
           "subgroup": null,
           "notes": "",
           "institute_id": "pedagogy",
-          "group_name": "103 ГРУППА"
+          "group_name": "БОП39-СПР2503"
         },
         {
           "slot": null,
@@ -35,45 +60,81 @@
           "subgroup": null,
           "notes": "",
           "institute_id": "pedagogy",
-          "group_name": "113 ГРУППА"
-        }
-      ],
-      "wednesday": [
+          "group_name": "БОП39-СПР2513"
+        },
         {
-          "slot": null,
-          "time_start": "10:40",
-          "time_end": "12:10",
-          "subject": "Общий психологический практикум",
-          "type": "practice",
-          "room": "36",
-          "subgroup": null,
-          "notes": "",
-          "institute_id": "pedagogy",
-          "group_name": "113 ГРУППА"
-        }
-      ],
-      "thursday": [
-        {
-          "slot": null,
-          "time_start": "12:30",
-          "time_end": "14:00",
+          "slot": 6,
+          "time_start": "17:40",
+          "time_end": "19:10",
           "subject": "Общий психологический практикум",
           "type": "practice",
           "room": "25",
           "subgroup": null,
           "notes": "",
           "institute_id": "pedagogy",
-          "group_name": "103 ГРУППА"
+          "group_name": "БУП39-ПДЛ2519"
+        },
+        {
+          "slot": 7,
+          "time_start": "19:20",
+          "time_end": "20:50",
+          "subject": "Общий психологический практикум",
+          "type": "practice",
+          "room": "25",
+          "subgroup": null,
+          "notes": "",
+          "institute_id": "pedagogy",
+          "group_name": "БУП39-ПДЛ2519"
+        }
+      ],
+      "wednesday": [],
+      "thursday": [
+        {
+          "slot": 7,
+          "time_start": "19:20",
+          "time_end": "20:50",
+          "subject": "Общий психологический практикум",
+          "type": "practice",
+          "room": "25",
+          "subgroup": null,
+          "notes": "",
+          "institute_id": "pedagogy",
+          "group_name": "БВП39-ПДЛ2509"
         }
       ],
       "friday": [],
       "saturday": []
     },
     "even_week": {
-      "monday": [],
-      "tuesday": [
+      "monday": [
         {
           "slot": null,
+          "time_start": "12:30",
+          "time_end": "14:00",
+          "subject": "Практикум по возрастной психологии",
+          "type": "practice",
+          "room": "9",
+          "subgroup": null,
+          "notes": "",
+          "institute_id": "pedagogy",
+          "group_name": "БОП39-СПР2303"
+        },
+        {
+          "slot": 4,
+          "time_start": "14:20",
+          "time_end": "15:50",
+          "subject": "Практикум по возрастной психологии",
+          "type": "practice",
+          "room": "26",
+          "subgroup": null,
+          "notes": "",
+          "institute_id": "pedagogy",
+          "group_name": "БОП39-СПР2303"
+        }
+      ],
+      "tuesday": [
+        {
+          "slot": 2,
           "time_start": "10:40",
           "time_end": "12:10",
           "subject": "Общий психологический практикум",
@@ -82,7 +143,7 @@
           "subgroup": null,
           "notes": "",
           "institute_id": "pedagogy",
-          "group_name": "103 ГРУППА"
+          "group_name": "БОП39-СПР2503"
         },
         {
           "slot": null,
@@ -94,35 +155,46 @@
           "subgroup": null,
           "notes": "",
           "institute_id": "pedagogy",
-          "group_name": "113 ГРУППА"
-        }
-      ],
-      "wednesday": [
+          "group_name": "БОП39-СПР2513"
+        },
         {
-          "slot": null,
-          "time_start": "10:40",
-          "time_end": "12:10",
-          "subject": "Общий психологический практикум",
-          "type": "practice",
-          "room": "36",
-          "subgroup": null,
-          "notes": "",
-          "institute_id": "pedagogy",
-          "group_name": "113 ГРУППА"
-        }
-      ],
-      "thursday": [
-        {
-          "slot": null,
-          "time_start": "12:30",
-          "time_end": "14:00",
+          "slot": 6,
+          "time_start": "17:40",
+          "time_end": "19:10",
           "subject": "Общий психологический практикум",
           "type": "practice",
           "room": "25",
           "subgroup": null,
           "notes": "",
           "institute_id": "pedagogy",
-          "group_name": "103 ГРУППА"
+          "group_name": "БУП39-ПДЛ2519"
+        },
+        {
+          "slot": 7,
+          "time_start": "19:20",
+          "time_end": "20:50",
+          "subject": "Общий психологический практикум",
+          "type": "practice",
+          "room": "25",
+          "subgroup": null,
+          "notes": "",
+          "institute_id": "pedagogy",
+          "group_name": "БУП39-ПДЛ2519"
+        }
+      ],
+      "wednesday": [],
+      "thursday": [
+        {
+          "slot": 7,
+          "time_start": "19:20",
+          "time_end": "20:50",
+          "subject": "Общий психологический практикум",
+          "type": "practice",
+          "room": "25",
+          "subgroup": null,
+          "notes": "",
+          "institute_id": "pedagogy",
+          "group_name": "БВП39-ПДЛ2509"
         }
       ],
       "friday": [],

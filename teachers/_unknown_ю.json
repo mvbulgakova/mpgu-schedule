@@ -12,67 +12,205 @@
   "schedule": {
     "odd_week": {
       "monday": [],
-      "tuesday": [],
-      "wednesday": [],
-      "thursday": [],
+      "tuesday": [
+        {
+          "slot": 2,
+          "time_start": "10:40",
+          "time_end": "12:10",
+          "subject": "Научные основы физического воспитания детей дошкольного возраста (п/г - ФИЗО)",
+          "type": "practice",
+          "room": "408",
+          "subgroup": null,
+          "notes": "",
+          "institute_id": "preschool",
+          "group_name": "БОС34-ДОД2401"
+        }
+      ],
+      "wednesday": [
+        {
+          "slot": null,
+          "time_start": null,
+          "time_end": null,
+          "subject": "Проектирование, организация и мониторинг образовательной работы с детьми",
+          "type": "lecture",
+          "room": "206",
+          "subgroup": null,
+          "notes": "",
+          "institute_id": "preschool",
+          "group_name": "БЗС40-ПДШ2201"
+        },
+        {
+          "slot": null,
+          "time_start": null,
+          "time_end": null,
+          "subject": "Проектирование, организация и мониторинг образовательной работы с детьми",
+          "type": "practice",
+          "room": "206",
+          "subgroup": null,
+          "notes": "",
+          "institute_id": "preschool",
+          "group_name": "БЗС40-ПДШ2201"
+        }
+      ],
+      "thursday": [
+        {
+          "slot": 6,
+          "time_start": "17:40",
+          "time_end": "19:10",
+          "subject": "Педагогический мониторинг и проектирование образовательной работы в группе детей",
+          "type": "lecture",
+          "room": "108",
+          "subgroup": null,
+          "notes": "",
+          "institute_id": "preschool",
+          "group_name": "БУС35-ДОР2101"
+        },
+        {
+          "slot": 7,
+          "time_start": "19:20",
+          "time_end": "20:50",
+          "subject": "Педагогический мониторинг и проектирование образовательной работы в группе детей",
+          "type": "practice",
+          "room": "108",
+          "subgroup": null,
+          "notes": "",
+          "institute_id": "preschool",
+          "group_name": "БУС35-ДОР2101"
+        }
+      ],
       "friday": [],
       "saturday": [
         {
           "slot": null,
-          "time_start": "14:20",
-          "time_end": "15:50",
-          "subject": "Иностранный язык",
+          "time_start": null,
+          "time_end": null,
+          "subject": "Консультация по производственной практике, педагогической летней практике",
           "type": "practice",
-          "room": "______",
+          "room": "108",
           "subgroup": null,
           "notes": "",
-          "institute_id": "sport",
-          "group_name": "ВOЗ34-ФКБ2501 (26)"
-        },
-        {
-          "slot": null,
-          "time_start": "16:00",
-          "time_end": "17:30",
-          "subject": "Иностранный язык Формы проведения занятий: \n ЛК - Лекция; \nПЗ - Практическое занятие; \nС - семинарское занятие.",
-          "type": "lecture",
-          "room": "______",
-          "subgroup": null,
-          "notes": "",
-          "institute_id": "sport",
-          "group_name": "ВOЗ34-ФКБ2501 (26)"
+          "institute_id": "preschool",
+          "group_name": "ВОП40-ПФК2501"
         }
       ]
     },
     "even_week": {
       "monday": [],
-      "tuesday": [],
-      "wednesday": [],
-      "thursday": [],
+      "tuesday": [
+        {
+          "slot": 2,
+          "time_start": "10:40",
+          "time_end": "12:10",
+          "subject": "Научные основы физического воспитания детей дошкольного возраста (п/г - ФИЗО)",
+          "type": "practice",
+          "room": "408",
+          "subgroup": null,
+          "notes": "",
+          "institute_id": "preschool",
+          "group_name": "БОС34-ДОД2401"
+        },
+        {
+          "slot": 3,
+          "time_start": "12:40",
+          "time_end": "14:10",
+          "subject": "Физкультурно-оздоровительная работа с детьми",
+          "type": "practice",
+          "room": "408",
+          "subgroup": null,
+          "notes": "",
+          "institute_id": "preschool",
+          "group_name": "БОС34-ДОД2401"
+        },
+        {
+          "slot": 4,
+          "time_start": "14:20",
+          "time_end": "15:50",
+          "subject": "Физкультурно-оздоровительная работа с детьми (с 24.02.2026 по 24.03.2026)",
+          "type": "practice",
+          "room": "408",
+          "subgroup": null,
+          "notes": "",
+          "institute_id": "preschool",
+          "group_name": "БОС34-ДОД2401"
+        }
+      ],
+      "wednesday": [
+        {
+          "slot": null,
+          "time_start": null,
+          "time_end": null,
+          "subject": "Проектирование, организация и мониторинг образовательной работы с детьми",
+          "type": "lecture",
+          "room": "206",
+          "subgroup": null,
+          "notes": "",
+          "institute_id": "preschool",
+          "group_name": "БЗС40-ПДШ2201"
+        },
+        {
+          "slot": null,
+          "time_start": null,
+          "time_end": null,
+          "subject": "Проектирование, организация и мониторинг образовательной работы с детьми",
+          "type": "practice",
+          "room": "206",
+          "subgroup": null,
+          "notes": "",
+          "institute_id": "preschool",
+          "group_name": "БЗС40-ПДШ2201"
+        },
+        {
+          "slot": 2,
+          "time_start": "10:40",
+          "time_end": "12:10",
+          "subject": "Научные основы физического воспитания детей дошкольного возраста // Физкультурно-оздоровительная работа с детьми",
+          "type": "lecture",
+          "room": "408",
+          "subgroup": null,
+          "notes": "",
+          "institute_id": "preschool",
+          "group_name": "БОС34-ДОД2401"
+        }
+      ],
+      "thursday": [
+        {
+          "slot": 6,
+          "time_start": "17:40",
+          "time_end": "19:10",
+          "subject": "Педагогический мониторинг и проектирование образовательной работы в группе детей",
+          "type": "lecture",
+          "room": "108",
+          "subgroup": null,
+          "notes": "",
+          "institute_id": "preschool",
+          "group_name": "БУС35-ДОР2101"
+        },
+        {
+          "slot": 7,
+          "time_start": "19:20",
+          "time_end": "20:50",
+          "subject": "Педагогический мониторинг и проектирование образовательной работы в группе детей",
+          "type": "practice",
+          "room": "108",
+          "subgroup": null,
+          "notes": "",
+          "institute_id": "preschool",
+          "group_name": "БУС35-ДОР2101"
+        }
+      ],
       "friday": [],
       "saturday": [
         {
           "slot": null,
-          "time_start": "14:20",
-          "time_end": "15:50",
-          "subject": "Иностранный язык",
+          "time_start": null,
+          "time_end": null,
+          "subject": "Консультация по производственной практике, педагогической летней практике",
           "type": "practice",
-          "room": "______",
+          "room": "108",
           "subgroup": null,
           "notes": "",
-          "institute_id": "sport",
-          "group_name": "ВOЗ34-ФКБ2501 (26)"
-        },
-        {
-          "slot": null,
-          "time_start": "16:00",
-          "time_end": "17:30",
-          "subject": "Иностранный язык Формы проведения занятий: \n ЛК - Лекция; \nПЗ - Практическое занятие; \nС - семинарское занятие.",
-          "type": "lecture",
-          "room": "______",
-          "subgroup": null,
-          "notes": "",
-          "institute_id": "sport",
-          "group_name": "ВOЗ34-ФКБ2501 (26)"
+          "institute_id": "preschool",
+          "group_name": "ВОП40-ПФК2501"
         }
       ]
     }

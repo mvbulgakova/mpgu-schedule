@@ -15,7 +15,19 @@
       "tuesday": [],
       "wednesday": [
         {
-          "slot": null,
+          "slot": 3,
+          "time_start": "12:40",
+          "time_end": "14:10",
+          "subject": "Практикум по решению",
+          "type": "lab",
+          "room": "211",
+          "subgroup": 1,
+          "notes": "",
+          "institute_id": "math",
+          "group_name": "БОМ38-ПРИ2410"
+        },
+        {
+          "slot": 2,
           "time_start": "10:40",
           "time_end": "12:10",
           "subject": "Алгоритмы и структуры",
@@ -24,14 +36,76 @@
           "subgroup": null,
           "notes": "",
           "institute_id": "math",
-          "group_name": "ВOМ34-ПИМ2409"
+          "group_name": "ВОМ34-ПИМ2409"
+        },
+        {
+          "slot": 3,
+          "time_start": "12:40",
+          "time_end": "14:10",
+          "subject": "Практикум по решению",
+          "type": "lab",
+          "room": "211",
+          "subgroup": 1,
+          "notes": "",
+          "institute_id": "math",
+          "group_name": "ВОМ34-ПИМ2409"
         }
       ],
-      "thursday": [],
-      "friday": [],
-      "saturday": [
+      "thursday": [
+        {
+          "slot": 4,
+          "time_start": "14:20",
+          "time_end": "15:50",
+          "subject": "Информатика",
+          "type": "lab",
+          "room": "208, 210",
+          "subgroup": 1,
+          "notes": "",
+          "institute_id": "math",
+          "group_name": "ВОМ34-ПМЭ2504"
+        },
+        {
+          "slot": 2,
+          "time_start": "10:40",
+          "time_end": "12:10",
+          "subject": "Геометрия",
+          "type": "lab",
+          "room": "205",
+          "subgroup": 1,
+          "notes": "доц. Чуйкова Н.В., ауд. 205",
+          "institute_id": "math",
+          "group_name": "ВОМ34-ПМЭ2505"
+        }
+      ],
+      "friday": [
+        {
+          "slot": 7,
+          "time_start": "19:20",
+          "time_end": "20:50",
+          "subject": "Практикум по решению",
+          "type": "lab",
+          "room": "209, 210",
+          "subgroup": 1,
+          "notes": "",
+          "institute_id": "math",
+          "group_name": "БОМ35-ПИМ2308"
+        },
         {
           "slot": null,
+          "time_start": "14:30",
+          "time_end": "16:00",
+          "subject": "Дискретная математика",
+          "type": "other",
+          "room": "304",
+          "subgroup": 1,
+          "notes": "доц. Инишева Н.В., ауд. 304",
+          "institute_id": "math",
+          "group_name": "ВОМ34-ПИМ2408"
+        }
+      ],
+      "saturday": [
+        {
+          "slot": 5,
           "time_start": "16:00",
           "time_end": "17:00",
           "subject": "Методика обучения математике",
@@ -40,7 +114,7 @@
           "subgroup": null,
           "notes": "проф. Фирстова Н.И., ауд. 305",
           "institute_id": "math",
-          "group_name": "БOМ35-ПМЭ2205"
+          "group_name": "БОМ35-ПМЭ2205"
         }
       ]
     },
@@ -49,7 +123,19 @@
       "tuesday": [],
       "wednesday": [
         {
-          "slot": null,
+          "slot": 3,
+          "time_start": "12:40",
+          "time_end": "14:10",
+          "subject": "Практикум по решению",
+          "type": "lab",
+          "room": "211",
+          "subgroup": 1,
+          "notes": "",
+          "institute_id": "math",
+          "group_name": "БОМ38-ПРИ2410"
+        },
+        {
+          "slot": 2,
           "time_start": "10:40",
           "time_end": "12:10",
           "subject": "Алгоритмы и структуры",
@@ -58,14 +144,76 @@
           "subgroup": null,
           "notes": "",
           "institute_id": "math",
-          "group_name": "ВOМ34-ПИМ2409"
+          "group_name": "ВОМ34-ПИМ2409"
+        },
+        {
+          "slot": 3,
+          "time_start": "12:40",
+          "time_end": "14:10",
+          "subject": "Практикум по решению",
+          "type": "lab",
+          "room": "211",
+          "subgroup": 1,
+          "notes": "",
+          "institute_id": "math",
+          "group_name": "ВОМ34-ПИМ2409"
         }
       ],
-      "thursday": [],
-      "friday": [],
-      "saturday": [
+      "thursday": [
+        {
+          "slot": 4,
+          "time_start": "14:20",
+          "time_end": "15:50",
+          "subject": "Информатика",
+          "type": "lab",
+          "room": "208, 210",
+          "subgroup": 1,
+          "notes": "",
+          "institute_id": "math",
+          "group_name": "ВОМ34-ПМЭ2504"
+        },
+        {
+          "slot": 2,
+          "time_start": "10:40",
+          "time_end": "12:10",
+          "subject": "Геометрия",
+          "type": "lab",
+          "room": "205",
+          "subgroup": 1,
+          "notes": "доц. Чуйкова Н.В., ауд. 205",
+          "institute_id": "math",
+          "group_name": "ВОМ34-ПМЭ2505"
+        }
+      ],
+      "friday": [
+        {
+          "slot": 7,
+          "time_start": "19:20",
+          "time_end": "20:50",
+          "subject": "Практикум по решению",
+          "type": "lab",
+          "room": "209, 210",
+          "subgroup": 1,
+          "notes": "",
+          "institute_id": "math",
+          "group_name": "БОМ35-ПИМ2308"
+        },
         {
           "slot": null,
+          "time_start": "14:30",
+          "time_end": "16:00",
+          "subject": "Дискретная математика",
+          "type": "other",
+          "room": "304",
+          "subgroup": 1,
+          "notes": "доц. Инишева Н.В., ауд. 304",
+          "institute_id": "math",
+          "group_name": "ВОМ34-ПИМ2408"
+        }
+      ],
+      "saturday": [
+        {
+          "slot": 5,
           "time_start": "16:00",
           "time_end": "17:00",
           "subject": "Методика обучения математике",
@@ -74,7 +222,7 @@
           "subgroup": null,
           "notes": "проф. Фирстова Н.И., ауд. 305",
           "institute_id": "math",
-          "group_name": "БOМ35-ПМЭ2205"
+          "group_name": "БОМ35-ПМЭ2205"
         }
       ]
     }

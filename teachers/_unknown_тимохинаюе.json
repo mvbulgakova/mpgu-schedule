@@ -14,7 +14,7 @@
       "monday": [],
       "tuesday": [
         {
-          "slot": null,
+          "slot": 2,
           "time_start": "10:40",
           "time_end": "12:10",
           "subject": "Обучение лиц с ОВЗ и",
@@ -23,10 +23,10 @@
           "subgroup": null,
           "notes": "",
           "institute_id": "math",
-          "group_name": "БOМ35-ПИМ2308"
+          "group_name": "БОМ35-ПИМ2308"
         },
         {
-          "slot": null,
+          "slot": 1,
           "time_start": "09:00",
           "time_end": "10:30",
           "subject": "Обучение лиц с ОВЗ и",
@@ -35,18 +35,31 @@
           "subgroup": null,
           "notes": "",
           "institute_id": "math",
-          "group_name": "БOМ35-ПМЭ2305"
+          "group_name": "БОМ35-ПМЭ2305"
         }
       ],
       "wednesday": [],
-      "thursday": [],
+      "thursday": [
+        {
+          "slot": null,
+          "time_start": "12:30",
+          "time_end": "14:00",
+          "subject": "Педагогика среды",
+          "type": "practice",
+          "room": "34",
+          "subgroup": null,
+          "notes": "",
+          "institute_id": "pedagogy",
+          "group_name": "БОП40-ППО2301"
+        }
+      ],
       "friday": [],
       "saturday": []
     },
     "even_week": {
       "monday": [
         {
-          "slot": null,
+          "slot": 3,
           "time_start": "12:40",
           "time_end": "14:10",
           "subject": "Педагогика",
@@ -58,7 +71,7 @@
           "group_name": "ВОИ34-ИИН2407 (207)"
         },
         {
-          "slot": null,
+          "slot": 2,
           "time_start": "10:40",
           "time_end": "12:10",
           "subject": "Педагогика",
@@ -70,7 +83,7 @@
           "group_name": "ВОИ34-ИОВ2404 (204)"
         },
         {
-          "slot": null,
+          "slot": 1,
           "time_start": "09:00",
           "time_end": "10:30",
           "subject": "Педагогика",
@@ -84,7 +97,7 @@
       ],
       "tuesday": [
         {
-          "slot": null,
+          "slot": 2,
           "time_start": "10:40",
           "time_end": "12:10",
           "subject": "Обучение лиц с ОВЗ и",
@@ -93,10 +106,10 @@
           "subgroup": null,
           "notes": "",
           "institute_id": "math",
-          "group_name": "БOМ35-ПИМ2308"
+          "group_name": "БОМ35-ПИМ2308"
         },
         {
-          "slot": null,
+          "slot": 1,
           "time_start": "09:00",
           "time_end": "10:30",
           "subject": "Обучение лиц с ОВЗ и",
@@ -105,12 +118,12 @@
           "subgroup": null,
           "notes": "",
           "institute_id": "math",
-          "group_name": "БOМ35-ПМЭ2305"
+          "group_name": "БОМ35-ПМЭ2305"
         }
       ],
       "wednesday": [
         {
-          "slot": null,
+          "slot": 2,
           "time_start": "10:40",
           "time_end": "12:10",
           "subject": "Педагогика",
@@ -122,7 +135,7 @@
           "group_name": "ВОИ34-ИИН2408 (208)"
         },
         {
-          "slot": null,
+          "slot": 1,
           "time_start": "09:00",
           "time_end": "10:30",
           "subject": "Педагогика",
@@ -134,7 +147,20 @@
           "group_name": "ВОИ34-ИОВ2405 (205)"
         }
       ],
-      "thursday": [],
+      "thursday": [
+        {
+          "slot": null,
+          "time_start": "12:30",
+          "time_end": "14:00",
+          "subject": "Педагогика среды",
+          "type": "practice",
+          "room": "34",
+          "subgroup": null,
+          "notes": "",
+          "institute_id": "pedagogy",
+          "group_name": "БОП40-ППО2301"
+        }
+      ],
       "friday": [],
       "saturday": []
     }

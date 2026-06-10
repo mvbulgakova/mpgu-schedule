@@ -11,8 +11,19 @@
   "kafedra_name": "",
   "schedule": {
     "odd_week": {
-      "monday": [],
-      "tuesday": [
+      "monday": [
+        {
+          "slot": 4,
+          "time_start": "14:20",
+          "time_end": "15:50",
+          "subject": "Общая психология (с практикумом)",
+          "type": "practice",
+          "room": "23",
+          "subgroup": null,
+          "notes": "",
+          "institute_id": "pedagogy",
+          "group_name": "ВОП40-ПВС2506"
+        },
         {
           "slot": null,
           "time_start": "12:30",
@@ -23,34 +34,12 @@
           "subgroup": null,
           "notes": "",
           "institute_id": "pedagogy",
-          "group_name": "101 ГРУППА"
-        },
+          "group_name": "ВОП40-СПП2504"
+        }
+      ],
+      "tuesday": [
         {
-          "slot": null,
-          "time_start": "12:30",
-          "time_end": "14:00",
-          "subject": "Технология личностного развития",
-          "type": "practice",
-          "room": "23",
-          "subgroup": null,
-          "notes": "",
-          "institute_id": "pedagogy",
-          "group_name": "103 ГРУППА"
-        },
-        {
-          "slot": null,
-          "time_start": "14:20",
-          "time_end": "15:50",
-          "subject": "Общая психология (с практикумом)",
-          "type": "practice",
-          "room": "23",
-          "subgroup": null,
-          "notes": "",
-          "institute_id": "pedagogy",
-          "group_name": "104 ГРУППА"
-        },
-        {
-          "slot": null,
+          "slot": 2,
           "time_start": "10:40",
           "time_end": "12:10",
           "subject": "Общая психология (с практикумом)",
@@ -59,10 +48,10 @@
           "subgroup": null,
           "notes": "",
           "institute_id": "pedagogy",
-          "group_name": "108 ГРУППА"
+          "group_name": "БОП30-СПМ2508"
         },
         {
-          "slot": null,
+          "slot": 2,
           "time_start": "10:40",
           "time_end": "12:10",
           "subject": "Технология личностного развития",
@@ -71,66 +60,40 @@
           "subgroup": null,
           "notes": "",
           "institute_id": "pedagogy",
-          "group_name": "113 ГРУППА"
+          "group_name": "БОП39-СПР2513"
+        },
+        {
+          "slot": 6,
+          "time_start": "17:40",
+          "time_end": "19:10",
+          "subject": "Теория и практика психологической коррекции личности",
+          "type": "lecture",
+          "room": "25",
+          "subgroup": null,
+          "notes": "",
+          "institute_id": "pedagogy",
+          "group_name": "БУП39-ПДЛ2209"
         }
       ],
       "wednesday": [],
-      "thursday": [
-        {
-          "slot": null,
-          "time_start": "10:40",
-          "time_end": "12:10",
-          "subject": "Технология личностного развития",
-          "type": "practice",
-          "room": "23",
-          "subgroup": null,
-          "notes": "",
-          "institute_id": "pedagogy",
-          "group_name": "103 ГРУППА"
-        },
-        {
-          "slot": null,
-          "time_start": "12:30",
-          "time_end": "14:00",
-          "subject": "Технология личностного развития",
-          "type": "lecture",
-          "room": "23",
-          "subgroup": null,
-          "notes": "",
-          "institute_id": "pedagogy",
-          "group_name": "103 ГРУППА"
-        },
-        {
-          "slot": null,
-          "time_start": "12:30",
-          "time_end": "14:00",
-          "subject": "Технология личностного развития",
-          "type": "lecture",
-          "room": "23",
-          "subgroup": null,
-          "notes": "",
-          "institute_id": "pedagogy",
-          "group_name": "113 ГРУППА"
-        },
-        {
-          "slot": null,
-          "time_start": "14:20",
-          "time_end": "15:50",
-          "subject": "Технология личностного развития",
-          "type": "practice",
-          "room": "23",
-          "subgroup": null,
-          "notes": "",
-          "institute_id": "pedagogy",
-          "group_name": "113 ГРУППА"
-        }
-      ],
+      "thursday": [],
       "friday": [],
       "saturday": []
     },
     "even_week": {
-      "monday": [],
-      "tuesday": [
+      "monday": [
+        {
+          "slot": 4,
+          "time_start": "14:20",
+          "time_end": "15:50",
+          "subject": "Общая психология (с практикумом)",
+          "type": "practice",
+          "room": "23",
+          "subgroup": null,
+          "notes": "",
+          "institute_id": "pedagogy",
+          "group_name": "ВОП40-ПВС2506"
+        },
         {
           "slot": null,
           "time_start": "12:30",
@@ -141,34 +104,12 @@
           "subgroup": null,
           "notes": "",
           "institute_id": "pedagogy",
-          "group_name": "101 ГРУППА"
-        },
+          "group_name": "ВОП40-СПП2504"
+        }
+      ],
+      "tuesday": [
         {
-          "slot": null,
-          "time_start": "12:30",
-          "time_end": "14:00",
-          "subject": "Технология личностного развития",
-          "type": "practice",
-          "room": "23",
-          "subgroup": null,
-          "notes": "",
-          "institute_id": "pedagogy",
-          "group_name": "103 ГРУППА"
-        },
-        {
-          "slot": null,
-          "time_start": "14:20",
-          "time_end": "15:50",
-          "subject": "Общая психология (с практикумом)",
-          "type": "practice",
-          "room": "23",
-          "subgroup": null,
-          "notes": "",
-          "institute_id": "pedagogy",
-          "group_name": "104 ГРУППА"
-        },
-        {
-          "slot": null,
+          "slot": 2,
           "time_start": "10:40",
           "time_end": "12:10",
           "subject": "Общая психология (с практикумом)",
@@ -177,10 +118,10 @@
           "subgroup": null,
           "notes": "",
           "institute_id": "pedagogy",
-          "group_name": "108 ГРУППА"
+          "group_name": "БОП30-СПМ2508"
         },
         {
-          "slot": null,
+          "slot": 2,
           "time_start": "10:40",
           "time_end": "12:10",
           "subject": "Технология личностного развития",
@@ -189,60 +130,23 @@
           "subgroup": null,
           "notes": "",
           "institute_id": "pedagogy",
-          "group_name": "113 ГРУППА"
+          "group_name": "БОП39-СПР2513"
+        },
+        {
+          "slot": 6,
+          "time_start": "17:40",
+          "time_end": "19:10",
+          "subject": "Теория и практика психологической коррекции личности",
+          "type": "lecture",
+          "room": "25",
+          "subgroup": null,
+          "notes": "",
+          "institute_id": "pedagogy",
+          "group_name": "БУП39-ПДЛ2209"
         }
       ],
       "wednesday": [],
-      "thursday": [
-        {
-          "slot": null,
-          "time_start": "10:40",
-          "time_end": "12:10",
-          "subject": "Технология личностного развития",
-          "type": "practice",
-          "room": "23",
-          "subgroup": null,
-          "notes": "",
-          "institute_id": "pedagogy",
-          "group_name": "103 ГРУППА"
-        },
-        {
-          "slot": null,
-          "time_start": "12:30",
-          "time_end": "14:00",
-          "subject": "Технология личностного развития",
-          "type": "lecture",
-          "room": "23",
-          "subgroup": null,
-          "notes": "",
-          "institute_id": "pedagogy",
-          "group_name": "103 ГРУППА"
-        },
-        {
-          "slot": null,
-          "time_start": "12:30",
-          "time_end": "14:00",
-          "subject": "Технология личностного развития",
-          "type": "lecture",
-          "room": "23",
-          "subgroup": null,
-          "notes": "",
-          "institute_id": "pedagogy",
-          "group_name": "113 ГРУППА"
-        },
-        {
-          "slot": null,
-          "time_start": "14:20",
-          "time_end": "15:50",
-          "subject": "Технология личностного развития",
-          "type": "practice",
-          "room": "23",
-          "subgroup": null,
-          "notes": "",
-          "institute_id": "pedagogy",
-          "group_name": "113 ГРУППА"
-        }
-      ],
+      "thursday": [],
       "friday": [],
       "saturday": []
     }

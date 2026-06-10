@@ -12,10 +12,35 @@
   "schedule": {
     "odd_week": {
       "monday": [],
-      "tuesday": [],
+      "tuesday": [
+        {
+          "slot": 1,
+          "time_start": "09:00",
+          "time_end": "10:30",
+          "subject": "Теория функций комплексного",
+          "type": "lab",
+          "room": "405",
+          "subgroup": 1,
+          "notes": "доц. Удовенко Л.Н., ауд. 405",
+          "institute_id": "math",
+          "group_name": "БОМ35-ПИМ2208"
+        }
+      ],
       "wednesday": [
         {
-          "slot": null,
+          "slot": 2,
+          "time_start": "10:40",
+          "time_end": "12:10",
+          "subject": "Методика обучения и воспитания",
+          "type": "lab",
+          "room": "301",
+          "subgroup": 1,
+          "notes": "",
+          "institute_id": "math",
+          "group_name": "БОМ23-ММИ2307"
+        },
+        {
+          "slot": 3,
           "time_start": "12:40",
           "time_end": "14:10",
           "subject": "Численные методы",
@@ -24,10 +49,10 @@
           "subgroup": null,
           "notes": "",
           "institute_id": "math",
-          "group_name": "БOМ35-МДО2301"
+          "group_name": "БОМ23-ММИ2307"
         },
         {
-          "slot": null,
+          "slot": 2,
           "time_start": "10:40",
           "time_end": "12:10",
           "subject": "Численные методы",
@@ -36,25 +61,74 @@
           "subgroup": null,
           "notes": "",
           "institute_id": "math",
-          "group_name": "БOМ35-ПИМ2308"
-        }
-      ],
-      "thursday": [],
-      "friday": [
+          "group_name": "БОМ23-ММО2310"
+        },
         {
-          "slot": null,
-          "time_start": "09:00",
-          "time_end": "10:30",
+          "slot": 2,
+          "time_start": "10:40",
+          "time_end": "12:10",
+          "subject": "Методика обучения и воспитания",
+          "type": "lab",
+          "room": "301",
+          "subgroup": 1,
+          "notes": "",
+          "institute_id": "math",
+          "group_name": "БОМ35-МДО2301"
+        },
+        {
+          "slot": 3,
+          "time_start": "12:40",
+          "time_end": "14:10",
           "subject": "Численные методы",
           "type": "lecture",
-          "room": "206",
+          "room": "205",
           "subgroup": null,
           "notes": "",
           "institute_id": "math",
-          "group_name": "БOМ35-ПИМ2208"
+          "group_name": "БОМ35-МДО2301"
         },
         {
-          "slot": null,
+          "slot": 2,
+          "time_start": "10:40",
+          "time_end": "12:10",
+          "subject": "Численные методы",
+          "type": "lab",
+          "room": "210",
+          "subgroup": null,
+          "notes": "",
+          "institute_id": "math",
+          "group_name": "БОМ35-ПИМ2308"
+        }
+      ],
+      "thursday": [
+        {
+          "slot": 4,
+          "time_start": "14:20",
+          "time_end": "15:50",
+          "subject": "Численные методы",
+          "type": "practice",
+          "room": "210, 105",
+          "subgroup": 1,
+          "notes": "",
+          "institute_id": "math",
+          "group_name": "БОМ35-МДО2201"
+        }
+      ],
+      "friday": [
+        {
+          "slot": 3,
+          "time_start": "12:40",
+          "time_end": "14:10",
+          "subject": "Численные методы",
+          "type": "practice",
+          "room": "210, 209",
+          "subgroup": 1,
+          "notes": "",
+          "institute_id": "math",
+          "group_name": "БОМ23-ММИ2307"
+        },
+        {
+          "slot": 3,
           "time_start": "12:40",
           "time_end": "14:10",
           "subject": "Численные методы",
@@ -63,10 +137,58 @@
           "subgroup": null,
           "notes": "",
           "institute_id": "math",
-          "group_name": "БOМ35-ПИМ2308"
+          "group_name": "БОМ23-ММО2310"
         },
         {
-          "slot": null,
+          "slot": 3,
+          "time_start": "12:40",
+          "time_end": "14:10",
+          "subject": "Численные методы",
+          "type": "practice",
+          "room": "210, 209",
+          "subgroup": 1,
+          "notes": "",
+          "institute_id": "math",
+          "group_name": "БОМ35-МДО2301"
+        },
+        {
+          "slot": 1,
+          "time_start": "09:00",
+          "time_end": "10:30",
+          "subject": "Численные методы",
+          "type": "lecture",
+          "room": "206",
+          "subgroup": null,
+          "notes": "",
+          "institute_id": "math",
+          "group_name": "БОМ35-ПИМ2208"
+        },
+        {
+          "slot": 2,
+          "time_start": "10:40",
+          "time_end": "12:10",
+          "subject": "Численные методы",
+          "type": "lab",
+          "room": "210, 209",
+          "subgroup": 1,
+          "notes": "",
+          "institute_id": "math",
+          "group_name": "БОМ35-ПИМ2208"
+        },
+        {
+          "slot": 3,
+          "time_start": "12:40",
+          "time_end": "14:10",
+          "subject": "Численные методы",
+          "type": "practice",
+          "room": "210",
+          "subgroup": null,
+          "notes": "",
+          "institute_id": "math",
+          "group_name": "БОМ35-ПИМ2308"
+        },
+        {
+          "slot": 3,
           "time_start": "12:40",
           "time_end": "14:10",
           "subject": "Дискретная математика",
@@ -75,12 +197,24 @@
           "subgroup": null,
           "notes": "",
           "institute_id": "math",
-          "group_name": "ВOМ34-МКН2501"
+          "group_name": "ВОМ34-МКН2501"
+        },
+        {
+          "slot": 3,
+          "time_start": "12:40",
+          "time_end": "14:10",
+          "subject": "Дискретная математика",
+          "type": "lab",
+          "room": "206",
+          "subgroup": null,
+          "notes": "",
+          "institute_id": "math",
+          "group_name": "ВОМ34-ПИМ2508"
         }
       ],
       "saturday": [
         {
-          "slot": null,
+          "slot": 4,
           "time_start": "14:20",
           "time_end": "15:50",
           "subject": "Дискретная математика",
@@ -89,16 +223,53 @@
           "subgroup": null,
           "notes": "",
           "institute_id": "math",
-          "group_name": "ВOМ34-МКН2501"
+          "group_name": "ВОМ23-ММИ2506"
+        },
+        {
+          "slot": 4,
+          "time_start": "14:20",
+          "time_end": "15:50",
+          "subject": "Дискретная математика",
+          "type": "practice",
+          "room": "206",
+          "subgroup": null,
+          "notes": "",
+          "institute_id": "math",
+          "group_name": "ВОМ34-МКН2501"
         }
       ]
     },
     "even_week": {
       "monday": [],
-      "tuesday": [],
+      "tuesday": [
+        {
+          "slot": 1,
+          "time_start": "09:00",
+          "time_end": "10:30",
+          "subject": "Теория функций комплексного",
+          "type": "lab",
+          "room": "405",
+          "subgroup": 1,
+          "notes": "доц. Удовенко Л.Н., ауд. 405",
+          "institute_id": "math",
+          "group_name": "БОМ35-ПИМ2208"
+        }
+      ],
       "wednesday": [
         {
-          "slot": null,
+          "slot": 2,
+          "time_start": "10:40",
+          "time_end": "12:10",
+          "subject": "Методика обучения и воспитания",
+          "type": "lab",
+          "room": "301",
+          "subgroup": 1,
+          "notes": "",
+          "institute_id": "math",
+          "group_name": "БОМ23-ММИ2307"
+        },
+        {
+          "slot": 3,
           "time_start": "12:40",
           "time_end": "14:10",
           "subject": "Численные методы",
@@ -107,10 +278,10 @@
           "subgroup": null,
           "notes": "",
           "institute_id": "math",
-          "group_name": "БOМ35-МДО2301"
+          "group_name": "БОМ23-ММИ2307"
         },
         {
-          "slot": null,
+          "slot": 2,
           "time_start": "10:40",
           "time_end": "12:10",
           "subject": "Численные методы",
@@ -119,25 +290,74 @@
           "subgroup": null,
           "notes": "",
           "institute_id": "math",
-          "group_name": "БOМ35-ПИМ2308"
-        }
-      ],
-      "thursday": [],
-      "friday": [
+          "group_name": "БОМ23-ММО2310"
+        },
         {
-          "slot": null,
-          "time_start": "09:00",
-          "time_end": "10:30",
+          "slot": 2,
+          "time_start": "10:40",
+          "time_end": "12:10",
+          "subject": "Методика обучения и воспитания",
+          "type": "lab",
+          "room": "301",
+          "subgroup": 1,
+          "notes": "",
+          "institute_id": "math",
+          "group_name": "БОМ35-МДО2301"
+        },
+        {
+          "slot": 3,
+          "time_start": "12:40",
+          "time_end": "14:10",
           "subject": "Численные методы",
           "type": "lecture",
-          "room": "206",
+          "room": "205",
           "subgroup": null,
           "notes": "",
           "institute_id": "math",
-          "group_name": "БOМ35-ПИМ2208"
+          "group_name": "БОМ35-МДО2301"
         },
         {
-          "slot": null,
+          "slot": 2,
+          "time_start": "10:40",
+          "time_end": "12:10",
+          "subject": "Численные методы",
+          "type": "lab",
+          "room": "210",
+          "subgroup": null,
+          "notes": "",
+          "institute_id": "math",
+          "group_name": "БОМ35-ПИМ2308"
+        }
+      ],
+      "thursday": [
+        {
+          "slot": 4,
+          "time_start": "14:20",
+          "time_end": "15:50",
+          "subject": "Численные методы",
+          "type": "practice",
+          "room": "210, 105",
+          "subgroup": 1,
+          "notes": "",
+          "institute_id": "math",
+          "group_name": "БОМ35-МДО2201"
+        }
+      ],
+      "friday": [
+        {
+          "slot": 3,
+          "time_start": "12:40",
+          "time_end": "14:10",
+          "subject": "Численные методы",
+          "type": "practice",
+          "room": "210, 209",
+          "subgroup": 1,
+          "notes": "",
+          "institute_id": "math",
+          "group_name": "БОМ23-ММИ2307"
+        },
+        {
+          "slot": 3,
           "time_start": "12:40",
           "time_end": "14:10",
           "subject": "Численные методы",
@@ -146,10 +366,58 @@
           "subgroup": null,
           "notes": "",
           "institute_id": "math",
-          "group_name": "БOМ35-ПИМ2308"
+          "group_name": "БОМ23-ММО2310"
         },
         {
-          "slot": null,
+          "slot": 3,
+          "time_start": "12:40",
+          "time_end": "14:10",
+          "subject": "Численные методы",
+          "type": "practice",
+          "room": "210, 209",
+          "subgroup": 1,
+          "notes": "",
+          "institute_id": "math",
+          "group_name": "БОМ35-МДО2301"
+        },
+        {
+          "slot": 1,
+          "time_start": "09:00",
+          "time_end": "10:30",
+          "subject": "Численные методы",
+          "type": "lecture",
+          "room": "206",
+          "subgroup": null,
+          "notes": "",
+          "institute_id": "math",
+          "group_name": "БОМ35-ПИМ2208"
+        },
+        {
+          "slot": 2,
+          "time_start": "10:40",
+          "time_end": "12:10",
+          "subject": "Численные методы",
+          "type": "lab",
+          "room": "210, 209",
+          "subgroup": 1,
+          "notes": "",
+          "institute_id": "math",
+          "group_name": "БОМ35-ПИМ2208"
+        },
+        {
+          "slot": 3,
+          "time_start": "12:40",
+          "time_end": "14:10",
+          "subject": "Численные методы",
+          "type": "practice",
+          "room": "210",
+          "subgroup": null,
+          "notes": "",
+          "institute_id": "math",
+          "group_name": "БОМ35-ПИМ2308"
+        },
+        {
+          "slot": 3,
           "time_start": "12:40",
           "time_end": "14:10",
           "subject": "Дискретная математика",
@@ -158,12 +426,24 @@
           "subgroup": null,
           "notes": "",
           "institute_id": "math",
-          "group_name": "ВOМ34-МКН2501"
+          "group_name": "ВОМ34-МКН2501"
+        },
+        {
+          "slot": 3,
+          "time_start": "12:40",
+          "time_end": "14:10",
+          "subject": "Дискретная математика",
+          "type": "lab",
+          "room": "206",
+          "subgroup": null,
+          "notes": "",
+          "institute_id": "math",
+          "group_name": "ВОМ34-ПИМ2508"
         }
       ],
       "saturday": [
         {
-          "slot": null,
+          "slot": 4,
           "time_start": "14:20",
           "time_end": "15:50",
           "subject": "Дискретная математика",
@@ -172,7 +452,19 @@
           "subgroup": null,
           "notes": "",
           "institute_id": "math",
-          "group_name": "ВOМ34-МКН2501"
+          "group_name": "ВОМ23-ММИ2506"
+        },
+        {
+          "slot": 4,
+          "time_start": "14:20",
+          "time_end": "15:50",
+          "subject": "Дискретная математика",
+          "type": "practice",
+          "room": "206",
+          "subgroup": null,
+          "notes": "",
+          "institute_id": "math",
+          "group_name": "ВОМ34-МКН2501"
         }
       ]
     }

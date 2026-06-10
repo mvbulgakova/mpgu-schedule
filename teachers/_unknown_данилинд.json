@@ -11,49 +11,11 @@
   "kafedra_name": "",
   "schedule": {
     "odd_week": {
-      "monday": [
-        {
-          "slot": 1,
-          "time_start": "09:00",
-          "time_end": "10:30",
-          "subject": "Иностранный язык",
-          "type": "practice",
-          "room": "Ауд. 36",
-          "subgroup": null,
-          "notes": "",
-          "institute_id": "pedagogy",
-          "group_name": "108 ГРУППА"
-        },
-        {
-          "slot": null,
-          "time_start": "10:40",
-          "time_end": "12:10",
-          "subject": "Иностранный язык",
-          "type": "practice",
-          "room": "36",
-          "subgroup": null,
-          "notes": "",
-          "institute_id": "pedagogy",
-          "group_name": "108 ГРУППА"
-        }
-      ],
-      "tuesday": [
-        {
-          "slot": 1,
-          "time_start": "09:00",
-          "time_end": "10:30",
-          "subject": "Иностранный язык",
-          "type": "practice",
-          "room": "Ауд. 36",
-          "subgroup": null,
-          "notes": "",
-          "institute_id": "pedagogy",
-          "group_name": "108 ГРУППА"
-        }
-      ],
+      "monday": [],
+      "tuesday": [],
       "wednesday": [
         {
-          "slot": null,
+          "slot": 4,
           "time_start": "14:20",
           "time_end": "15:50",
           "subject": "Иностранный язык для специальных целей",
@@ -65,7 +27,7 @@
           "group_name": "ЗОИ34-ИВШ2501 (101)"
         },
         {
-          "slot": null,
+          "slot": 4,
           "time_start": "14:20",
           "time_end": "15:50",
           "subject": "Иностранный язык для специальных целей",
@@ -77,7 +39,7 @@
           "group_name": "ЗОИ34-ИНП2502 (102)"
         },
         {
-          "slot": null,
+          "slot": 5,
           "time_start": "16:00",
           "time_end": "17:30",
           "subject": "Иностранный язык для специальных целей",
@@ -89,7 +51,7 @@
           "group_name": "ЗОИ34-УПР2503 (103)"
         },
         {
-          "slot": null,
+          "slot": 4,
           "time_start": "14:20",
           "time_end": "15:50",
           "subject": "Иностранный язык для специальных целей",
@@ -102,10 +64,35 @@
         }
       ],
       "thursday": [],
-      "friday": [],
-      "saturday": [
+      "friday": [
         {
           "slot": null,
+          "time_start": "12:30",
+          "time_end": "14:00",
+          "subject": "Иностранный язык",
+          "type": "practice",
+          "room": "34,35,36,11",
+          "subgroup": null,
+          "notes": "",
+          "institute_id": "pedagogy",
+          "group_name": "ЗОП40-КОБ2504"
+        },
+        {
+          "slot": 4,
+          "time_start": "14:20",
+          "time_end": "15:50",
+          "subject": "Иностранный язык",
+          "type": "practice",
+          "room": "34,35,36,11",
+          "subgroup": null,
+          "notes": "",
+          "institute_id": "pedagogy",
+          "group_name": "ЗОП40-КОБ2504"
+        }
+      ],
+      "saturday": [
+        {
+          "slot": 1,
           "time_start": "09:00",
           "time_end": "10:30",
           "subject": "Иностранный язык",
@@ -117,7 +104,7 @@
           "group_name": "ВZИ34-ИСТ2401"
         },
         {
-          "slot": null,
+          "slot": 2,
           "time_start": "10:40",
           "time_end": "12:10",
           "subject": "Иностранный язык",
@@ -129,7 +116,7 @@
           "group_name": "ВZИ34-ИСТ2401"
         },
         {
-          "slot": null,
+          "slot": 3,
           "time_start": "12:40",
           "time_end": "14:10",
           "subject": "Иностранный язык",
@@ -141,7 +128,7 @@
           "group_name": "ВZИ34-ИСТ2401"
         },
         {
-          "slot": null,
+          "slot": 4,
           "time_start": "14:20",
           "time_end": "15:50",
           "subject": "Иностранный язык",
@@ -153,7 +140,7 @@
           "group_name": "ВZИ34-ИСТ2401"
         },
         {
-          "slot": null,
+          "slot": 1,
           "time_start": "09:00",
           "time_end": "10:30",
           "subject": "Иностранный язык",
@@ -165,7 +152,7 @@
           "group_name": "ВZИ34-ИСТ2402"
         },
         {
-          "slot": null,
+          "slot": 2,
           "time_start": "10:40",
           "time_end": "12:10",
           "subject": "Иностранный язык",
@@ -177,7 +164,7 @@
           "group_name": "ВZИ34-ИСТ2402"
         },
         {
-          "slot": null,
+          "slot": 3,
           "time_start": "12:40",
           "time_end": "14:10",
           "subject": "Иностранный язык",
@@ -189,7 +176,7 @@
           "group_name": "ВZИ34-ИСТ2402"
         },
         {
-          "slot": null,
+          "slot": 4,
           "time_start": "14:20",
           "time_end": "15:50",
           "subject": "Иностранный язык",
@@ -201,7 +188,7 @@
           "group_name": "ВZИ34-ИСТ2402"
         },
         {
-          "slot": null,
+          "slot": 5,
           "time_start": "16:00",
           "time_end": "17:30",
           "subject": "Иностранный язык",
@@ -211,104 +198,43 @@
           "notes": "",
           "institute_id": "history",
           "group_name": "ВZИ34-ИСТ2402"
-        },
-        {
-          "slot": null,
-          "time_start": "09:00",
-          "time_end": "10:30",
-          "subject": "Иностранный язык",
-          "type": "practice",
-          "room": "35",
-          "subgroup": null,
-          "notes": "",
-          "institute_id": "pedagogy",
-          "group_name": "103 ГРУППА"
-        },
-        {
-          "slot": null,
-          "time_start": "10:40",
-          "time_end": "12:10",
-          "subject": "Иностранный язык",
-          "type": "practice",
-          "room": "35",
-          "subgroup": null,
-          "notes": "",
-          "institute_id": "pedagogy",
-          "group_name": "103 ГРУППА"
-        },
-        {
-          "slot": null,
-          "time_start": "09:00",
-          "time_end": "10:30",
-          "subject": "Иностранный язык",
-          "type": "practice",
-          "room": "35",
-          "subgroup": null,
-          "notes": "",
-          "institute_id": "pedagogy",
-          "group_name": "113 ГРУППА"
-        },
-        {
-          "slot": null,
-          "time_start": "10:40",
-          "time_end": "12:10",
-          "subject": "Иностранный язык",
-          "type": "practice",
-          "room": "35",
-          "subgroup": null,
-          "notes": "",
-          "institute_id": "pedagogy",
-          "group_name": "113 ГРУППА"
         }
       ]
     },
     "even_week": {
-      "monday": [
-        {
-          "slot": 1,
-          "time_start": "09:00",
-          "time_end": "10:30",
-          "subject": "Иностранный язык",
-          "type": "practice",
-          "room": "Ауд. 36",
-          "subgroup": null,
-          "notes": "",
-          "institute_id": "pedagogy",
-          "group_name": "108 ГРУППА"
-        },
-        {
-          "slot": null,
-          "time_start": "10:40",
-          "time_end": "12:10",
-          "subject": "Иностранный язык",
-          "type": "practice",
-          "room": "36",
-          "subgroup": null,
-          "notes": "",
-          "institute_id": "pedagogy",
-          "group_name": "108 ГРУППА"
-        }
-      ],
-      "tuesday": [
-        {
-          "slot": 1,
-          "time_start": "09:00",
-          "time_end": "10:30",
-          "subject": "Иностранный язык",
-          "type": "practice",
-          "room": "Ауд. 36",
-          "subgroup": null,
-          "notes": "",
-          "institute_id": "pedagogy",
-          "group_name": "108 ГРУППА"
-        }
-      ],
+      "monday": [],
+      "tuesday": [],
       "wednesday": [],
       "thursday": [],
-      "friday": [],
-      "saturday": [
+      "friday": [
         {
           "slot": null,
+          "time_start": "12:30",
+          "time_end": "14:00",
+          "subject": "Иностранный язык",
+          "type": "practice",
+          "room": "34,35,36,11",
+          "subgroup": null,
+          "notes": "",
+          "institute_id": "pedagogy",
+          "group_name": "ЗОП40-КОБ2504"
+        },
+        {
+          "slot": 4,
+          "time_start": "14:20",
+          "time_end": "15:50",
+          "subject": "Иностранный язык",
+          "type": "practice",
+          "room": "34,35,36,11",
+          "subgroup": null,
+          "notes": "",
+          "institute_id": "pedagogy",
+          "group_name": "ЗОП40-КОБ2504"
+        }
+      ],
+      "saturday": [
+        {
+          "slot": 1,
           "time_start": "09:00",
           "time_end": "10:30",
           "subject": "Иностранный язык",
@@ -320,7 +246,7 @@
           "group_name": "ВZИ34-ИСТ2401"
         },
         {
-          "slot": null,
+          "slot": 2,
           "time_start": "10:40",
           "time_end": "12:10",
           "subject": "Иностранный язык",
@@ -332,7 +258,7 @@
           "group_name": "ВZИ34-ИСТ2401"
         },
         {
-          "slot": null,
+          "slot": 3,
           "time_start": "12:40",
           "time_end": "14:10",
           "subject": "Иностранный язык",
@@ -344,7 +270,7 @@
           "group_name": "ВZИ34-ИСТ2401"
         },
         {
-          "slot": null,
+          "slot": 4,
           "time_start": "14:20",
           "time_end": "15:50",
           "subject": "Иностранный язык",
@@ -356,7 +282,7 @@
           "group_name": "ВZИ34-ИСТ2401"
         },
         {
-          "slot": null,
+          "slot": 1,
           "time_start": "09:00",
           "time_end": "10:30",
           "subject": "Иностранный язык",
@@ -368,7 +294,7 @@
           "group_name": "ВZИ34-ИСТ2402"
         },
         {
-          "slot": null,
+          "slot": 2,
           "time_start": "10:40",
           "time_end": "12:10",
           "subject": "Иностранный язык",
@@ -380,7 +306,7 @@
           "group_name": "ВZИ34-ИСТ2402"
         },
         {
-          "slot": null,
+          "slot": 3,
           "time_start": "12:40",
           "time_end": "14:10",
           "subject": "Иностранный язык",
@@ -392,7 +318,7 @@
           "group_name": "ВZИ34-ИСТ2402"
         },
         {
-          "slot": null,
+          "slot": 4,
           "time_start": "14:20",
           "time_end": "15:50",
           "subject": "Иностранный язык",
@@ -404,7 +330,7 @@
           "group_name": "ВZИ34-ИСТ2402"
         },
         {
-          "slot": null,
+          "slot": 5,
           "time_start": "16:00",
           "time_end": "17:30",
           "subject": "Иностранный язык",
@@ -414,54 +340,6 @@
           "notes": "",
           "institute_id": "history",
           "group_name": "ВZИ34-ИСТ2402"
-        },
-        {
-          "slot": null,
-          "time_start": "09:00",
-          "time_end": "10:30",
-          "subject": "Иностранный язык",
-          "type": "practice",
-          "room": "35",
-          "subgroup": null,
-          "notes": "",
-          "institute_id": "pedagogy",
-          "group_name": "103 ГРУППА"
-        },
-        {
-          "slot": null,
-          "time_start": "10:40",
-          "time_end": "12:10",
-          "subject": "Иностранный язык",
-          "type": "practice",
-          "room": "35",
-          "subgroup": null,
-          "notes": "",
-          "institute_id": "pedagogy",
-          "group_name": "103 ГРУППА"
-        },
-        {
-          "slot": null,
-          "time_start": "09:00",
-          "time_end": "10:30",
-          "subject": "Иностранный язык",
-          "type": "practice",
-          "room": "35",
-          "subgroup": null,
-          "notes": "",
-          "institute_id": "pedagogy",
-          "group_name": "113 ГРУППА"
-        },
-        {
-          "slot": null,
-          "time_start": "10:40",
-          "time_end": "12:10",
-          "subject": "Иностранный язык",
-          "type": "practice",
-          "room": "35",
-          "subgroup": null,
-          "notes": "",
-          "institute_id": "pedagogy",
-          "group_name": "113 ГРУППА"
         }
       ]
     }

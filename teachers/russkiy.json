@@ -12,24 +12,37 @@
   "schedule": {
     "odd_week": {
       "monday": [],
-      "tuesday": [],
+      "tuesday": [
+        {
+          "slot": 5,
+          "time_start": "16:00",
+          "time_end": "17:00",
+          "subject": "Программирование",
+          "type": "other",
+          "room": "305, 411 302",
+          "subgroup": 1,
+          "notes": "",
+          "institute_id": "math",
+          "group_name": "ВОМ34-ПИМ2408"
+        }
+      ],
       "wednesday": [],
       "thursday": [],
       "friday": [
         {
           "slot": null,
-          "time_start": "09:00",
-          "time_end": "10:30",
-          "subject": "Программирование",
-          "type": "practice",
-          "room": "301",
+          "time_start": "14:30",
+          "time_end": "16:00",
+          "subject": "Языки и методы программирования",
+          "type": "lab",
+          "room": "411, 307",
           "subgroup": null,
           "notes": "",
           "institute_id": "math",
-          "group_name": "ВOМ34-МКН2501"
+          "group_name": "ВVМ34-МДО2401"
         },
         {
-          "slot": null,
+          "slot": 3,
           "time_start": "12:40",
           "time_end": "14:10",
           "subject": "Языки и методы программирования",
@@ -38,10 +51,22 @@
           "subgroup": null,
           "notes": "",
           "institute_id": "math",
-          "group_name": "ВOМ34-МКН2501"
+          "group_name": "ВОМ23-ММИ2506"
         },
         {
-          "slot": null,
+          "slot": 1,
+          "time_start": "09:00",
+          "time_end": "10:30",
+          "subject": "Программирование",
+          "type": "practice",
+          "room": "301",
+          "subgroup": null,
+          "notes": "",
+          "institute_id": "math",
+          "group_name": "ВОМ34-МКН2501"
+        },
+        {
+          "slot": 1,
           "time_start": "09:00",
           "time_end": "10:30",
           "subject": "Программирование",
@@ -50,10 +75,22 @@
           "subgroup": null,
           "notes": "",
           "institute_id": "math",
-          "group_name": "ВOМ34-МКН2501"
+          "group_name": "ВОМ34-МКН2501"
         },
         {
-          "slot": null,
+          "slot": 3,
+          "time_start": "12:40",
+          "time_end": "14:10",
+          "subject": "Языки и методы программирования",
+          "type": "practice",
+          "room": "301",
+          "subgroup": null,
+          "notes": "",
+          "institute_id": "math",
+          "group_name": "ВОМ34-МКН2501"
+        },
+        {
+          "slot": 2,
           "time_start": "10:40",
           "time_end": "12:10",
           "subject": "Программирование",
@@ -62,80 +99,141 @@
           "subgroup": null,
           "notes": "",
           "institute_id": "math",
-          "group_name": "ВOМ34-ПИМ2408"
+          "group_name": "ВОМ34-ПИМ2408"
         },
         {
-          "slot": null,
+          "slot": 1,
           "time_start": "09:00",
           "time_end": "10:30",
           "subject": "Программирование",
           "type": "lab",
-          "room": "ауд. 210",
+          "room": "210",
           "subgroup": null,
           "notes": "",
           "institute_id": "math",
-          "group_name": "ВOМ34-ПИМ2409"
+          "group_name": "ВОМ34-ПИМ2409"
         },
         {
-          "slot": null,
+          "slot": 4,
+          "time_start": "14:20",
+          "time_end": "15:50",
+          "subject": "Программирование",
+          "type": "lab",
+          "room": "108, 210",
+          "subgroup": 1,
+          "notes": "",
+          "institute_id": "math",
+          "group_name": "ВОМ34-ПИМ2409"
+        },
+        {
+          "slot": 1,
+          "time_start": "09:00",
+          "time_end": "10:30",
+          "subject": "Программирование",
+          "type": "lecture",
+          "room": "301",
+          "subgroup": null,
+          "notes": "",
+          "institute_id": "math",
+          "group_name": "ВОМ34-ПИМ2508"
+        },
+        {
+          "slot": 1,
           "time_start": "09:00",
           "time_end": "10:30",
           "subject": "Программирование",
           "type": "lab",
-          "room": "1 п/гр, ауд. 108",
+          "room": "108",
           "subgroup": null,
           "notes": "",
           "institute_id": "math",
-          "group_name": "ВOМ34-ПМЭ2504"
+          "group_name": "ВОМ34-ПИМ2509"
         },
         {
-          "slot": null,
-          "time_start": "14:30",
-          "time_end": "16:00",
-          "subject": "Языки и методы программирования",
+          "slot": 2,
+          "time_start": "10:40",
+          "time_end": "12:10",
+          "subject": "Программирование",
           "type": "lab",
-          "room": "ауд. 411, 307",
-          "subgroup": null,
+          "room": "108, 210",
+          "subgroup": 1,
           "notes": "",
           "institute_id": "math",
-          "group_name": "ВVМ34-МДО2401"
+          "group_name": "ВОМ34-ПИМ2509"
+        },
+        {
+          "slot": 1,
+          "time_start": "09:00",
+          "time_end": "10:30",
+          "subject": "Программирование",
+          "type": "lab",
+          "room": "108",
+          "subgroup": 1,
+          "notes": "",
+          "institute_id": "math",
+          "group_name": "ВОМ34-ПМЭ2504"
+        },
+        {
+          "slot": 2,
+          "time_start": "10:40",
+          "time_end": "12:10",
+          "subject": "Программирование",
+          "type": "lab",
+          "room": "108, 210",
+          "subgroup": 1,
+          "notes": "",
+          "institute_id": "math",
+          "group_name": "ВОМ34-ПМЭ2504"
         }
       ],
       "saturday": [
         {
-          "slot": null,
+          "slot": 5,
           "time_start": "16:00",
           "time_end": "17:30",
           "subject": "Программирование",
           "type": "lab",
-          "room": "ауд. 210",
+          "room": "210",
           "subgroup": null,
           "notes": "",
           "institute_id": "math",
-          "group_name": "ВOМ34-ПИМ2408"
+          "group_name": "ВОМ34-ПИМ2408"
         }
       ]
     },
     "even_week": {
       "monday": [],
-      "tuesday": [],
+      "tuesday": [
+        {
+          "slot": 5,
+          "time_start": "16:00",
+          "time_end": "17:00",
+          "subject": "Программирование",
+          "type": "other",
+          "room": "305, 411 302",
+          "subgroup": 1,
+          "notes": "",
+          "institute_id": "math",
+          "group_name": "ВОМ34-ПИМ2408"
+        }
+      ],
       "wednesday": [],
       "thursday": [],
       "friday": [
         {
           "slot": null,
-          "time_start": "09:00",
-          "time_end": "10:30",
-          "subject": "Программирование",
-          "type": "practice",
-          "room": "301",
+          "time_start": "14:30",
+          "time_end": "16:00",
+          "subject": "Языки и методы программирования",
+          "type": "lab",
+          "room": "411, 307",
           "subgroup": null,
           "notes": "",
           "institute_id": "math",
-          "group_name": "ВOМ34-МКН2501"
+          "group_name": "ВVМ34-МДО2401"
         },
         {
-          "slot": null,
+          "slot": 3,
           "time_start": "12:40",
           "time_end": "14:10",
           "subject": "Языки и методы программирования",
@@ -144,10 +242,22 @@
           "subgroup": null,
           "notes": "",
           "institute_id": "math",
-          "group_name": "ВOМ34-МКН2501"
+          "group_name": "ВОМ23-ММИ2506"
         },
         {
-          "slot": null,
+          "slot": 1,
+          "time_start": "09:00",
+          "time_end": "10:30",
+          "subject": "Программирование",
+          "type": "practice",
+          "room": "301",
+          "subgroup": null,
+          "notes": "",
+          "institute_id": "math",
+          "group_name": "ВОМ34-МКН2501"
+        },
+        {
+          "slot": 1,
           "time_start": "09:00",
           "time_end": "10:30",
           "subject": "Программирование",
@@ -156,10 +266,22 @@
           "subgroup": null,
           "notes": "",
           "institute_id": "math",
-          "group_name": "ВOМ34-МКН2501"
+          "group_name": "ВОМ34-МКН2501"
         },
         {
-          "slot": null,
+          "slot": 3,
+          "time_start": "12:40",
+          "time_end": "14:10",
+          "subject": "Языки и методы программирования",
+          "type": "practice",
+          "room": "301",
+          "subgroup": null,
+          "notes": "",
+          "institute_id": "math",
+          "group_name": "ВОМ34-МКН2501"
+        },
+        {
+          "slot": 2,
           "time_start": "10:40",
           "time_end": "12:10",
           "subject": "Программирование",
@@ -168,57 +290,105 @@
           "subgroup": null,
           "notes": "",
           "institute_id": "math",
-          "group_name": "ВOМ34-ПИМ2408"
+          "group_name": "ВОМ34-ПИМ2408"
         },
         {
-          "slot": null,
+          "slot": 1,
           "time_start": "09:00",
           "time_end": "10:30",
           "subject": "Программирование",
           "type": "lab",
-          "room": "ауд. 210",
+          "room": "210",
           "subgroup": null,
           "notes": "",
           "institute_id": "math",
-          "group_name": "ВOМ34-ПИМ2409"
+          "group_name": "ВОМ34-ПИМ2409"
         },
         {
-          "slot": null,
+          "slot": 4,
+          "time_start": "14:20",
+          "time_end": "15:50",
+          "subject": "Программирование",
+          "type": "lab",
+          "room": "108, 210",
+          "subgroup": 1,
+          "notes": "",
+          "institute_id": "math",
+          "group_name": "ВОМ34-ПИМ2409"
+        },
+        {
+          "slot": 1,
+          "time_start": "09:00",
+          "time_end": "10:30",
+          "subject": "Программирование",
+          "type": "lecture",
+          "room": "301",
+          "subgroup": null,
+          "notes": "",
+          "institute_id": "math",
+          "group_name": "ВОМ34-ПИМ2508"
+        },
+        {
+          "slot": 1,
           "time_start": "09:00",
           "time_end": "10:30",
           "subject": "Программирование",
           "type": "lab",
-          "room": "1 п/гр, ауд. 108",
+          "room": "108",
           "subgroup": null,
           "notes": "",
           "institute_id": "math",
-          "group_name": "ВOМ34-ПМЭ2504"
+          "group_name": "ВОМ34-ПИМ2509"
         },
         {
-          "slot": null,
-          "time_start": "14:30",
-          "time_end": "16:00",
-          "subject": "Языки и методы программирования",
+          "slot": 2,
+          "time_start": "10:40",
+          "time_end": "12:10",
+          "subject": "Программирование",
           "type": "lab",
-          "room": "ауд. 411, 307",
-          "subgroup": null,
+          "room": "108, 210",
+          "subgroup": 1,
           "notes": "",
           "institute_id": "math",
-          "group_name": "ВVМ34-МДО2401"
+          "group_name": "ВОМ34-ПИМ2509"
+        },
+        {
+          "slot": 1,
+          "time_start": "09:00",
+          "time_end": "10:30",
+          "subject": "Программирование",
+          "type": "lab",
+          "room": "108",
+          "subgroup": 1,
+          "notes": "",
+          "institute_id": "math",
+          "group_name": "ВОМ34-ПМЭ2504"
+        },
+        {
+          "slot": 2,
+          "time_start": "10:40",
+          "time_end": "12:10",
+          "subject": "Программирование",
+          "type": "lab",
+          "room": "108, 210",
+          "subgroup": 1,
+          "notes": "",
+          "institute_id": "math",
+          "group_name": "ВОМ34-ПМЭ2504"
         }
       ],
       "saturday": [
         {
-          "slot": null,
+          "slot": 5,
           "time_start": "16:00",
           "time_end": "17:30",
           "subject": "Программирование",
           "type": "lab",
-          "room": "ауд. 210",
+          "room": "210",
           "subgroup": null,
           "notes": "",
           "institute_id": "math",
-          "group_name": "ВOМ34-ПИМ2408"
+          "group_name": "ВОМ34-ПИМ2408"
         }
       ]
     }

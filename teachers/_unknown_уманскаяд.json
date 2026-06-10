@@ -11,7 +11,20 @@
   "kafedra_name": "",
   "schedule": {
     "odd_week": {
-      "monday": [],
+      "monday": [
+        {
+          "slot": null,
+          "time_start": "12:30",
+          "time_end": "14:00",
+          "subject": "Общая психология (с практикумом)",
+          "type": "lecture",
+          "room": "39",
+          "subgroup": null,
+          "notes": "",
+          "institute_id": "pedagogy",
+          "group_name": "ВОП40-ПВС2506"
+        }
+      ],
       "tuesday": [
         {
           "slot": null,
@@ -23,82 +36,10 @@
           "subgroup": null,
           "notes": "",
           "institute_id": "pedagogy",
-          "group_name": "101 ГРУППА"
+          "group_name": "БОП30-СПМ2508"
         },
         {
-          "slot": null,
-          "time_start": "12:30",
-          "time_end": "14:00",
-          "subject": "Общая психология (с практикумом)",
-          "type": "practice",
-          "room": "11",
-          "subgroup": null,
-          "notes": "",
-          "institute_id": "pedagogy",
-          "group_name": "103 ГРУППА"
-        },
-        {
-          "slot": null,
-          "time_start": "14:20",
-          "time_end": "15:50",
-          "subject": "Общая психология (с практикумом)",
-          "type": "lecture",
-          "room": "23",
-          "subgroup": null,
-          "notes": "",
-          "institute_id": "pedagogy",
-          "group_name": "103 ГРУППА"
-        },
-        {
-          "slot": null,
-          "time_start": "12:30",
-          "time_end": "14:00",
-          "subject": "Общая психология (с практикумом)",
-          "type": "lecture",
-          "room": "39",
-          "subgroup": null,
-          "notes": "",
-          "institute_id": "pedagogy",
-          "group_name": "104 ГРУППА"
-        },
-        {
-          "slot": null,
-          "time_start": "12:30",
-          "time_end": "14:00",
-          "subject": "Общая психология (с практикумом)",
-          "type": "lecture",
-          "room": "39",
-          "subgroup": null,
-          "notes": "",
-          "institute_id": "pedagogy",
-          "group_name": "106 ГРУППА"
-        },
-        {
-          "slot": null,
-          "time_start": "14:20",
-          "time_end": "15:50",
-          "subject": "Общая психология (с практикумом)",
-          "type": "practice",
-          "room": "11",
-          "subgroup": null,
-          "notes": "",
-          "institute_id": "pedagogy",
-          "group_name": "106 ГРУППА"
-        },
-        {
-          "slot": null,
-          "time_start": "12:30",
-          "time_end": "14:00",
-          "subject": "Общая психология (с практикумом)",
-          "type": "lecture",
-          "room": "39",
-          "subgroup": null,
-          "notes": "",
-          "institute_id": "pedagogy",
-          "group_name": "108 ГРУППА"
-        },
-        {
-          "slot": null,
+          "slot": 2,
           "time_start": "10:40",
           "time_end": "12:10",
           "subject": "Общая психология (с практикумом)",
@@ -107,93 +48,69 @@
           "subgroup": null,
           "notes": "",
           "institute_id": "pedagogy",
-          "group_name": "113 ГРУППА"
-        },
-        {
-          "slot": null,
-          "time_start": "14:20",
-          "time_end": "15:50",
-          "subject": "Общая психология (с практикумом)",
-          "type": "lecture",
-          "room": "23",
-          "subgroup": null,
-          "notes": "",
-          "institute_id": "pedagogy",
-          "group_name": "113 ГРУППА"
+          "group_name": "БОП39-СПР2513"
         }
       ],
       "wednesday": [
         {
-          "slot": null,
+          "slot": 2,
           "time_start": "10:40",
           "time_end": "12:10",
           "subject": "Общая психология (с практикумом)",
-          "type": "lecture",
+          "type": "practice",
           "room": "23",
           "subgroup": null,
           "notes": "",
           "institute_id": "pedagogy",
-          "group_name": "107 ГРУППА"
+          "group_name": "СОП13-ПКП2507"
         },
         {
-          "slot": null,
+          "slot": 4,
           "time_start": "14:20",
           "time_end": "15:50",
-          "subject": "Общая психология",
-          "type": "other",
-          "room": "36",
-          "subgroup": null,
-          "notes": "(с практикумом) (ПЗ)",
-          "institute_id": "pedagogy",
-          "group_name": "107 ГРУППА"
-        },
-        {
-          "slot": null,
-          "time_start": "16:00",
-          "time_end": "17:30",
-          "subject": "Общая психология",
-          "type": "other",
-          "room": "36",
-          "subgroup": null,
-          "notes": "(с практикумом) (ПЗ); Только 11.03.2026г., 25.03.2026г.",
-          "institute_id": "pedagogy",
-          "group_name": "107 ГРУППА"
-        },
-        {
-          "slot": null,
-          "time_start": "10:40",
-          "time_end": "12:10",
           "subject": "Общая психология (с практикумом)",
-          "type": "lecture",
-          "room": "23",
+          "type": "practice",
+          "room": "36",
           "subgroup": null,
           "notes": "",
           "institute_id": "pedagogy",
-          "group_name": "117 ГРУППА"
+          "group_name": "СОП13-ПКП2507"
+        },
+        {
+          "slot": 5,
+          "time_start": "16:00",
+          "time_end": "17:30",
+          "subject": "Общая психология (с практикумом)",
+          "type": "practice",
+          "room": "36",
+          "subgroup": null,
+          "notes": "",
+          "institute_id": "pedagogy",
+          "group_name": "СОП13-ПКП2507"
         },
         {
           "slot": null,
           "time_start": "12:30",
           "time_end": "14:00",
-          "subject": "Общая психология",
-          "type": "other",
+          "subject": "Общая психология (с практикумом)",
+          "type": "practice",
           "room": "36",
           "subgroup": null,
-          "notes": "(с практикумом) (ПЗ)",
+          "notes": "",
           "institute_id": "pedagogy",
-          "group_name": "117 ГРУППА"
+          "group_name": "СОП13-ПКП2517"
         },
         {
-          "slot": null,
+          "slot": 5,
           "time_start": "16:00",
           "time_end": "17:30",
-          "subject": "Общая психология",
-          "type": "other",
+          "subject": "Общая психология (с практикумом)",
+          "type": "practice",
           "room": "36",
           "subgroup": null,
-          "notes": "(с практикумом) (ПЗ); Только 08.04.2026г., 22.04.2026г.",
+          "notes": "",
           "institute_id": "pedagogy",
-          "group_name": "117 ГРУППА"
+          "group_name": "СОП13-ПКП2517"
         }
       ],
       "thursday": [],
@@ -201,7 +118,20 @@
       "saturday": []
     },
     "even_week": {
-      "monday": [],
+      "monday": [
+        {
+          "slot": null,
+          "time_start": "12:30",
+          "time_end": "14:00",
+          "subject": "Общая психология (с практикумом)",
+          "type": "lecture",
+          "room": "39",
+          "subgroup": null,
+          "notes": "",
+          "institute_id": "pedagogy",
+          "group_name": "ВОП40-ПВС2506"
+        }
+      ],
       "tuesday": [
         {
           "slot": null,
@@ -213,82 +143,10 @@
           "subgroup": null,
           "notes": "",
           "institute_id": "pedagogy",
-          "group_name": "101 ГРУППА"
+          "group_name": "БОП30-СПМ2508"
         },
         {
-          "slot": null,
-          "time_start": "12:30",
-          "time_end": "14:00",
-          "subject": "Общая психология (с практикумом)",
-          "type": "practice",
-          "room": "11",
-          "subgroup": null,
-          "notes": "",
-          "institute_id": "pedagogy",
-          "group_name": "103 ГРУППА"
-        },
-        {
-          "slot": null,
-          "time_start": "14:20",
-          "time_end": "15:50",
-          "subject": "Общая психология (с практикумом)",
-          "type": "lecture",
-          "room": "23",
-          "subgroup": null,
-          "notes": "",
-          "institute_id": "pedagogy",
-          "group_name": "103 ГРУППА"
-        },
-        {
-          "slot": null,
-          "time_start": "12:30",
-          "time_end": "14:00",
-          "subject": "Общая психология (с практикумом)",
-          "type": "lecture",
-          "room": "39",
-          "subgroup": null,
-          "notes": "",
-          "institute_id": "pedagogy",
-          "group_name": "104 ГРУППА"
-        },
-        {
-          "slot": null,
-          "time_start": "12:30",
-          "time_end": "14:00",
-          "subject": "Общая психология (с практикумом)",
-          "type": "lecture",
-          "room": "39",
-          "subgroup": null,
-          "notes": "",
-          "institute_id": "pedagogy",
-          "group_name": "106 ГРУППА"
-        },
-        {
-          "slot": null,
-          "time_start": "14:20",
-          "time_end": "15:50",
-          "subject": "Общая психология (с практикумом)",
-          "type": "practice",
-          "room": "11",
-          "subgroup": null,
-          "notes": "",
-          "institute_id": "pedagogy",
-          "group_name": "106 ГРУППА"
-        },
-        {
-          "slot": null,
-          "time_start": "12:30",
-          "time_end": "14:00",
-          "subject": "Общая психология (с практикумом)",
-          "type": "lecture",
-          "room": "39",
-          "subgroup": null,
-          "notes": "",
-          "institute_id": "pedagogy",
-          "group_name": "108 ГРУППА"
-        },
-        {
-          "slot": null,
+          "slot": 2,
           "time_start": "10:40",
           "time_end": "12:10",
           "subject": "Общая психология (с практикумом)",
@@ -297,93 +155,57 @@
           "subgroup": null,
           "notes": "",
           "institute_id": "pedagogy",
-          "group_name": "113 ГРУППА"
-        },
-        {
-          "slot": null,
-          "time_start": "14:20",
-          "time_end": "15:50",
-          "subject": "Общая психология (с практикумом)",
-          "type": "lecture",
-          "room": "23",
-          "subgroup": null,
-          "notes": "",
-          "institute_id": "pedagogy",
-          "group_name": "113 ГРУППА"
+          "group_name": "БОП39-СПР2513"
         }
       ],
       "wednesday": [
         {
-          "slot": null,
+          "slot": 2,
           "time_start": "10:40",
           "time_end": "12:10",
           "subject": "Общая психология (с практикумом)",
-          "type": "lecture",
+          "type": "practice",
           "room": "23",
           "subgroup": null,
           "notes": "",
           "institute_id": "pedagogy",
-          "group_name": "107 ГРУППА"
+          "group_name": "СОП13-ПКП2507"
         },
         {
-          "slot": null,
+          "slot": 4,
           "time_start": "14:20",
           "time_end": "15:50",
-          "subject": "Общая психология",
-          "type": "other",
-          "room": "36",
-          "subgroup": null,
-          "notes": "(с практикумом) (ПЗ)",
-          "institute_id": "pedagogy",
-          "group_name": "107 ГРУППА"
-        },
-        {
-          "slot": null,
-          "time_start": "16:00",
-          "time_end": "17:30",
-          "subject": "Общая психология",
-          "type": "other",
-          "room": "36",
-          "subgroup": null,
-          "notes": "(с практикумом) (ПЗ); Только 11.03.2026г., 25.03.2026г.",
-          "institute_id": "pedagogy",
-          "group_name": "107 ГРУППА"
-        },
-        {
-          "slot": null,
-          "time_start": "10:40",
-          "time_end": "12:10",
           "subject": "Общая психология (с практикумом)",
-          "type": "lecture",
-          "room": "23",
+          "type": "practice",
+          "room": "36",
           "subgroup": null,
           "notes": "",
           "institute_id": "pedagogy",
-          "group_name": "117 ГРУППА"
+          "group_name": "СОП13-ПКП2507"
         },
         {
           "slot": null,
           "time_start": "12:30",
           "time_end": "14:00",
-          "subject": "Общая психология",
-          "type": "other",
+          "subject": "Общая психология (с практикумом)",
+          "type": "practice",
           "room": "36",
           "subgroup": null,
-          "notes": "(с практикумом) (ПЗ)",
+          "notes": "",
           "institute_id": "pedagogy",
-          "group_name": "117 ГРУППА"
+          "group_name": "СОП13-ПКП2517"
         },
         {
-          "slot": null,
+          "slot": 5,
           "time_start": "16:00",
           "time_end": "17:30",
-          "subject": "Общая психология",
-          "type": "other",
+          "subject": "Общая психология (с практикумом)",
+          "type": "practice",
           "room": "36",
           "subgroup": null,
-          "notes": "(с практикумом) (ПЗ); Только 08.04.2026г., 22.04.2026г.",
+          "notes": "",
           "institute_id": "pedagogy",
-          "group_name": "117 ГРУППА"
+          "group_name": "СОП13-ПКП2517"
         }
       ],
       "thursday": [],
