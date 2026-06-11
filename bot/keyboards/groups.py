@@ -3,7 +3,7 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 PAGE_SIZE = 10
 
 
-def build_groups_kb(groups: list[dict], page: int = 0) -> InlineKeyboardMarkup:
+def build_groups_kb(groups: list[dict], page: int = 0, institute_id: str = "") -> InlineKeyboardMarkup:
     start = page * PAGE_SIZE
     end = start + PAGE_SIZE
     page_groups = groups[start:end]
@@ -15,9 +15,9 @@ def build_groups_kb(groups: list[dict], page: int = 0) -> InlineKeyboardMarkup:
 
     nav = []
     if page > 0:
-        nav.append(InlineKeyboardButton(text="← Назад", callback_data=f"grp_page:{page - 1}"))
+        nav.append(InlineKeyboardButton(text="← Назад", callback_data=f"grp_page:{institute_id}:{page - 1}"))
     if end < len(groups):
-        nav.append(InlineKeyboardButton(text="Далее →", callback_data=f"grp_page:{page + 1}"))
+        nav.append(InlineKeyboardButton(text="Далее →", callback_data=f"grp_page:{institute_id}:{page + 1}"))
     if nav:
         buttons.append(nav)
 

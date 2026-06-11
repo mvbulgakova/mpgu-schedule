@@ -16,18 +16,22 @@ def test_institutes_kb_has_buttons():
 
 def test_groups_kb_pagination():
     groups = [{"name": f"БИО{i:02d}-БА2501"} for i in range(25)]
-    kb = build_groups_kb(groups, page=0)
+    kb = build_groups_kb(groups, page=0, institute_id="bio")
     all_buttons = [btn for row in kb.inline_keyboard for btn in row]
     nav = [b for b in all_buttons if "→" in (b.text or "")]
     assert len(nav) == 1
+    # Verify institute_id is encoded in the callback data
+    assert nav[0].callback_data == "grp_page:bio:1"
 
 
 def test_groups_kb_page_2():
     groups = [{"name": f"БИО{i:02d}-БА2501"} for i in range(25)]
-    kb = build_groups_kb(groups, page=1)
+    kb = build_groups_kb(groups, page=1, institute_id="bio")
     all_buttons = [btn for row in kb.inline_keyboard for btn in row]
     nav_prev = [b for b in all_buttons if "←" in (b.text or "")]
     assert len(nav_prev) == 1
+    # Verify institute_id is encoded in the callback data
+    assert nav_prev[0].callback_data == "grp_page:bio:0"
 
 
 def test_schedule_kb_has_four_buttons():
