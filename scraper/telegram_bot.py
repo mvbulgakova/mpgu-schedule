@@ -1,4 +1,4 @@
-"""Telegram-бот расписания МПГУ на long-polling (для запуска в GitHub Actions).
+"""Telegram-бот для абитуриентов МПГУ на long-polling (для запуска в GitHub Actions).
 
 Без внешнего хостинга и вебхуков: воркфлоу периодически запускает этот скрипт,
 он опрашивает getUpdates ~55 минут и отвечает почти мгновенно, затем выходит;
@@ -7,7 +7,6 @@
 Данные берёт с публичного CDN jsDelivr (data-ветка) — ничего деплоить не надо.
 
 Локальный прогон логики (без Telegram):
-    python -m scraper.telegram_bot --selftest ВОП40-ПФК2501
     python -m scraper.telegram_bot --selftest-adm programs
     python -m scraper.telegram_bot --selftest-adm calendar
     python -m scraper.telegram_bot --selftest-adm docs budget
@@ -28,15 +27,6 @@ DATA_BASE = os.environ.get(
     "DATA_BASE", "https://cdn.jsdelivr.net/gh/mvbulgakova/mpgu-schedule@data")
 RUN_SECONDS = int(os.environ.get("RUN_SECONDS", "3300"))  # ~55 минут
 
-DAYS = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
-DAY_RU = {"monday": "Понедельник", "tuesday": "Вторник", "wednesday": "Среда",
-          "thursday": "Четверг", "friday": "Пятница", "saturday": "Суббота",
-          "sunday": "Воскресенье"}
-TYPE_RU = {"lecture": "ЛК", "practice": "ПЗ", "lab": "ЛР", "seminar": "СЕМ", "other": ""}
-_HOMO = str.maketrans({
-    "A": "А", "B": "В", "C": "С", "E": "Е", "H": "Н", "K": "К", "M": "М",
-    "O": "О", "P": "Р", "T": "Т", "X": "Х", "Y": "У"})
-
 # Состояние диалога: chat_id → {"mode": str|None, ...}
 _STATE: dict[int, dict] = {}
 
@@ -50,10 +40,6 @@ _PREDICTIONS_CACHE: dict | None = None
 # Утилиты
 # ---------------------------------------------------------------------------
 
-def search_key(s: str) -> str:
-    return re.sub(r"[\s\-_]", "", s.strip().upper().translate(_HOMO))
-
-
 def _get_json(path: str) -> Any:
     url = f"{DATA_BASE}/{path}"
     req = urllib.request.Request(url, headers={"User-Agent": "MPGU-Schedule-Bot"})
@@ -64,10 +50,6 @@ def _get_json(path: str) -> Any:
 def _esc(s: Any) -> str:
     return (str("" if s is None else s)
             .replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;"))
-
-
-def _iso_week_even(d: dt.date) -> bool:
-    return d.isocalendar()[1] % 2 == 0
 
 
 def _make_keyboard(buttons: list[list[tuple[str, str]]]) -> str:
@@ -124,58 +106,6 @@ _ID_MENU_KB = _make_keyboard([
 ])
 
 _BACK_KB = _make_keyboard([[("◀ Главное меню", "adm_main")]])
-
-
-# ---------------------------------------------------------------------------
-# Расписание (существующая логика)
-# ---------------------------------------------------------------------------
-
-def _format_today(group: dict, meta: dict) -> str:
-    now = dt.datetime.now(dt.timezone(dt.timedelta(hours=3)))  # Москва
-    day = DAYS[now.weekday()]
-    even = _iso_week_even(now.date())
-    wk = "even_week" if even else "odd_week"
-    lessons = ((group.get("schedule") or {}).get(wk) or {}).get(day) or []
-    head = (f"📅 <b>{_esc(group.get('name') or meta['code'])}</b> · "
-            f"{DAY_RU[day]} · {'чётная' if even else 'нечётная'} неделя")
-    if not lessons:
-        return f"{head}\n\nЗанятий нет 🎉"
-    lessons = sorted(lessons, key=lambda l: l.get("time_start") or "")
-    parts = []
-    for l in lessons:
-        t = f" ({TYPE_RU[l['type']]})" if TYPE_RU.get(l.get("type")) else ""
-        tm = f"{l.get('time_start') or ''}{'–' + l['time_end'] if l.get('time_end') else ''}"
-        extra = ", ".join(_esc(x) for x in (l.get("teacher"), l.get("room")) if x)
-        parts.append(f"🕐 <b>{tm}</b> {_esc(l.get('subject') or '')}{t}"
-                     + (f"\n   {extra}" if extra else ""))
-    return head + "\n\n" + "\n\n".join(parts)
-
-
-def _looks_like_group_code(text: str) -> bool:
-    k = search_key(text)
-    return bool(re.match(r"[А-ЯA-Z]{2,4}\d{2}", k))
-
-
-def handle_schedule(text: str) -> str:
-    """Поиск расписания по коду группы. Возвращает HTML-текст."""
-    text = text.strip()
-    q = search_key(re.sub(r"^/\S+\s*", "", text))
-    if len(q) < 3:
-        return "Пришлите код группы (минимум 3 символа), например ВОП40-ПФК2501."
-    groups = (_get_json("meta/groups.json") or {}).get("groups", [])
-    exact = [g for g in groups if g["key"] == q]
-    matches = exact or [g for g in groups if q in g["key"]]
-    if not matches:
-        return f"Группа «{_esc(text)}» не найдена. Проверьте код."
-    if len(matches) > 1 and len(exact) != 1:
-        lst = "\n".join(f"• <b>{_esc(g['code'])}</b> — {_esc(g['institute_short'])}"
-                        for g in matches[:12])
-        more = f"\n…и ещё {len(matches) - 12}" if len(matches) > 12 else ""
-        return f"Нашёл несколько групп — уточните код:\n{lst}{more}"
-    g = matches[0]
-    grp = _get_json(f"institutes/{g['institute']}/groups/"
-                    f"{urllib.parse.quote(g['file'])}.json")
-    return _format_today(grp, g)
 
 
 # ---------------------------------------------------------------------------
@@ -1385,7 +1315,6 @@ def handle(text: str, chat_id: int = 0) -> dict:
                 "💳 Объяснить платное обучение, кредит, маткапитал\n"
                 "🔍 Найти тебя в конкурсном списке по СНИЛС\n"
                 "💬 Ответить на любой вопрос о поступлении\n\n"
-                "📚 <b>Студентам</b> — введи код группы: <code>ВОП40-ПФК2501</code>\n\n"
                 "🔒 СНИЛС и личные данные нигде не сохраняются."
             ),
             "keyboard": start_kb,
@@ -1441,19 +1370,8 @@ def handle(text: str, chat_id: int = 0) -> dict:
         match = _match_programs_by_scores(scores)
         return {"text": _format_calculator_result(scores, match), "keyboard": _CALC_MENU_KB}
 
-    # Код группы → расписание
-    if _looks_like_group_code(text) or re.match(r"^/", text):
-        schedule_text = handle_schedule(text)
-        return {"text": schedule_text, "keyboard": None}
-
-    # Прочий текст → попытка найти группу
-    q = search_key(text)
-    if len(q) >= 3:
-        schedule_text = handle_schedule(text)
-        return {"text": schedule_text, "keyboard": None}
-
     return {
-        "text": "Пришлите код группы для расписания или воспользуйтесь меню абитуриента:",
+        "text": "Воспользуйтесь меню или задайте вопрос в свободной форме:",
         "keyboard": MAIN_MENU_KB,
     }
 
@@ -1492,12 +1410,6 @@ def _send(token: str, chat_id: int, reply: dict) -> None:
 # ---------------------------------------------------------------------------
 
 def main() -> int:
-    # Selftest для расписания (существующий)
-    if len(sys.argv) > 2 and sys.argv[1] == "--selftest":
-        result = handle(sys.argv[2], chat_id=0)
-        print(result["text"])
-        return 0
-
     # Selftest для абитуриентского раздела
     if len(sys.argv) > 2 and sys.argv[1] == "--selftest-adm":
         cmd = sys.argv[2]
