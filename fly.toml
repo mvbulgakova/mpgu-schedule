@@ -1,0 +1,13 @@
+app = "mpgu-schedule-bot"
+primary_region = "ams"
+
+[build]
+
+[env]
+  POLL_INTERVAL_HOURS = "4"
+  ENABLED_INSTITUTES = "biology,childhood,philology,sport,social"
+
+[[vm]]
+  memory = "256mb"
+  cpu_kind = "shared"
+  cpus = 1
