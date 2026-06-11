@@ -19,6 +19,8 @@ from scraper.telegram_bot import (
     _calc_id_scores,
     _format_id_result,
     _parse_scores,
+    _is_border_region,
+    check_border_region,
     handle,
     handle_callback,
     search_by_snils,
@@ -450,6 +452,82 @@ class TestNewCallbacks(unittest.TestCase):
     def test_calc_bvi_text(self):
         result = handle_callback("calc_bvi", 0)
         self.assertIn("олимпиад", result["text"].lower())
+
+
+# ---------------------------------------------------------------------------
+# Приграничные регионы
+# ---------------------------------------------------------------------------
+
+class TestBorderRegion(unittest.TestCase):
+    def test_belgorod_is_border(self):
+        self.assertTrue(_is_border_region("белгородская область"))
+
+    def test_belgorod_city_is_border(self):
+        self.assertTrue(_is_border_region("белгород"))
+
+    def test_kursk_is_border(self):
+        self.assertTrue(_is_border_region("курская область"))
+
+    def test_lnr_is_border(self):
+        self.assertTrue(_is_border_region("лнр"))
+
+    def test_lugansk_is_border(self):
+        self.assertTrue(_is_border_region("луганск"))
+
+    def test_dnr_is_border(self):
+        self.assertTrue(_is_border_region("днр"))
+
+    def test_crimea_is_border(self):
+        self.assertTrue(_is_border_region("республика крым"))
+
+    def test_moscow_not_border(self):
+        self.assertFalse(_is_border_region("москва"))
+
+    def test_kazan_not_border(self):
+        self.assertFalse(_is_border_region("казань"))
+
+    def test_novosibirsk_not_border(self):
+        self.assertFalse(_is_border_region("новосибирская область"))
+
+    def test_check_border_result_is_positive(self):
+        # Без LLM (нет ключа): fallback → просто lower() от ввода
+        with patch.dict("os.environ", {}, clear=False):
+            os_env = __import__("os").environ
+            os_env.pop("ANTHROPIC_API_KEY", None)
+            result = check_border_region("белгород")
+        self.assertIn("✅", result["text"])
+        self.assertIn("право сдавать", result["text"].lower())
+
+    def test_check_border_result_is_negative(self):
+        with patch.dict("os.environ", {}, clear=False):
+            os_env = __import__("os").environ
+            os_env.pop("ANTHROPIC_API_KEY", None)
+            result = check_border_region("москва")
+        self.assertIn("ℹ️", result["text"])
+        self.assertIn("общих основаниях", result["text"].lower())
+
+    def test_vi_menu_has_border_button(self):
+        result = handle_callback("adm_vi", 0)
+        kb = json.loads(result["keyboard"])
+        cbs = [btn["callback_data"]
+               for row in kb["inline_keyboard"] for btn in row]
+        self.assertIn("vi_border", cbs)
+
+    def test_vi_border_sets_state(self):
+        from scraper.telegram_bot import _STATE
+        _STATE.clear()
+        handle_callback("vi_border", 77)
+        self.assertEqual(_STATE.get(77, {}).get("mode"), "border_region_waiting")
+
+    def test_border_region_state_dispatches(self):
+        from scraper.telegram_bot import _STATE
+        _STATE[88] = {"mode": "border_region_waiting"}
+        with patch.dict("os.environ", {}, clear=False):
+            os_env = __import__("os").environ
+            os_env.pop("ANTHROPIC_API_KEY", None)
+            result = handle("курск", chat_id=88)
+        self.assertNotIn(88, _STATE)
+        self.assertIn("✅", result["text"])
 
 
 if __name__ == "__main__":
