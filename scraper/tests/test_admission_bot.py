@@ -20,7 +20,9 @@ from scraper.telegram_bot import (
     _format_id_result,
     _parse_scores,
     _is_border_region,
+    _send_privacy,
     check_border_region,
+    match_by_interests,
     handle,
     handle_callback,
     search_by_snils,
@@ -452,6 +454,53 @@ class TestNewCallbacks(unittest.TestCase):
     def test_calc_bvi_text(self):
         result = handle_callback("calc_bvi", 0)
         self.assertIn("олимпиад", result["text"].lower())
+
+    def test_calc_interests_sets_state(self):
+        from scraper.telegram_bot import _STATE
+        _STATE.clear()
+        handle_callback("calc_interests", 33)
+        self.assertEqual(_STATE.get(33, {}).get("mode"), "interests_waiting")
+
+    def test_calc_menu_has_interests_button(self):
+        result = handle_callback("adm_calculator", 0)
+        kb = json.loads(result["keyboard"])
+        cbs = [btn["callback_data"]
+               for row in kb["inline_keyboard"] for btn in row]
+        self.assertIn("calc_interests", cbs)
+
+    def test_privacy_callback(self):
+        result = handle_callback("adm_privacy", 0)
+        self.assertIn("СНИЛС", result["text"])
+        self.assertIn("конфиденциальн", result["text"].lower())
+
+    def test_privacy_send(self):
+        result = _send_privacy()
+        self.assertIn("сохраняется", result["text"].lower())
+
+    def test_start_has_privacy_button(self):
+        result = handle("/start", chat_id=0)
+        kb = json.loads(result["keyboard"])
+        cbs = [btn["callback_data"]
+               for row in kb["inline_keyboard"] for btn in row]
+        self.assertIn("adm_privacy", cbs)
+
+    def test_start_mentions_snils_privacy(self):
+        result = handle("/start", chat_id=0)
+        self.assertIn("нигде не сохраняются", result["text"].lower())
+
+    def test_privacy_command(self):
+        result = handle("/privacy", chat_id=0)
+        self.assertIn("конфиденциальн", result["text"].lower())
+
+    def test_interests_state_dispatches(self):
+        from scraper.telegram_bot import _STATE
+        _STATE[44] = {"mode": "interests_waiting"}
+        with patch.dict("os.environ", {}, clear=False):
+            os_env = __import__("os").environ
+            os_env.pop("ANTHROPIC_API_KEY", None)
+            result = handle("люблю математику", chat_id=44)
+        self.assertNotIn(44, _STATE)
+        self.assertIn("text", result)
 
 
 # ---------------------------------------------------------------------------
