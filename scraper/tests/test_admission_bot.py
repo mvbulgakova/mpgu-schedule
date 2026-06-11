@@ -15,6 +15,10 @@ from scraper.telegram_bot import (
     _make_keyboard,
     _snils_norm,
     _SNILS_RE,
+    _calc_volunteer_score,
+    _calc_id_scores,
+    _format_id_result,
+    _parse_scores,
     handle,
     handle_callback,
     search_by_snils,
@@ -148,8 +152,10 @@ class TestHandleCallback(unittest.TestCase):
         kb = json.loads(result["keyboard"])
         cbs = [btn["callback_data"]
                for row in kb["inline_keyboard"] for btn in row]
-        self.assertIn("adm_programs", cbs)
         self.assertIn("adm_calendar", cbs)
+        self.assertIn("adm_calculator", cbs)
+        self.assertIn("adm_snils", cbs)
+        self.assertIn("adm_qa", cbs)
 
     def test_snils_sets_state(self):
         _STATE.clear()
@@ -267,6 +273,183 @@ class TestDocuments(unittest.TestCase):
         with patch("scraper.telegram_bot._adm_json", side_effect=Exception("err")):
             result = _send_documents(None, 0, category="budget")
         self.assertIn("недоступ", result["text"].lower())
+
+
+# ---------------------------------------------------------------------------
+# Волонтёрство — точный расчёт баллов
+# ---------------------------------------------------------------------------
+
+class TestVolunteerScore(unittest.TestCase):
+    def test_high_hours_profile(self):
+        pts, label = _calc_volunteer_score("волонтёр 500 часов педагогическое")
+        self.assertEqual(pts, 10)
+
+    def test_high_hours_general(self):
+        pts, label = _calc_volunteer_score("волонтёр 500 часов спорт")
+        self.assertEqual(pts, 8)
+
+    def test_mid_hours_profile(self):
+        pts, label = _calc_volunteer_score("волонтёрство 200 часов учитель")
+        self.assertEqual(pts, 6)
+
+    def test_mid_hours_general(self):
+        pts, label = _calc_volunteer_score("волонтёр 200 часов медицина")
+        self.assertEqual(pts, 5)
+
+    def test_low_hours(self):
+        pts, label = _calc_volunteer_score("волонтёр 30 часов")
+        self.assertEqual(pts, 2)
+
+    def test_no_hours(self):
+        pts, label = _calc_volunteer_score("есть волонтёрская книжка")
+        self.assertEqual(pts, 2)
+
+    def test_300_hours_profile(self):
+        pts, label = _calc_volunteer_score("300 часов образование детей")
+        self.assertEqual(pts, 8)
+
+    def test_label_contains_hours(self):
+        pts, label = _calc_volunteer_score("волонтёр 240 часов педагоги")
+        self.assertIn("240", label)
+
+
+# ---------------------------------------------------------------------------
+# Калькулятор ИД
+# ---------------------------------------------------------------------------
+
+class TestIdCalc(unittest.TestCase):
+    def test_gto_gold(self):
+        result = _calc_id_scores("у меня есть золотой значок ГТО")
+        labels = [it["label"] for it in result["items"]]
+        self.assertTrue(any("ГТО" in l for l in labels))
+        pts = next(it["points"] for it in result["items"] if "ГТО" in it["label"])
+        self.assertEqual(pts, 5)
+
+    def test_gto_silver(self):
+        result = _calc_id_scores("серебряный значок гто")
+        pts = next(it["points"] for it in result["items"] if "ГТО" in it["label"])
+        self.assertEqual(pts, 4)
+
+    def test_diploma_honors(self):
+        result = _calc_id_scores("аттестат с отличием")
+        self.assertEqual(result["total"], 10)
+
+    def test_cap_at_10(self):
+        # золотой ГТО (5) + волонтёрство 500ч профильное (10) → лимит 10
+        result = _calc_id_scores("золотой ГТО и волонтёрская книжка 500 часов педагогических")
+        self.assertLessEqual(result["total"], 10)
+
+    def test_volunteer_only(self):
+        result = _calc_id_scores("волонтёрская книжка 150 часов")
+        self.assertTrue(any("олон" in it["label"].lower() for it in result["items"]))
+
+    def test_format_nonempty(self):
+        result = _calc_id_scores("золотой ГТО")
+        text = _format_id_result(result)
+        self.assertIn("ГТО", text)
+        self.assertIn("балл", text.lower())
+
+    def test_format_empty(self):
+        text = _format_id_result({"items": [], "total": 0, "note": ""})
+        self.assertIn("описать", text.lower())
+
+
+# ---------------------------------------------------------------------------
+# Парсер баллов ЕГЭ
+# ---------------------------------------------------------------------------
+
+class TestScoreParser(unittest.TestCase):
+    def test_standard_format(self):
+        scores = _parse_scores("Русский 87, Математика профиль 72, Обществознание 80")
+        self.assertEqual(scores.get("Русский язык"), 87)
+        self.assertEqual(scores.get("Математика (профиль)"), 72)
+        self.assertEqual(scores.get("Обществознание"), 80)
+
+    def test_short_aliases(self):
+        scores = _parse_scores("рус 90, общ 75, история 68")
+        self.assertIn("Русский язык", scores)
+        self.assertIn("Обществознание", scores)
+        self.assertIn("История", scores)
+
+    def test_ignores_out_of_range(self):
+        scores = _parse_scores("Русский 150, Математика 85")
+        self.assertNotIn("Русский язык", scores)  # 150 вне диапазона
+        self.assertIn("Математика (профиль)", scores)
+
+    def test_empty_input(self):
+        scores = _parse_scores("привет как дела")
+        self.assertEqual(scores, {})
+
+    def test_biology(self):
+        scores = _parse_scores("Биология 91, Химия 79, Русский 88")
+        self.assertIn("Биология", scores)
+        self.assertIn("Химия", scores)
+
+
+# ---------------------------------------------------------------------------
+# Новые callback-обработчики
+# ---------------------------------------------------------------------------
+
+class TestNewCallbacks(unittest.TestCase):
+    def test_calculator_menu(self):
+        result = handle_callback("adm_calculator", 0)
+        kb = json.loads(result["keyboard"])
+        cbs = [btn["callback_data"]
+               for row in kb["inline_keyboard"] for btn in row]
+        self.assertIn("calc_ege", cbs)
+        self.assertIn("calc_vi_info", cbs)
+        self.assertIn("calc_bvi", cbs)
+
+    def test_calc_ege_sets_state(self):
+        from scraper.telegram_bot import _STATE
+        _STATE.clear()
+        handle_callback("calc_ege", 55)
+        self.assertEqual(_STATE.get(55, {}).get("mode"), "calc_ege_waiting")
+
+    def test_id_calc_sets_state(self):
+        from scraper.telegram_bot import _STATE
+        _STATE.clear()
+        handle_callback("id_calc", 66)
+        self.assertEqual(_STATE.get(66, {}).get("mode"), "id_waiting")
+
+    def test_paid_menu(self):
+        result = handle_callback("adm_paid", 0)
+        kb = json.loads(result["keyboard"])
+        cbs = [btn["callback_data"]
+               for row in kb["inline_keyboard"] for btn in row]
+        self.assertIn("paid_cost", cbs)
+        self.assertIn("paid_credit", cbs)
+        self.assertIn("paid_maternkap", cbs)
+
+    def test_vi_menu(self):
+        result = handle_callback("adm_vi", 0)
+        kb = json.loads(result["keyboard"])
+        cbs = [btn["callback_data"]
+               for row in kb["inline_keyboard"] for btn in row]
+        self.assertIn("vi_spo", cbs)
+        self.assertIn("vi_creative", cbs)
+
+    def test_paid_credit_text(self):
+        result = handle_callback("paid_credit", 0)
+        self.assertIn("кредит", result["text"].lower())
+        self.assertIn("dg@mpgu.su", result["text"])
+
+    def test_paid_maternkap_text(self):
+        result = handle_callback("paid_maternkap", 0)
+        self.assertIn("материнск", result["text"].lower())
+        self.assertIn("econom@mpgu.su", result["text"])
+
+    def test_vi_spo_text(self):
+        result = handle_callback("vi_spo", 0)
+        self.assertIn("колледж", result["text"].lower())
+
+    def test_vi_creative_text(self):
+        result = handle_callback("vi_creative", 0)
+        self.assertIn("21 балл", result["text"])
+
+    def test_calc_bvi_text(self):
+        result = handle_callback("calc_bvi", 0)
+        self.assertIn("олимпиад", result["text"].lower())
 
 
 if __name__ == "__main__":
