@@ -5,7 +5,7 @@ def build_schedule_kb(group_code: str) -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(inline_keyboard=[
         [
             InlineKeyboardButton(text="Завтра", callback_data="sch:tomorrow"),
-            InlineKeyboardButton(text="Вся Неделя", callback_data="sch:week"),
+            InlineKeyboardButton(text="Вся неделя", callback_data="sch:week"),
         ],
         [
             InlineKeyboardButton(text="Сегодня", callback_data="sch:today"),
