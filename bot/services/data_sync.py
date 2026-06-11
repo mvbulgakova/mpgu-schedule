@@ -53,7 +53,7 @@ async def sync_institute(
             data=group_data,
         ).on_conflict_do_update(
             index_elements=["group_code"],
-            set_={"data": group_data},
+            set_={"data": group_data, "institute_id": institute_id},
         )
         await db.execute(stmt)
         count += 1

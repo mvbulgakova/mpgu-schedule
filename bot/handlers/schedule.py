@@ -1,7 +1,6 @@
 from aiogram import Router, F
 from aiogram.types import Message, CallbackQuery
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
 
 from bot.db.models import User, Schedule
 from bot.keyboards.schedule import build_schedule_kb
@@ -11,12 +10,12 @@ router = Router()
 MAX_MESSAGE_LEN = 4096
 
 
-async def _get_group_data(db: AsyncSession, user_id: int) -> dict | None:
+async def _get_user_and_data(db: AsyncSession, user_id: int) -> tuple[str | None, dict | None]:
     user = await db.get(User, user_id)
     if not user or not user.group_code:
-        return None
+        return None, None
     schedule = await db.get(Schedule, user.group_code)
-    return schedule.data if schedule else None
+    return user.group_code, (schedule.data if schedule else None)
 
 
 async def send_today(message: Message, db: AsyncSession, group_code: str | None = None):
@@ -41,37 +40,37 @@ async def send_today_by_code(message: Message, db: AsyncSession, group_code: str
 
 @router.callback_query(F.data == "sch:today")
 async def on_today(call: CallbackQuery, db: AsyncSession):
-    group_data = await _get_group_data(db, call.from_user.id)
+    group_code, group_data = await _get_user_and_data(db, call.from_user.id)
     if not group_data:
         await call.answer("Группа не выбрана", show_alert=True)
         return
     text = format_today(group_data)
-    kb = build_schedule_kb(group_data["name"])
+    kb = build_schedule_kb(group_code)
     await call.message.edit_text(text[:MAX_MESSAGE_LEN], parse_mode="HTML", reply_markup=kb)
     await call.answer()
 
 
 @router.callback_query(F.data == "sch:tomorrow")
 async def on_tomorrow(call: CallbackQuery, db: AsyncSession):
-    group_data = await _get_group_data(db, call.from_user.id)
+    group_code, group_data = await _get_user_and_data(db, call.from_user.id)
     if not group_data:
         await call.answer("Группа не выбрана", show_alert=True)
         return
     text = format_tomorrow(group_data)
-    kb = build_schedule_kb(group_data["name"])
+    kb = build_schedule_kb(group_code)
     await call.message.edit_text(text[:MAX_MESSAGE_LEN], parse_mode="HTML", reply_markup=kb)
     await call.answer()
 
 
 @router.callback_query(F.data == "sch:week")
 async def on_week(call: CallbackQuery, db: AsyncSession):
-    group_data = await _get_group_data(db, call.from_user.id)
+    group_code, group_data = await _get_user_and_data(db, call.from_user.id)
     if not group_data:
         await call.answer("Группа не выбрана", show_alert=True)
         return
     text = format_week(group_data)
-    kb = build_schedule_kb(group_data["name"])
     if len(text) > MAX_MESSAGE_LEN:
         text = text[:MAX_MESSAGE_LEN - 50] + "\n\n<i>...список обрезан</i>"
+    kb = build_schedule_kb(group_code)
     await call.message.edit_text(text, parse_mode="HTML", reply_markup=kb)
     await call.answer()

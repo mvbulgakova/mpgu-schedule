@@ -11,4 +11,7 @@ def build_schedule_kb(group_code: str) -> InlineKeyboardMarkup:
             InlineKeyboardButton(text="Сегодня", callback_data="sch:today"),
             InlineKeyboardButton(text="⚠️ Ошибка в данных", callback_data=f"err:{group_code}"),
         ],
+        [
+            InlineKeyboardButton(text="🔄 Сменить группу", callback_data="change_group"),
+        ],
     ])

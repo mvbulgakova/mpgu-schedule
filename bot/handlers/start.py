@@ -1,6 +1,6 @@
-from aiogram import Router
+from aiogram import Router, F
 from aiogram.filters import CommandStart
-from aiogram.types import Message
+from aiogram.types import Message, CallbackQuery
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
@@ -11,13 +11,16 @@ router = Router()
 
 @router.message(CommandStart())
 async def cmd_start(message: Message, db: AsyncSession):
-    user = await db.get(User, message.from_user.id)
+    await _show_institute_picker(message, db)
 
-    if user and user.group_code:
-        from bot.handlers.schedule import send_today_by_code
-        await send_today_by_code(message, db, user.group_code)
-        return
 
+@router.callback_query(F.data == "change_group")
+async def on_change_group(call: CallbackQuery, db: AsyncSession):
+    await _show_institute_picker(call.message, db)
+    await call.answer()
+
+
+async def _show_institute_picker(message: Message, db: AsyncSession):
     result = await db.execute(select(Institute).order_by(Institute.name))
     institutes = result.scalars().all()
 
