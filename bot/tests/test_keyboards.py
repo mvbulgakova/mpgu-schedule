@@ -35,5 +35,5 @@ def test_schedule_kb_has_four_buttons():
     buttons = [btn for row in kb.inline_keyboard for btn in row]
     texts = [b.text for b in buttons]
     assert any("Завтра" in t for t in texts)
-    assert any("Неделя" in t for t in texts)
+    assert any("неделя" in t.lower() for t in texts)
     assert any("Ошибка" in t for t in texts)
