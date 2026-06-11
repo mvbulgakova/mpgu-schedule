@@ -46,8 +46,9 @@ async def sync_institute(
             logger.warning("Failed to load group %s/%s: %s", institute_id, filename, e)
             continue
 
+        group_name = group_data.get("name") or filename
         stmt = pg_insert(Schedule).values(
-            group_code=group_data["name"],
+            group_code=group_name,
             institute_id=institute_id,
             data=group_data,
         ).on_conflict_do_update(
