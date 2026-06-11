@@ -579,5 +579,146 @@ class TestBorderRegion(unittest.TestCase):
         self.assertIn("✅", result["text"])
 
 
+# ---------------------------------------------------------------------------
+# Прогнозирование проходных баллов
+# ---------------------------------------------------------------------------
+
+from scraper.score_predictor import (
+    predict_score, _ols, _se_prediction, _prediction_suffix_from_entry,
+    _parse_score_table, _extract_passing_score, _normalize_code,
+)
+
+
+class TestLinearRegression(unittest.TestCase):
+    def test_perfect_line(self):
+        xs = [1.0, 2.0, 3.0, 4.0]
+        ys = [10.0, 12.0, 14.0, 16.0]
+        slope, intercept, r2 = _ols(xs, ys)
+        self.assertAlmostEqual(slope, 2.0, places=5)
+        self.assertAlmostEqual(intercept, 8.0, places=5)
+        self.assertAlmostEqual(r2, 1.0, places=5)
+
+    def test_flat_line(self):
+        xs = [2020.0, 2021.0, 2022.0]
+        ys = [250.0, 250.0, 250.0]
+        slope, intercept, r2 = _ols(xs, ys)
+        self.assertAlmostEqual(slope, 0.0, places=5)
+
+    def test_r2_below_perfect(self):
+        xs = [1.0, 2.0, 3.0]
+        ys = [10.0, 13.0, 14.0]
+        _, _, r2 = _ols(xs, ys)
+        self.assertGreater(r2, 0.0)
+        self.assertLessEqual(r2, 1.0)
+
+    def test_se_grows_extrapolating(self):
+        xs = [2018.0, 2019.0, 2020.0, 2021.0, 2022.0]
+        ys = [240.0, 243.0, 247.0, 249.0, 251.0]
+        slope, intercept, r2 = _ols(xs, ys)
+        se_near = _se_prediction(xs, ys, slope, intercept, 2023.0)
+        se_far = _se_prediction(xs, ys, slope, intercept, 2030.0)
+        self.assertGreater(se_far, se_near)
+
+
+class TestPredictScore(unittest.TestCase):
+    def test_single_year_low_confidence(self):
+        result = predict_score({2023: 250})
+        self.assertEqual(result.confidence, "low")
+        self.assertEqual(result.predicted, 250)
+
+    def test_empty_history(self):
+        result = predict_score({})
+        self.assertEqual(result.predicted, 0)
+        self.assertEqual(result.confidence, "low")
+
+    def test_increasing_trend(self):
+        history = {2018: 230, 2019: 235, 2020: 240, 2021: 245, 2022: 250}
+        result = predict_score(history, target_year=2023)
+        self.assertGreater(result.predicted, 250)
+
+    def test_stable_trend(self):
+        history = {2019: 260, 2020: 260, 2021: 260, 2022: 260, 2023: 260}
+        result = predict_score(history, target_year=2024)
+        self.assertAlmostEqual(result.predicted, 260, delta=3)
+
+    def test_label_contains_years(self):
+        history = {2020: 245, 2021: 248, 2022: 250, 2023: 252}
+        result = predict_score(history, target_year=2024)
+        self.assertIn("2020", result.label)
+        self.assertIn("2023", result.label)
+
+    def test_label_contains_predicted(self):
+        history = {2020: 250, 2021: 252, 2022: 254, 2023: 256}
+        result = predict_score(history, target_year=2024)
+        self.assertIn(str(result.predicted), result.label)
+
+    def test_ci_half_positive(self):
+        history = {2019: 200, 2020: 210, 2021: 220}
+        result = predict_score(history, target_year=2022)
+        self.assertGreater(result.ci_half, 0)
+
+    def test_two_years_medium_or_low(self):
+        result = predict_score({2022: 240, 2023: 245}, target_year=2024)
+        self.assertIn(result.confidence, ("low", "medium"))
+
+    def test_five_high_r2_is_high(self):
+        history = {2018: 230, 2019: 234, 2020: 238, 2021: 242, 2022: 246}
+        result = predict_score(history, target_year=2023)
+        self.assertEqual(result.confidence, "high")
+
+
+class TestPredictionSuffix(unittest.TestCase):
+    def test_no_entry_returns_empty(self):
+        self.assertEqual(_prediction_suffix_from_entry(None), "")
+
+    def test_zero_predicted_returns_empty(self):
+        self.assertEqual(_prediction_suffix_from_entry({"predicted": 0}), "")
+
+    def test_high_confidence_icon(self):
+        entry = {"predicted": 255, "ci_half": 7, "confidence": "high"}
+        suffix = _prediction_suffix_from_entry(entry)
+        self.assertIn("📊", suffix)
+        self.assertIn("255", suffix)
+        self.assertIn("7", suffix)
+
+    def test_low_confidence_icon(self):
+        entry = {"predicted": 220, "ci_half": 15, "confidence": "low"}
+        suffix = _prediction_suffix_from_entry(entry)
+        self.assertIn("📉", suffix)
+
+    def test_medium_confidence_icon(self):
+        entry = {"predicted": 240, "ci_half": 10, "confidence": "medium"}
+        suffix = _prediction_suffix_from_entry(entry)
+        self.assertIn("📈", suffix)
+
+
+class TestExtractPassingScore(unittest.TestCase):
+    def test_three_digit_in_range(self):
+        self.assertEqual(_extract_passing_score("проходной: 248"), 248)
+
+    def test_out_of_range_ignored(self):
+        self.assertIsNone(_extract_passing_score("группа 999"))
+
+    def test_picks_first_valid(self):
+        self.assertEqual(_extract_passing_score("25 лет, балл 234"), 234)
+
+    def test_below_range_ignored(self):
+        self.assertIsNone(_extract_passing_score("45 мест, 99 чел"))
+
+
+class TestNormalizeCode(unittest.TestCase):
+    def test_standard_code(self):
+        self.assertEqual(_normalize_code("44.03.01"), "44.03.01")
+
+    def test_code_in_text(self):
+        self.assertEqual(_normalize_code("Направление 44.03.05 Педагог"), "44.03.05")
+
+    def test_no_code_returns_none(self):
+        self.assertIsNone(_normalize_code("Педагогическое образование"))
+
+    def test_empty_returns_none(self):
+        self.assertIsNone(_normalize_code(""))
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

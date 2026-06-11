@@ -42,6 +42,8 @@ _STATE: dict[int, dict] = {}
 
 # Кэш данных о приёмной кампании на время сессии
 _ADM_CONTEXT_CACHE: str | None = None
+# Кэш прогнозов проходных баллов
+_PREDICTIONS_CACHE: dict | None = None
 
 
 # ---------------------------------------------------------------------------
@@ -182,6 +184,17 @@ def handle_schedule(text: str) -> str:
 
 def _adm_json(path: str) -> Any:
     return _get_json(f"admissions/{path}")
+
+
+def _get_predictions() -> dict:
+    """Возвращает словарь {code: prediction_entry}, кэшированный на сессию."""
+    global _PREDICTIONS_CACHE
+    if _PREDICTIONS_CACHE is None:
+        try:
+            _PREDICTIONS_CACHE = _adm_json("predictions.json") or {}
+        except Exception:
+            _PREDICTIONS_CACHE = {}
+    return _PREDICTIONS_CACHE
 
 
 def _build_llm_context() -> str:
@@ -881,6 +894,20 @@ def _match_programs_by_scores(scores: dict[str, int]) -> dict:
     return {"high": high, "mid": mid, "low": low, "no_match": no_match, "total": total}
 
 
+def _prediction_suffix(code: str | None) -> str:
+    """Возвращает строку вида ' | 📊 прогноз 2026: ~248 ±8' или ''."""
+    if not code:
+        return ""
+    pred = _get_predictions().get(code)
+    if not pred or not pred.get("predicted"):
+        return ""
+    p = pred["predicted"]
+    ci = pred.get("ci_half", 0)
+    yr = dt.date.today().year
+    icon = {"high": "📊", "medium": "📈", "low": "📉"}.get(pred.get("confidence", ""), "📈")
+    return f" | {icon} прогноз {yr}: ~{p} ±{ci}"
+
+
 def _format_calculator_result(scores: dict[str, int], match: dict) -> str:
     total = match["total"]
     lines = [
@@ -895,19 +922,22 @@ def _format_calculator_result(scores: dict[str, int], match: dict) -> str:
         lines.append("🟢 <b>Высокий шанс</b> (проходной прошлого года ниже твоей суммы):")
         for p in match["high"][:5]:
             seats = p.get("budget_seats", "?")
-            lines.append(f"  • {_esc(p.get('name',''))} — бюджет {seats} мест")
+            pred = _prediction_suffix(p.get("code"))
+            lines.append(f"  • {_esc(p.get('name',''))} — бюджет {seats} мест{_esc(pred)}")
 
     if match["mid"]:
         lines.append("\n🟡 <b>Погранично</b> (±15 баллов от проходного):")
         for p in match["mid"][:5]:
             passing = p.get("_passing", "?")
-            lines.append(f"  • {_esc(p.get('name',''))} — проходной ~{passing}")
+            pred = _prediction_suffix(p.get("code"))
+            lines.append(f"  • {_esc(p.get('name',''))} — проходной ~{passing}{_esc(pred)}")
 
     if match["low"]:
         lines.append("\n🔴 <b>На бюджет маловероятно</b>, но доступно платное:")
         for p in match["low"][:5]:
             passing = p.get("_passing", "?")
-            lines.append(f"  • {_esc(p.get('name',''))} — проходной ~{passing}")
+            pred = _prediction_suffix(p.get("code"))
+            lines.append(f"  • {_esc(p.get('name',''))} — проходной ~{passing}{_esc(pred)}")
 
     if match["no_match"]:
         lines.append("\n⚠️ <b>Ниже минимального порога</b> (документы не примут):")
@@ -921,7 +951,7 @@ def _format_calculator_result(scores: dict[str, int], match: dict) -> str:
         )
 
     lines.append("\n💡 <b>Важно:</b> проходные баллы меняются каждый год. "
-                 "Используй результат как ориентир, не как гарантию.")
+                 "Прогноз основан на тренде 2014–2025 и является ориентировочным.")
     lines.append("📌 Актуальные данные: mpgu.su/abiturientam/")
     return "\n".join(lines)
 

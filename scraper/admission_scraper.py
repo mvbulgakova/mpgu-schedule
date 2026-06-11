@@ -456,6 +456,25 @@ async def run_all(dry_run: bool = False) -> None:
                 _save("admissions/ranked_lists/index.json",
                       {"updated_at": str(date.today()), "lists": []}, dry_run)
 
+    # Исторические проходные баллы + прогноз на текущий год
+    log.info("Scraping historical passing scores...")
+    try:
+        from scraper.score_predictor import (
+            scrape_all_historical, build_predictions,
+            save_historical, save_predictions,
+        )
+        historical = scrape_all_historical()
+        if historical:
+            save_historical(historical, dry_run)
+            predictions = build_predictions(historical)
+            if predictions:
+                save_predictions(predictions, dry_run)
+                log.info("predictions: %d программ", len(predictions))
+        else:
+            log.info("historical scores not found (site may be unavailable)")
+    except Exception as e:
+        log.warning("historical scores scraper error: %s", e)
+
     log.info("=== Admission scraper done ===")
 
 
