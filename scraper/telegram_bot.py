@@ -445,7 +445,7 @@ _REGION_NORMALIZE_SYSTEM = """Из сообщения пользователя �
 
 
 def _call_llm(system: str, user_msg: str, max_tokens: int = 600) -> str:
-    """Вызывает LLM: сначала Anthropic, потом Gemini Flash, потом GigaChat."""
+    """Вызывает LLM: сначала Anthropic, потом YandexGPT, потом GigaChat."""
     # Anthropic
     api_key = os.environ.get("ANTHROPIC_API_KEY")
     if api_key:
@@ -462,23 +462,35 @@ def _call_llm(system: str, user_msg: str, max_tokens: int = 600) -> str:
         except Exception:
             pass
 
-    # Gemini Flash (бесплатный)
-    gemini_key = os.environ.get("GEMINI_API_KEY")
-    if gemini_key:
+    # YandexGPT (Яндекс Облако)
+    # YANDEX_API_KEY = "folder_id:api_key" из console.yandex.cloud
+    yandex_key = os.environ.get("YANDEX_API_KEY")
+    if yandex_key:
         try:
-            url = ("https://generativelanguage.googleapis.com/v1beta/models/"
-                   f"gemini-1.5-flash:generateContent?key={gemini_key}")
+            folder_id, api_key_y = yandex_key.split(":", 1)
             payload = {
-                "system_instruction": {"parts": [{"text": system}]},
-                "contents": [{"role": "user", "parts": [{"text": user_msg}]}],
-                "generationConfig": {"maxOutputTokens": max_tokens},
+                "modelUri": f"gpt://{folder_id}/yandexgpt-lite/latest",
+                "completionOptions": {
+                    "stream": False,
+                    "temperature": 0.6,
+                    "maxTokens": str(max_tokens),
+                },
+                "messages": [
+                    {"role": "system", "text": system},
+                    {"role": "user", "text": user_msg},
+                ],
             }
             req = urllib.request.Request(
-                url, data=json.dumps(payload).encode(),
-                headers={"Content-Type": "application/json"})
+                "https://llm.api.cloud.yandex.net/foundationModels/v1/completion",
+                data=json.dumps(payload).encode(),
+                headers={
+                    "Authorization": f"Api-Key {api_key_y}",
+                    "Content-Type": "application/json",
+                },
+            )
             with urllib.request.urlopen(req, timeout=30) as r:
                 resp = json.loads(r.read().decode())
-            return resp["candidates"][0]["content"]["parts"][0]["text"]
+            return resp["result"]["alternatives"][0]["message"]["text"]
         except Exception:
             pass
 
@@ -526,7 +538,7 @@ def _call_llm(system: str, user_msg: str, max_tokens: int = 600) -> str:
         except Exception:
             pass
 
-    raise RuntimeError("Нет ключа API (ANTHROPIC_API_KEY, GEMINI_API_KEY или GIGACHAT_API_KEY)")
+    raise RuntimeError("Нет ключа API (ANTHROPIC_API_KEY, YANDEX_API_KEY или GIGACHAT_API_KEY)")
 
 
 def _normalize_region_llm(user_text: str) -> str:
@@ -1121,7 +1133,7 @@ _LLM_SYSTEM = """Ты — дружелюбный и компетентный п�
    Если информации нет — честно скажи, не выдумывай.
 2. Обращайся на «ты», будь тактичен.
 3. Если в тексте есть признаки тревоги («боюсь», «не понимаю», «запутался/ась»,
-   «помогите», «не знаю что делать», обилие «??» или «!!") —
+   «помогите», «не знаю что делать», обилие «??» или «!!») —
    СНАЧАЛА скажи 1-2 поддерживающих предложения, ЗАТЕМ давай информацию.
 4. Отвечай кратко и структурированно, без воды.
 5. Формат: Telegram HTML, <b>жирный</b> для важных дат и цифр.
@@ -1143,7 +1155,7 @@ def ask_llm(question: str) -> dict:
             512,
         ).strip()[:3800]
     except RuntimeError:
-        answer = "LLM-режим недоступен (нет ключа ANTHROPIC_API_KEY, GEMINI_API_KEY или GIGACHAT_API_KEY)."
+        answer = "LLM-режим недоступен (нет ключа ANTHROPIC_API_KEY, YANDEX_API_KEY или GIGACHAT_API_KEY)."
     except Exception as e:
         answer = f"Не удалось получить ответ: {e}"
 
@@ -1498,7 +1510,7 @@ def main() -> int:
         return 1
     try:
         wh = _api(token, "getWebhookInfo")
-        print(f"Webhook URL: '{wh['result'].get('url','')}' ")
+        print(f"Webhook URL: '{wh['result'].get('url','')}'")  
     except Exception as e:
         print(f"getWebhookInfo error: {e}")
 

@@ -34,19 +34,11 @@ jobs:
       - name: Install dependencies
         run: pip install anthropic>=0.30
 
-      - name: Delete webhook (ensure polling mode)
-        env:
-          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
-        run: |
-          if [ -n "$BOT_TOKEN" ]; then
-            curl -s "https://api.telegram.org/bot${BOT_TOKEN}/deleteWebhook?drop_pending_updates=true" > /dev/null
-          fi
-
       - name: Run bot (long-polling)
         env:
           BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          YANDEX_API_KEY: ${{ secrets.YANDEX_API_KEY }}
           GIGACHAT_API_KEY: ${{ secrets.GIGACHAT_API_KEY }}
           RUN_SECONDS: "3300"
         run: python -m scraper.telegram_bot
