@@ -462,35 +462,30 @@ def _call_llm(system: str, user_msg: str, max_tokens: int = 600) -> str:
         except Exception:
             pass
 
-    # YandexGPT (Яндекс Облако)
-    # YANDEX_API_KEY = "folder_id:api_key" из console.yandex.cloud
+    # YandexGPT (Яндекс AI Studio — istudio.yandex.ru)
+    # YANDEX_API_KEY = API-ключ из кнопки «Создать API-ключ» в AI Studio
     yandex_key = os.environ.get("YANDEX_API_KEY")
     if yandex_key:
         try:
-            folder_id, api_key_y = yandex_key.split(":", 1)
             payload = {
-                "modelUri": f"gpt://{folder_id}/yandexgpt-lite/latest",
-                "completionOptions": {
-                    "stream": False,
-                    "temperature": 0.6,
-                    "maxTokens": str(max_tokens),
-                },
+                "model": "yandexgpt-5-lite",
                 "messages": [
-                    {"role": "system", "text": system},
-                    {"role": "user", "text": user_msg},
+                    {"role": "system", "content": system},
+                    {"role": "user", "content": user_msg},
                 ],
+                "max_tokens": max_tokens,
             }
             req = urllib.request.Request(
-                "https://llm.api.cloud.yandex.net/foundationModels/v1/completion",
+                "https://llm.api.cloud.yandex.net/v1/chat/completions",
                 data=json.dumps(payload).encode(),
                 headers={
-                    "Authorization": f"Api-Key {api_key_y}",
+                    "Authorization": f"Api-Key {yandex_key}",
                     "Content-Type": "application/json",
                 },
             )
             with urllib.request.urlopen(req, timeout=30) as r:
                 resp = json.loads(r.read().decode())
-            return resp["result"]["alternatives"][0]["message"]["text"]
+            return resp["choices"][0]["message"]["content"]
         except Exception:
             pass
 
@@ -1133,7 +1128,7 @@ _LLM_SYSTEM = """Ты — дружелюбный и компетентный п�
    Если информации нет — честно скажи, не выдумывай.
 2. Обращайся на «ты», будь тактичен.
 3. Если в тексте есть признаки тревоги («боюсь», «не понимаю», «запутался/ась»,
-   «помогите», «не знаю что делать», обилие «??» или «!!») —
+   «помогите», «не знаю что делать», обилие «??» или «!!") —
    СНАЧАЛА скажи 1-2 поддерживающих предложения, ЗАТЕМ давай информацию.
 4. Отвечай кратко и структурированно, без воды.
 5. Формат: Telegram HTML, <b>жирный</b> для важных дат и цифр.
@@ -1510,7 +1505,7 @@ def main() -> int:
         return 1
     try:
         wh = _api(token, "getWebhookInfo")
-        print(f"Webhook URL: '{wh['result'].get('url','')}'")  
+        print(f"Webhook URL: '{wh['result'].get('url','')}'") 
     except Exception as e:
         print(f"getWebhookInfo error: {e}")
 
