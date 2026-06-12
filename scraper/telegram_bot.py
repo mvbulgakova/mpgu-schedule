@@ -34,6 +34,16 @@ _STATE: dict[int, dict] = {}
 _ADM_CONTEXT_CACHE: str | None = None
 # Кэш прогнозов проходных баллов
 _PREDICTIONS_CACHE: dict | None = None
+# Кэш страниц mpgu.su (живые нормативные документы)
+_MPGU_WEB_CACHE: dict[str, str] = {}
+
+# Страницы сайта МПГУ для включения в контекст LLM
+_MPGU_NORM_PAGES = [
+    ("Сроки и этапы приёма",      "https://mpgu.su/abiturientam/sroki-priema/"),
+    ("Перечень документов",        "https://mpgu.su/abiturientam/dokumenty/"),
+    ("Направления подготовки",     "https://mpgu.su/abiturientam/napravleniya/"),
+    ("Вступительные испытания",    "https://mpgu.su/abiturientam/vstupitelnye-ispytaniya/"),
+]
 
 
 # ---------------------------------------------------------------------------
@@ -127,6 +137,39 @@ def _get_predictions() -> dict:
     return _PREDICTIONS_CACHE
 
 
+def _fetch_mpgu_page(label: str, url: str, max_chars: int = 2500) -> str:
+    """Загружает страницу mpgu.su, извлекает текст, кэширует на сессию."""
+    if url in _MPGU_WEB_CACHE:
+        return _MPGU_WEB_CACHE[url]
+    try:
+        req = urllib.request.Request(
+            url, headers={"User-Agent": "Mozilla/5.0 MPGU-Bot/1.0"})
+        with urllib.request.urlopen(req, timeout=10) as r:
+            html = r.read().decode("utf-8", errors="replace")
+        # Пробуем вырезать основной контент
+        for marker in ("<main", "<article", 'class="entry', 'class="content', 'class="post'):
+            idx = html.lower().find(marker)
+            if idx != -1:
+                html = html[idx:]
+                break
+        # Убираем скрипты и стили
+        html = re.sub(r'<script[^>]*>.*?</script>', ' ', html, flags=re.DOTALL | re.I)
+        html = re.sub(r'<style[^>]*>.*?</style>', ' ', html, flags=re.DOTALL | re.I)
+        # Теги → пробел
+        text = re.sub(r'<[^>]+>', ' ', html)
+        # HTML-сущности
+        for ent, ch in [('&nbsp;', ' '), ('&amp;', '&'), ('&lt;', '<'), ('&gt;', '>'),
+                        ('&quot;', '"'), ('&#8211;', '–'), ('&#8212;', '—'),
+                        ('&laquo;', '«'), ('&raquo;', '»'), ('&#160;', ' ')]:
+            text = text.replace(ent, ch)
+        text = re.sub(r'\s+', ' ', text).strip()[:max_chars]
+        _MPGU_WEB_CACHE[url] = text
+        return text
+    except Exception:
+        _MPGU_WEB_CACHE[url] = ""
+        return ""
+
+
 def _build_llm_context() -> str:
     parts: list[str] = []
     try:
@@ -161,6 +204,15 @@ def _build_llm_context() -> str:
             )
     except Exception:
         pass
+    # Живые нормативные страницы с сайта МПГУ
+    web_parts = []
+    for label, url in _MPGU_NORM_PAGES:
+        text = _fetch_mpgu_page(label, url)
+        if text:
+            web_parts.append(f"\n{label.upper()} (источник: {url}):\n{text}")
+    if web_parts:
+        parts.append("\n--- АКТУАЛЬНЫЕ ДАННЫЕ С САЙТА МПГУ ---" + "".join(web_parts))
+
     return "\n".join(parts) if parts else "Данные о приёмной кампании временно недоступны."
 
 
@@ -489,51 +541,7 @@ def _call_llm(system: str, user_msg: str, max_tokens: int = 600) -> str:
         except Exception:
             pass
 
-    # GigaChat (Сбербанк, бесплатно для физлиц)
-    # GIGACHAT_API_KEY = "Authorization key" из личного кабинета developers.sber.ru
-    # (это уже готовый Base64-ключ — его вставлять как есть, без дополнительного кодирования)
-    gigachat_key = os.environ.get("GIGACHAT_API_KEY")
-    if gigachat_key:
-        try:
-            import ssl
-            import uuid as _uuid
-            # Сберовский CA не входит в стандартное хранилище Python
-            ctx = ssl.create_default_context()
-            ctx.check_hostname = False
-            ctx.verify_mode = ssl.CERT_NONE
-            token_req = urllib.request.Request(
-                "https://ngw.devices.sberbank.ru:9443/api/v2/oauth",
-                data=b"scope=GIGACHAT_API_PERS",
-                headers={
-                    "Authorization": f"Basic {gigachat_key}",
-                    "Content-Type": "application/x-www-form-urlencoded",
-                    "RqUID": str(_uuid.uuid4()),
-                }
-            )
-            with urllib.request.urlopen(token_req, timeout=15, context=ctx) as r:
-                access_token = json.loads(r.read().decode())["access_token"]
-            payload = {
-                "model": "GigaChat",
-                "messages": [
-                    {"role": "system", "content": system},
-                    {"role": "user", "content": user_msg},
-                ],
-                "max_tokens": max_tokens,
-            }
-            chat_req = urllib.request.Request(
-                "https://gigachat.devices.sberbank.ru/api/v1/chat/completions",
-                data=json.dumps(payload).encode(),
-                headers={
-                    "Authorization": f"Bearer {access_token}",
-                    "Content-Type": "application/json",
-                }
-            )
-            with urllib.request.urlopen(chat_req, timeout=30, context=ctx) as r:
-                return json.loads(r.read().decode())["choices"][0]["message"]["content"]
-        except Exception:
-            pass
-
-    raise RuntimeError("Нет ключа API (ANTHROPIC_API_KEY, YANDEX_API_KEY или GIGACHAT_API_KEY)")
+    raise RuntimeError("Нет ключа API (ANTHROPIC_API_KEY или YANDEX_API_KEY)")
 
 
 def _normalize_region_llm(user_text: str) -> str:
@@ -1150,7 +1158,7 @@ def ask_llm(question: str) -> dict:
             512,
         ).strip()[:3800]
     except RuntimeError:
-        answer = "LLM-режим недоступен (нет ключа ANTHROPIC_API_KEY, YANDEX_API_KEY или GIGACHAT_API_KEY)."
+        answer = "LLM-режим недоступен (нет ключа ANTHROPIC_API_KEY или YANDEX_API_KEY)."
     except Exception as e:
         answer = f"Не удалось получить ответ: {e}"
 
