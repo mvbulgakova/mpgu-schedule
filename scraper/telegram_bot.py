@@ -444,21 +444,48 @@ _REGION_NORMALIZE_SYSTEM = """Из сообщения пользователя �
 Если регион не определён — верни слово: неизвестно"""
 
 
+def _call_llm(system: str, user_msg: str, max_tokens: int = 600) -> str:
+    """Вызывает LLM: сначала Anthropic, потом Gemini Flash (бесплатный)."""
+    # Anthropic
+    api_key = os.environ.get("ANTHROPIC_API_KEY")
+    if api_key:
+        try:
+            import anthropic as _anthropic
+            client = _anthropic.Anthropic(api_key=api_key)
+            resp = client.messages.create(
+                model="claude-haiku-4-5-20251001",
+                max_tokens=max_tokens,
+                system=system,
+                messages=[{"role": "user", "content": user_msg}]
+            )
+            return resp.content[0].text
+        except Exception:
+            pass
+
+    # Gemini Flash (бесплатный)
+    gemini_key = os.environ.get("GEMINI_API_KEY")
+    if gemini_key:
+        url = ("https://generativelanguage.googleapis.com/v1beta/models/"
+               f"gemini-1.5-flash:generateContent?key={gemini_key}")
+        payload = {
+            "system_instruction": {"parts": [{"text": system}]},
+            "contents": [{"role": "user", "parts": [{"text": user_msg}]}],
+            "generationConfig": {"maxOutputTokens": max_tokens},
+        }
+        req = urllib.request.Request(
+            url, data=json.dumps(payload).encode(),
+            headers={"Content-Type": "application/json"})
+        with urllib.request.urlopen(req, timeout=30) as r:
+            resp = json.loads(r.read().decode())
+        return resp["candidates"][0]["content"]["parts"][0]["text"]
+
+    raise RuntimeError("Нет ключа API (ANTHROPIC_API_KEY или GEMINI_API_KEY)")
+
+
 def _normalize_region_llm(user_text: str) -> str:
     """Нормализует ввод пользователя → официальное название региона через LLM."""
-    api_key = os.environ.get("ANTHROPIC_API_KEY")
-    if not api_key:
-        return user_text.strip().lower()
     try:
-        import anthropic
-        client = anthropic.Anthropic(api_key=api_key)
-        resp = client.messages.create(
-            model="claude-haiku-4-5-20251001",
-            max_tokens=60,
-            system=_REGION_NORMALIZE_SYSTEM,
-            messages=[{"role": "user", "content": user_text}],
-        )
-        return resp.content[0].text.strip().lower()
+        return _call_llm(_REGION_NORMALIZE_SYSTEM, user_text, 60).strip().lower()
     except Exception:
         return user_text.strip().lower()
 
@@ -657,20 +684,11 @@ def _calc_id_scores(text: str) -> dict:
 
 
 def _calc_id_llm(text: str) -> dict:
-    api_key = os.environ.get("ANTHROPIC_API_KEY")
-    if not api_key:
-        return {"items": [], "total": 0, "note": "Не удалось распознать достижения — опиши подробнее."}
     try:
-        import anthropic
-        client = anthropic.Anthropic(api_key=api_key)
-        resp = client.messages.create(
-            model="claude-haiku-4-5-20251001",
-            max_tokens=300,
-            system=_ID_CALC_SYSTEM,
-            messages=[{"role": "user", "content": text}],
-        )
-        raw = resp.content[0].text.strip()
+        raw = _call_llm(_ID_CALC_SYSTEM, text, 400).strip()
         return json.loads(raw)
+    except RuntimeError:
+        return {"items": [], "total": 0, "note": "Не удалось распознать достижения — опиши подробнее."}
     except Exception:
         return {"items": [], "total": 0, "note": "Не смог разобрать — попробуй описать точнее."}
 
@@ -741,26 +759,35 @@ _SUBJECT_ALIASES: dict[str, str] = {
 
 
 def _parse_scores(text: str) -> dict[str, int]:
-    """Парсит 'Русский 85, Математика профиль 78, Общество 90' → {'Русский язык': 85, ...}"""
+    """Парсит баллы ЕГЭ из свободного текста.
+
+    Работает как с запятыми: 'Русский 87, Математика 72, Обществознание 80'
+    так и с пробелами: 'английский 52 общество 49 русский 88'
+    """
     results: dict[str, int] = {}
-    # Делим по запятой/точке с запятой/переносу и ищем «предмет число» в каждом кусочке
-    for chunk in re.split(r"[,;\n]+", text):
-        chunk = chunk.strip()
-        if not chunk:
-            continue
-        # «Предмет 85» или «Предмет: 85»
-        m = re.search(r"^(.*?)\s*[:-]?\s*(\d{2,3})\s*$", chunk)
-        if not m:
-            continue
-        subject_raw = m.group(1).strip().lower()
-        score = int(m.group(2))
-        if score < 20 or score > 100:
+
+    # Находим все числа в диапазоне 20-100 и их позиции
+    score_matches = [(m.start(), m.end(), int(m.group()))
+                     for m in re.finditer(r'\b(\d{2,3})\b', text)
+                     if 20 <= int(m.group()) <= 100]
+
+    if not score_matches:
+        return results
+
+    for i, (start, end, score) in enumerate(score_matches):
+        # Текст между концом предыдущего числа и началом текущего — это название предмета
+        prev_end = score_matches[i - 1][1] if i > 0 else 0
+        subject_raw = text[prev_end:start].strip().lower()
+        # Убираем начальные разделители
+        subject_raw = re.sub(r'^[,;\s]+', '', subject_raw)
+        if not subject_raw:
             continue
         for alias, canonical in _SUBJECT_ALIASES.items():
             if alias in subject_raw:
                 if canonical not in results:
                     results[canonical] = score
                 break
+
     return results
 
 
@@ -923,36 +950,24 @@ _INTERESTS_SYSTEM = """Ты — навигатор по образователь
 def match_by_interests(question: str) -> dict:
     """LLM подбирает программы МПГУ по описанию интересов пользователя."""
     global _ADM_CONTEXT_CACHE
-    api_key = os.environ.get("ANTHROPIC_API_KEY")
-    if not api_key:
-        return {
-            "text": (
-                "Функция подбора по интересам требует API-ключа 🤖\n\n"
-                "Пока можешь:\n"
-                "• Посмотреть все направления в разделе «Подбор программ»\n"
-                "• Задать вопрос в свободной форме через «Задать вопрос»\n"
-                "• Изучить сайт: mpgu.su/abiturientam/"
-            ),
-            "keyboard": _CALC_MENU_KB,
-        }
 
     if _ADM_CONTEXT_CACHE is None:
         _ADM_CONTEXT_CACHE = _build_llm_context()
 
     try:
-        import anthropic
-        client = anthropic.Anthropic(api_key=api_key)
-        resp = client.messages.create(
-            model="claude-haiku-4-5-20251001",
-            max_tokens=600,
-            system=_INTERESTS_SYSTEM,
-            messages=[{
-                "role": "user",
-                "content": f"ДАННЫЕ О НАПРАВЛЕНИЯХ МПГУ:\n{_ADM_CONTEXT_CACHE}\n\n"
-                           f"ОПИСАНИЕ ИНТЕРЕСОВ: {question}"
-            }],
+        answer = _call_llm(
+            _INTERESTS_SYSTEM,
+            f"ДАННЫЕ О ПРОГРАММАХ:\n{_ADM_CONTEXT_CACHE}\n\nЗапрос: {question}",
+            600,
+        ).strip()[:3500]
+    except RuntimeError:
+        answer = (
+            "Функция подбора по интересам требует API-ключа 🤖\n\n"
+            "Пока можешь:\n"
+            "• Посмотреть все направления в разделе «Подбор программ»\n"
+            "• Задать вопрос в свободной форме через «Задать вопрос»\n"
+            "• Изучить сайт: mpgu.su/abiturientam/"
         )
-        answer = resp.content[0].text.strip()[:3500]
     except Exception as e:
         answer = f"Не удалось подобрать направления: {e}"
 
@@ -1070,27 +1085,18 @@ _LLM_SYSTEM = """Ты — дружелюбный и компетентный п�
 
 def ask_llm(question: str) -> dict:
     global _ADM_CONTEXT_CACHE
-    api_key = os.environ.get("ANTHROPIC_API_KEY")
-    if not api_key:
-        return {"text": "LLM-режим недоступен (нет ключа ANTHROPIC_API_KEY).",
-                "keyboard": _BACK_KB}
 
     if _ADM_CONTEXT_CACHE is None:
         _ADM_CONTEXT_CACHE = _build_llm_context()
 
     try:
-        import anthropic
-        client = anthropic.Anthropic(api_key=api_key)
-        resp = client.messages.create(
-            model="claude-haiku-4-5-20251001",
-            max_tokens=600,
-            system=_LLM_SYSTEM,
-            messages=[{
-                "role": "user",
-                "content": f"ДАННЫЕ О ПРИЁМЕ:\n{_ADM_CONTEXT_CACHE}\n\nВОПРОС АБИТУРИЕНТА: {question}"
-            }],
-        )
-        answer = resp.content[0].text.strip()[:3800]
+        answer = _call_llm(
+            _LLM_SYSTEM,
+            f"ДАННЫЕ О ПРИЁМЕ:\n{_ADM_CONTEXT_CACHE}\n\nВОПРОС АБИТУРИЕНТА: {question}",
+            512,
+        ).strip()[:3800]
+    except RuntimeError:
+        answer = "LLM-режим недоступен (нет ключа ANTHROPIC_API_KEY или GEMINI_API_KEY)."
     except Exception as e:
         answer = f"Не удалось получить ответ: {e}"
 
@@ -1445,7 +1451,7 @@ def main() -> int:
         return 1
     try:
         wh = _api(token, "getWebhookInfo")
-        print(f"Webhook URL: '{wh['result'].get('url','')}'")  
+        print(f"Webhook URL: '{wh['result'].get('url','')}'") 
     except Exception as e:
         print(f"getWebhookInfo error: {e}")
 
