@@ -37,13 +37,58 @@ _PREDICTIONS_CACHE: dict | None = None
 # Кэш страниц mpgu.su (живые нормативные документы)
 _MPGU_WEB_CACHE: dict[str, str] = {}
 
-# Страницы сайта МПГУ для включения в контекст LLM
+# Страницы сайта МПГУ для включения в контекст LLM (актуальные URL)
 _MPGU_NORM_PAGES = [
-    ("Сроки и этапы приёма",      "https://mpgu.su/abiturientam/sroki-priema/"),
-    ("Перечень документов",        "https://mpgu.su/abiturientam/dokumenty/"),
-    ("Направления подготовки",     "https://mpgu.su/abiturientam/napravleniya/"),
-    ("Вступительные испытания",    "https://mpgu.su/abiturientam/vstupitelnye-ispytaniya/"),
+    ("Поступление — главная",        "https://mpgu.su/postuplenie/"),
+    ("Бакалавриат и специалитет",    "https://mpgu.su/postuplenie/bakalavriat/"),
+    ("Нормативно-правовые документы","https://mpgu.su/postuplenie/normativno-pravovoe-obespechenie-priema/"),
+    ("Вступительные испытания",      "https://mpgu.su/postuplenie/entrance-test-programs/"),
+    ("Платное обучение",             "https://mpgu.su/postuplenie/platnoe-obuchenie/"),
 ]
+
+# Статический контекст с фактической информацией (обновляется редко)
+_MPGU_STATIC_CONTEXT = """КОНТАКТЫ ПРИЁМНОЙ КОМИССИИ МПГУ:
+  Адрес: Москва, пр-т Вернадского 88, каб. 550 (м. Юго-Западная, выход 3)
+  Телефон: +7(499) 400-02-48 (доб. 607, 610, 1645); +7(495) 438-18-47
+  Email: priem@mpgu.su
+  Часы работы: пн–чт 10:00–18:00, пт 10:00–17:00
+  Договорный отдел (платное): +7(495) 438-18-57, dg@mpgu.su, каб. 546
+  Аспирантура: asp.priem@mpgu.su
+  Колледж МПГУ: kolledzmpgu@mail.ru, +7(495) 372-59-26
+  Поддержка ОВЗ: center.ovz@mpgu.su, +7(499) 400-02-48 доб. 643
+
+МИНИМАЛЬНЫЕ ПРОХОДНЫЕ БАЛЛЫ ЕГЭ 2026:
+  Русский язык: 42 | Математика: 40 | Биология/Химия: 39
+  История: 38 | Физика: 40 | Иностранный язык: 40
+  Магистратура/Аспирантура: 41 балл (внутренний экзамен)
+
+СПОСОБЫ ПОДАЧИ ЗАЯВЛЕНИЯ:
+  1. Через Госуслуги (gosuslugi.ru) — онлайн
+  2. Лично в приёмную комиссию
+  3. По почте (заказное письмо)
+  4. Через представителя (нотариальная доверенность)
+  5. С усиленной электронной подписью
+
+КВОТЫ И ОСОБЫЕ ПРАВА:
+  Льготники (ОВЗ, инвалиды, сироты): не менее 10% мест
+  Олимпиадники (ВсОШ): поступление без экзаменов (БВИ) по профилю
+  Военнослужащие: особый порядок рассмотрения
+  Целевое обучение: отдельный конкурс (Постановление Правительства № 555 от 27.04.2024)
+
+ОПЛАТА ОБУЧЕНИЯ:
+  ИНН: 7704077771 | КПП: 770401001
+  Счёт: 40102810545370000003 | БИК: 004525988
+  Без комиссии: Сбербанк, Банк Москвы
+  Образовательный кредит: Сбербанк (господдержка)
+  Материнский капитал: принимается (СФР + справка об остатке средств)
+
+КЛЮЧЕВЫЕ PDF-ДОКУМЕНТЫ (2026/27):
+  Правила приёма (бакалавриат/магистратура): https://mpgu.su/wp-content/uploads/2026/01/pk26_pravila-priema.pdf
+  Перечень программ бакалавриата: https://mpgu.su/wp-content/uploads/2026/05/pk26_perechen-program-bvo.pdf
+  Бюджетные места (бакалавриат): https://mpgu.su/wp-content/uploads/2026/01/pk26_kcp-bvo-bac-spec.pdf
+  Проходные баллы 2025 (бак.): https://mpgu.su/wp-content/uploads/2026/03/pk26_pass-mark-programs-bac-bvo.pdf
+  Стоимость обучения (бак., РФ): https://mpgu.su/wp-content/uploads/2026/06/pk26_stoimost-obucheniya-bvo_ru.pdf
+  Индивидуальные достижения (перечень): https://mpgu.su/wp-content/uploads/2026/05/pk26_prilojenie-2-perechen-id-podtv-doc-bac-bvo.pdf"""
 
 
 # ---------------------------------------------------------------------------
@@ -204,10 +249,25 @@ def _build_llm_context() -> str:
             )
     except Exception:
         pass
-    # Живые нормативные страницы с сайта МПГУ
+    # Сохранённые тексты страниц из data-ветки (обновляются скрейпером)
+    try:
+        site_texts = _adm_json("site_texts.json")
+        pages = site_texts.get("pages", {})
+        if pages:
+            parts.append("\n--- ТЕКСТЫ СТРАНИЦ МПГУ (из базы) ---")
+            for key, text in list(pages.items())[:4]:
+                if text:
+                    parts.append(f"\n{key.upper()}:\n{text[:3000]}")
+    except Exception:
+        pass
+
+    # Статический проверенный контекст (контакты, банк, квоты)
+    parts.append("\n" + _MPGU_STATIC_CONTEXT)
+
+    # Живые страницы с сайта МПГУ (увеличен лимит до 4000 символов)
     web_parts = []
     for label, url in _MPGU_NORM_PAGES:
-        text = _fetch_mpgu_page(label, url)
+        text = _fetch_mpgu_page(label, url, max_chars=4000)
         if text:
             web_parts.append(f"\n{label.upper()} (источник: {url}):\n{text}")
     if web_parts:
@@ -520,7 +580,7 @@ def _call_llm(system: str, user_msg: str, max_tokens: int = 600) -> str:
     if yandex_key:
         try:
             payload = {
-                "model": "yandexgpt-5-lite",
+                "model": "yandexgpt-5-pro",
                 "messages": [
                     {"role": "system", "content": system},
                     {"role": "user", "content": user_msg},
@@ -1513,7 +1573,7 @@ def main() -> int:
         return 1
     try:
         wh = _api(token, "getWebhookInfo")
-        print(f"Webhook URL: '{wh['result'].get('url','')}'")  
+        print(f"Webhook URL: '{wh['result'].get('url','')}'") 
     except Exception as e:
         print(f"getWebhookInfo error: {e}")
 

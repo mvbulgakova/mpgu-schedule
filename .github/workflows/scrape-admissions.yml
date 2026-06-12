@@ -2,15 +2,8 @@ name: Scrape Admissions Data
 
 on:
   schedule:
-    - cron: "0 6 * * *"   # 09:00 MSK ежедневно
+    - cron: "0 6 * * *"   # 09:00 МСК ежедневно
   workflow_dispatch:
-    inputs:
-      dry_run:
-        description: "Dry run (не записывать в data branch)"
-        required: false
-        default: "false"
-        type: choice
-        options: ["false", "true"]
 
 permissions:
   contents: write
@@ -19,58 +12,33 @@ jobs:
   scrape:
     runs-on: ubuntu-latest
     timeout-minutes: 15
-
     steps:
-      - name: Checkout main branch (code)
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           ref: main
-          path: main-branch
 
-      - name: Checkout data branch
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           ref: data
-          path: data-branch
+          path: .data-wt
 
-      - name: Setup Python
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-          cache: pip
-          cache-dependency-path: main-branch/scraper/requirements.txt
 
       - name: Install dependencies
-        run: |
-          pip install beautifulsoup4 lxml openpyxl tenacity requests
+        run: pip install requests beautifulsoup4
 
-      - name: Configure git
-        run: |
-          cd data-branch
-          git config user.name "MPGU Schedule Bot"
-          git config user.email "bot@github-actions"
-
-      - name: Run admissions scraper
+      - name: Run scraper
         env:
-          DATA_PATH: ${{ github.workspace }}/data-branch
-          PYTHONPATH: ${{ github.workspace }}/main-branch
-          DRY_RUN: ${{ github.event.inputs.dry_run || 'false' }}
-        run: |
-          cd main-branch
-          if [ "$DRY_RUN" = "true" ]; then
-            python -m scraper.admission_scraper --dry-run
-          else
-            python -m scraper.admission_scraper
-          fi
+          DATA_PATH: .data-wt
+        run: python scraper/admission_scraper.py
 
       - name: Commit and push to data branch
-        if: ${{ github.event.inputs.dry_run != 'true' }}
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
         run: |
-          cd data-branch
-          git remote set-url origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git"
-          git add admissions/ || true
-          git diff --staged --quiet && echo "No changes to commit" && exit 0
-          git commit -m "admissions: auto-update $(date -u '+%Y-%m-%d %H:%M UTC')"
+          cd .data-wt
+          git config user.email "bot@mpgu-schedule"
+          git config user.name "mpgu-bot"
+          git add -A
+          git diff --staged --quiet || git commit -m "admissions: auto-update $(date -u +%Y-%m-%d)"
           git push origin data
