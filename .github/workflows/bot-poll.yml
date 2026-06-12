@@ -34,6 +34,12 @@ jobs:
       - name: Install dependencies
         run: pip install anthropic>=0.30
 
+      - name: Delete webhook (Railway may have set one)
+        env:
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+        run: |
+          curl -s "https://api.telegram.org/bot${BOT_TOKEN}/deleteWebhook?drop_pending_updates=true"
+
       - name: Run bot (long-polling)
         env:
           BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
