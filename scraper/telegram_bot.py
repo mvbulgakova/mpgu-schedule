@@ -1436,6 +1436,19 @@ def main() -> int:
         print("BOT_TOKEN не задан — пропускаю (добавь секрет репозитория). Выход.")
         return 0
 
+    # Проверяем токен и webhook-статус
+    try:
+        me = _api(token, "getMe")
+        print(f"Bot: @{me['result']['username']} (id={me['result']['id']})")
+    except Exception as e:
+        print(f"getMe FAILED: {e} — проверь BOT_TOKEN")
+        return 1
+    try:
+        wh = _api(token, "getWebhookInfo")
+        print(f"Webhook URL: '{wh['result'].get('url','')}'")
+    except Exception as e:
+        print(f"getWebhookInfo error: {e}")
+
     deadline = time.time() + RUN_SECONDS
     offset = None
     print(f"Бот запущен на {RUN_SECONDS}s")
