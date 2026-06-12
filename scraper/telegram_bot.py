@@ -445,7 +445,7 @@ _REGION_NORMALIZE_SYSTEM = """Из сообщения пользователя �
 
 
 def _call_llm(system: str, user_msg: str, max_tokens: int = 600) -> str:
-    """Вызывает LLM: сначала Anthropic, потом Gemini Flash (бесплатный)."""
+    """Вызывает LLM: сначала Anthropic, потом Gemini Flash, потом GigaChat."""
     # Anthropic
     api_key = os.environ.get("ANTHROPIC_API_KEY")
     if api_key:
@@ -465,21 +465,66 @@ def _call_llm(system: str, user_msg: str, max_tokens: int = 600) -> str:
     # Gemini Flash (бесплатный)
     gemini_key = os.environ.get("GEMINI_API_KEY")
     if gemini_key:
-        url = ("https://generativelanguage.googleapis.com/v1beta/models/"
-               f"gemini-1.5-flash:generateContent?key={gemini_key}")
-        payload = {
-            "system_instruction": {"parts": [{"text": system}]},
-            "contents": [{"role": "user", "parts": [{"text": user_msg}]}],
-            "generationConfig": {"maxOutputTokens": max_tokens},
-        }
-        req = urllib.request.Request(
-            url, data=json.dumps(payload).encode(),
-            headers={"Content-Type": "application/json"})
-        with urllib.request.urlopen(req, timeout=30) as r:
-            resp = json.loads(r.read().decode())
-        return resp["candidates"][0]["content"]["parts"][0]["text"]
+        try:
+            url = ("https://generativelanguage.googleapis.com/v1beta/models/"
+                   f"gemini-1.5-flash:generateContent?key={gemini_key}")
+            payload = {
+                "system_instruction": {"parts": [{"text": system}]},
+                "contents": [{"role": "user", "parts": [{"text": user_msg}]}],
+                "generationConfig": {"maxOutputTokens": max_tokens},
+            }
+            req = urllib.request.Request(
+                url, data=json.dumps(payload).encode(),
+                headers={"Content-Type": "application/json"})
+            with urllib.request.urlopen(req, timeout=30) as r:
+                resp = json.loads(r.read().decode())
+            return resp["candidates"][0]["content"]["parts"][0]["text"]
+        except Exception:
+            pass
 
-    raise RuntimeError("Нет ключа API (ANTHROPIC_API_KEY или GEMINI_API_KEY)")
+    # GigaChat (Сбербанк, бесплатно для физлиц)
+    # GIGACHAT_API_KEY = "ClientID:ClientSecret" из личного кабинета developers.sber.ru
+    gigachat_key = os.environ.get("GIGACHAT_API_KEY")
+    if gigachat_key:
+        import ssl
+        import base64
+        import uuid as _uuid
+        # Сберовский CA не входит в стандартное хранилище Python
+        ctx = ssl.create_default_context()
+        ctx.check_hostname = False
+        ctx.verify_mode = ssl.CERT_NONE
+        auth_b64 = base64.b64encode(gigachat_key.encode()).decode()
+        token_req = urllib.request.Request(
+            "https://ngw.devices.sberbank.ru:9443/api/v2/oauth",
+            data=b"scope=GIGACHAT_API_PERS",
+            headers={
+                "Authorization": f"Basic {auth_b64}",
+                "Content-Type": "application/x-www-form-urlencoded",
+                "RqUID": str(_uuid.uuid4()),
+            }
+        )
+        with urllib.request.urlopen(token_req, timeout=15, context=ctx) as r:
+            access_token = json.loads(r.read().decode())["access_token"]
+        payload = {
+            "model": "GigaChat",
+            "messages": [
+                {"role": "system", "content": system},
+                {"role": "user", "content": user_msg},
+            ],
+            "max_tokens": max_tokens,
+        }
+        chat_req = urllib.request.Request(
+            "https://gigachat.devices.sberbank.ru/api/v1/chat/completions",
+            data=json.dumps(payload).encode(),
+            headers={
+                "Authorization": f"Bearer {access_token}",
+                "Content-Type": "application/json",
+            }
+        )
+        with urllib.request.urlopen(chat_req, timeout=30, context=ctx) as r:
+            return json.loads(r.read().decode())["choices"][0]["message"]["content"]
+
+    raise RuntimeError("Нет ключа API (ANTHROPIC_API_KEY, GEMINI_API_KEY или GIGACHAT_API_KEY)")
 
 
 def _normalize_region_llm(user_text: str) -> str:
@@ -1096,7 +1141,7 @@ def ask_llm(question: str) -> dict:
             512,
         ).strip()[:3800]
     except RuntimeError:
-        answer = "LLM-режим недоступен (нет ключа ANTHROPIC_API_KEY или GEMINI_API_KEY)."
+        answer = "LLM-режим недоступен (нет ключа ANTHROPIC_API_KEY, GEMINI_API_KEY или GIGACHAT_API_KEY)."
     except Exception as e:
         answer = f"Не удалось получить ответ: {e}"
 
