@@ -47,5 +47,6 @@ jobs:
           BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GIGACHAT_API_KEY: ${{ secrets.GIGACHAT_API_KEY }}
           RUN_SECONDS: "3300"
         run: python -m scraper.telegram_bot
