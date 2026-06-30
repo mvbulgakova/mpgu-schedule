@@ -304,7 +304,7 @@ def _send_programs(token: str | None, chat_id: int) -> dict:
                      + (f"\n   ЕГЭ: {_esc(exams)}" if exams else ""))
 
     if len(plist) > 30:
-        lines.append(f"\n…и ещё {len(plist) - 30} направлений. Полный список: mpgu.su/abiturientam/")
+        lines.append(f"\n…и ещё {len(plist) - 30} направлений. Полный список: mpgu.su/postuplenie/bakalavriat/")
 
     return {"text": "\n\n".join(lines), "keyboard": _BACK_KB}
 
@@ -648,7 +648,7 @@ def check_border_region(user_text: str) -> dict:
                 "(справку, свидетельство о регистрации или военный билет)\n"
                 "3. Уточни актуальный перечень ВИ для своего направления\n\n"
                 "📌 Подробности: priem@mpgu.su\n"
-                "📞 Приёмная комиссия: +7 (499) 246-57-97"
+                "📞 Приёмная комиссия: +7 (499) 400-02-48"
             ),
             "keyboard": _make_keyboard([
                 [("📝 Узнать про ВИ подробнее", "adm_vi")],
@@ -1031,7 +1031,7 @@ def _format_calculator_result(scores: dict[str, int], match: dict) -> str:
 
     lines.append("\n💡 <b>Важно:</b> проходные баллы меняются каждый год. "
                  "Прогноз основан на тренде 2014–2025 и является ориентировочным.")
-    lines.append("📌 Актуальные данные: mpgu.su/abiturientam/")
+    lines.append("📌 Актуальные данные: mpgu.su/postuplenie/")
     return "\n".join(lines)
 
 
@@ -1088,7 +1088,7 @@ def match_by_interests(question: str) -> dict:
             "Пока можешь:\n"
             "• Посмотреть все направления в разделе «Подбор программ»\n"
             "• Задать вопрос в свободной форме через «Задать вопрос»\n"
-            "• Изучить сайт: mpgu.su/abiturientam/"
+            "• Изучить сайт: mpgu.su/postuplenie/"
         )
     except Exception as e:
         answer = f"Не удалось подобрать направления: {e}"
@@ -1128,7 +1128,7 @@ def search_by_snils(raw: str) -> dict:
         list_entries = idx.get("lists", []) if isinstance(idx, dict) else []
     except Exception:
         return {"text": "Рейтинговые списки ещё не опубликованы или временно недоступны.\n"
-                        "Следите за обновлениями на mpgu.su/abiturientam/rating/",
+                        "Следите за обновлениями на mpgu.su/postuplenie/",
                 "keyboard": _BACK_KB}
 
     if not list_entries:
