@@ -158,7 +158,11 @@
 
 ## AI-ответ на свободный вопрос — `scraper/abitur/llm.py`
 
-- Один `client.messages.create` (Anthropic SDK, Python). **Модель `claude-haiku-4-5`.**
+- **Переиспользуем существующую авторизацию:** `scraper/utils/claude_client._get_anthropic_client()`
+  (уже в репо) — пробует `ANTHROPIC_API_KEY`, затем session-токен Claude Code remote. Свой
+  клиент не плодим.
+- Один `client.messages.create` (Anthropic SDK, Python). **Модель `claude-haiku-4-5`** (своя,
+  не `_VISION_MODEL`).
 - **Без** `output_config.effort` (Haiku 4.5 не поддерживает — вернёт ошибку) и без extended
   thinking. Обычный `system` + один `user`.
 - `system` = строгая anti-hallucination-инструкция + весь `knowledge.md`, на последнем блоке
@@ -173,10 +177,13 @@
 
 ## Деплой / секреты
 
-- Новый секрет `ANTHROPIC_API_KEY`, проброс в `bot-poll.yml`.
-- **Деградация без ключа:** AI-ветка свободных вопросов отключается; FAQ-кнопки и
-  **калькулятор работают** (они детерминированы и не зависят от API). Свободный вопрос без
-  ключа → «спросите кнопками /abitur, посчитайте баллы /bally или у приёмной комиссии».
+- **Секрет `ANTHROPIC_API_KEY` уже существует** в репозитории (используется `scrape.yml` для
+  Claude vision). Новый секрет не нужен — достаточно пробросить тот же `ANTHROPIC_API_KEY` в
+  `bot-poll.yml` (по образцу `scrape.yml`).
+- **Деградация без ключа/кредов:** если ни `ANTHROPIC_API_KEY`, ни session-токен недоступны,
+  AI-ветка свободных вопросов отключается; FAQ-кнопки и **калькулятор работают** (они
+  детерминированы и не зависят от API). Свободный вопрос без ключа → «спросите кнопками
+  /abitur, посчитайте баллы /bally или у приёмной комиссии».
 - Guard'ы: лимит длины сообщения; простой in-memory rate-limit на `chat_id`.
 
 ## Тесты
