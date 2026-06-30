@@ -89,7 +89,6 @@ def _get_text(soup: BeautifulSoup, max_chars: int = 8000) -> str:
 def scrape_calendar() -> list[dict]:
     """Парсит сроки приёма."""
     print("calendar …")
-    # Пробуем основную страницу поступления
     soup = _get("https://mpgu.su/postuplenie/")
     if not soup:
         return []

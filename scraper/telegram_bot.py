@@ -557,7 +557,7 @@ _REGION_NORMALIZE_SYSTEM = """Из сообщения пользователя �
 
 
 def _call_llm(system: str, user_msg: str, max_tokens: int = 600) -> str:
-    """Вызывает LLM: сначала Anthropic, потом YandexGPT, потом GigaChat."""
+    """Вызывает LLM: сначала Anthropic, потом YandexGPT."""
     # Anthropic
     api_key = os.environ.get("ANTHROPIC_API_KEY")
     if api_key:
@@ -1196,7 +1196,7 @@ _LLM_SYSTEM = """Ты — дружелюбный и компетентный п�
    Если информации нет — честно скажи, не выдумывай.
 2. Обращайся на «ты», будь тактичен.
 3. Если в тексте есть признаки тревоги («боюсь», «не понимаю», «запутался/ась»,
-   «помогите», «не знаю что делать», обилие «??» или «!!») —
+   «помогите», «не знаю что делать», обилие «??» или «!!") —
    СНАЧАЛА скажи 1-2 поддерживающих предложения, ЗАТЕМ давай информацию.
 4. Отвечай кратко и структурированно, без воды.
 5. Формат: Telegram HTML, <b>жирный</b> для важных дат и цифр.
@@ -1573,7 +1573,7 @@ def main() -> int:
         return 1
     try:
         wh = _api(token, "getWebhookInfo")
-        print(f"Webhook URL: '{wh['result'].get('url','')}'") 
+        print(f"Webhook URL: '{wh['result'].get('url','')}'")  
     except Exception as e:
         print(f"getWebhookInfo error: {e}")
 
