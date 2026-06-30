@@ -10,10 +10,10 @@ on:
     - cron: "0 * * * *"   # каждый час
   workflow_dispatch:
 
-# Не допускаем двух одновременных опросов (Telegram отдаёт 409 при конфликте)
+# При ручном запуске или новом кроне — отменяем старый, стартуем свежий
 concurrency:
   group: telegram-bot-poll
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 permissions:
   contents: read
@@ -31,8 +31,13 @@ jobs:
         with:
           python-version: "3.12"
 
+      - name: Install dependencies
+        run: pip install anthropic>=0.30
+
       - name: Run bot (long-polling)
         env:
           BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          YANDEX_API_KEY: ${{ secrets.YANDEX_API_KEY }}
           RUN_SECONDS: "3300"
         run: python -m scraper.telegram_bot

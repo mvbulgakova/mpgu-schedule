@@ -1,0 +1,29 @@
+{
+  "base_url": "https://mpgu.su",
+  "pages": {
+    "main":         "/abiturientam/",
+    "programs":     "/abiturientam/napravleniya-podgotovki/",
+    "calendar":     "/abiturientam/sroki-priema/",
+    "documents":    "/abiturientam/dokumenty-dlya-postupleniya/",
+    "ranked_lists": "/abiturientam/rating/"
+  },
+  "ranked_lists_extensions": ["xlsx", "xls", "pdf"],
+  "institutes": [
+    {"id": "biology",       "name": "Институт биологии и химии",          "short": "ИБиХ"},
+    {"id": "childhood",     "name": "Институт детства",                    "short": "ИД"},
+    {"id": "philology",     "name": "Институт филологии",                  "short": "ИФ"},
+    {"id": "physics",       "name": "ИФТИС",                               "short": "ИФТИС"},
+    {"id": "sport",         "name": "ИФКСиЗ",                              "short": "ИФКСиЗ"},
+    {"id": "social",        "name": "ИСГО",                                "short": "ИСГО"},
+    {"id": "geography",     "name": "Географический факультет",            "short": "ГФ"},
+    {"id": "history",       "name": "Институт истории и политики",         "short": "ИИП"},
+    {"id": "math",          "name": "ИМиИ",                                "short": "ИМиИ"},
+    {"id": "arts",          "name": "Институт изящных искусств",           "short": "ИИИ"},
+    {"id": "preschool",     "name": "Факультет дошкольной педагогики",     "short": "ФДП"},
+    {"id": "pedagogy",      "name": "Институт педагогики и психологии",    "short": "ИПП"},
+    {"id": "languages",     "name": "Институт иностранных языков",         "short": "ИИЯ"},
+    {"id": "international", "name": "ИМО",                                 "short": "ИМО"},
+    {"id": "journalism",    "name": "ИЖКМ",                                "short": "ИЖКМ"},
+    {"id": "digital",       "name": "ИРЦО",                                "short": "ИРЦО"}
+  ]
+}
