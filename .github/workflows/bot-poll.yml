@@ -31,8 +31,12 @@ jobs:
         with:
           python-version: "3.12"
 
+      - name: Install deps
+        run: pip install "anthropic>=0.30"
+
       - name: Run bot (long-polling)
         env:
           BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           RUN_SECONDS: "3300"
         run: python -m scraper.telegram_bot
