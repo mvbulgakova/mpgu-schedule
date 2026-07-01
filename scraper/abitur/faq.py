@@ -78,4 +78,7 @@ def route(text: str) -> Tuple[str, str]:
         return ("menu", "")
     if cmd in ("/bally", "/ball", "/calc"):
         return ("calc", "")
+    if cmd in ("/spisok", "/list", "/spiski"):
+        arg = t[len(t.split()[0]):].strip() if t else ""
+        return ("spisok", arg)
     return ("free", t)

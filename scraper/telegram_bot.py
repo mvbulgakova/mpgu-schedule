@@ -17,13 +17,15 @@ import urllib.request
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Tuple
 
-from scraper.abitur import dialog, faq, llm
+from scraper.abitur import dialog, faq, llm, lists
 
 RUN_SECONDS = int(os.environ.get("RUN_SECONDS", "3300"))
 MAX_MSG_LEN = 1000
 
 # In-memory состояние калькулятора по chat_id (эфемерно, теряется при рестарте).
 SESSIONS: Dict[int, dialog.CalcSession] = {}
+# Ожидание уникального кода после /spisok (отдельно от калькулятора).
+AWAITING_CODE: Dict[int, bool] = {}
 
 
 @dataclass
@@ -41,6 +43,7 @@ def _menu_keyboard() -> List[List[Tuple[str, str]]]:
     if row:
         rows.append(row)
     rows.append([("➕ Калькулятор баллов", "open:calc")])
+    rows.append([("🔎 Мои списки", "open:spisok")])
     return rows
 
 
@@ -53,19 +56,30 @@ def _answer_free(question: str) -> str:
     return llm.answer(question)
 
 
+def _lookup_code(code: str) -> str:
+    index = lists.fetch_index()
+    if not index:
+        return ("Индекс списков сейчас недоступен. Официальные списки: "
+                "https://epk25.mpgu.su/competitive-list")
+    return lists.format_positions(index, code)
+
+
 def handle_message(chat_id: int, text: str) -> Reply:
     text = (text or "")[:MAX_MSG_LEN].strip()
-    # ввод часов волонтёрства во время калькулятора
+    # 1) ввод часов волонтёрства во время калькулятора — высший приоритет для числа
     sess = SESSIONS.get(chat_id)
     if sess is not None and sess.step == dialog.STEP_ACHIEVE and text.isdigit():
         dialog.set_volunteer_hours(sess, int(text))
         v = dialog.render(sess)
         return Reply(f"Часы волонтёрства: {sess.volunteer_hours}.\n\n{v.text}", v.keyboard)
 
+    # 2) ожидаем уникальный код после /spisok
+    if AWAITING_CODE.get(chat_id) and any(ch.isdigit() for ch in text) and not text.startswith("/"):
+        AWAITING_CODE.pop(chat_id, None)
+        return Reply(_lookup_code(text), [])
+
     intent, payload = faq.route(text)
-    if intent == "start":
-        return Reply(_GREETING, _menu_keyboard())
-    if intent == "help":
+    if intent in ("start", "help"):
         return Reply(_GREETING, _menu_keyboard())
     if intent == "menu":
         return Reply("Выберите тему:", _menu_keyboard())
@@ -74,6 +88,11 @@ def handle_message(chat_id: int, text: str) -> Reply:
         SESSIONS[chat_id] = s
         v = dialog.render(s)
         return Reply(v.text, v.keyboard)
+    if intent == "spisok":
+        if payload:  # /spisok 12345
+            return Reply(_lookup_code(payload), [])
+        AWAITING_CODE[chat_id] = True
+        return Reply("Пришлите ваш <b>уникальный код</b> (номер заявления) одним сообщением.", [])
     # свободный вопрос
     return Reply(_answer_free(payload), [])
 
@@ -87,6 +106,9 @@ def handle_callback(chat_id: int, data: str) -> Reply:
         SESSIONS[chat_id] = s
         v = dialog.render(s)
         return Reply(v.text, v.keyboard)
+    if data == "open:spisok":
+        AWAITING_CODE[chat_id] = True
+        return Reply("Пришлите ваш <b>уникальный код</b> (номер заявления) одним сообщением.", [])
     if data.startswith("c:"):
         s = SESSIONS.get(chat_id) or dialog.start()
         SESSIONS[chat_id] = s
