@@ -79,6 +79,9 @@ class GitStorage:
     def write_hashes(self, hashes: dict):
         _write_json(self.root / "meta" / "hashes.json", hashes)
 
+    def write_lists_index(self, index: dict):
+        _write_json(self.root / "admissions" / "lists_index.json", index)
+
     def write_exams(self, institute_id: str, doc: dict):
         path = self.root / "institutes" / institute_id / "exams.json"
         path.parent.mkdir(parents=True, exist_ok=True)
