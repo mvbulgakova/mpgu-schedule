@@ -12,6 +12,7 @@ import scraper.telegram_bot as bot
 
 def setup_function(_):
     bot.SESSIONS.clear()
+    bot.AWAITING_SCORES.clear()
 
 
 def test_start_returns_greeting_with_menu():
@@ -67,3 +68,29 @@ def test_menu_has_dates_button():
     out = bot.handle_message(chat_id=8, text="/abitur")
     data = [cb for row in out.keyboard for (_, cb) in row]
     assert "d:" in data
+
+
+def test_shansy_command_asks_for_scores():
+    out = bot.handle_message(chat_id=9, text="/shansy")
+    assert bot.AWAITING_SCORES.get(9) is True
+    assert "русский 78" in out.text
+
+
+def test_shansy_scores_after_prompt(monkeypatch):
+    monkeypatch.setattr(bot, "_shansy_answer", lambda t: f"MATCHES for {t}")
+    bot.handle_message(chat_id=10, text="/shansy")
+    out = bot.handle_message(chat_id=10, text="русский 78, история 90")
+    assert "MATCHES for" in out.text
+    assert 10 not in bot.AWAITING_SCORES
+
+
+def test_volunteer_hours_beat_scores_state(monkeypatch):
+    monkeypatch.setattr(bot, "_shansy_answer", lambda t: "SHOULD_NOT_APPEAR")
+    bot.handle_message(chat_id=11, text="/bally")
+    bot.handle_callback(chat_id=11, data="c:level:base")
+    bot.handle_callback(chat_id=11, data="c:pedagogical:1")
+    bot.handle_callback(chat_id=11, data="c:target:0")
+    bot.AWAITING_SCORES[11] = True
+    out = bot.handle_message(chat_id=11, text="200")
+    assert bot.SESSIONS[11].volunteer_hours == 200
+    assert "SHOULD_NOT_APPEAR" not in out.text

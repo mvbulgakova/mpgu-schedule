@@ -17,7 +17,7 @@ import urllib.request
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Tuple
 
-from scraper.abitur import dialog, faq, llm, lists
+from scraper.abitur import dialog, faq, llm, lists, shansy
 
 RUN_SECONDS = int(os.environ.get("RUN_SECONDS", "3300"))
 MAX_MSG_LEN = 1000
@@ -26,6 +26,8 @@ MAX_MSG_LEN = 1000
 SESSIONS: Dict[int, dialog.CalcSession] = {}
 # Ожидание уникального кода после /spisok (отдельно от калькулятора).
 AWAITING_CODE: Dict[int, bool] = {}
+# Ожидание сообщения с баллами ЕГЭ после /shansy.
+AWAITING_SCORES: Dict[int, bool] = {}
 
 
 @dataclass
@@ -43,7 +45,7 @@ def _menu_keyboard() -> List[List[Tuple[str, str]]]:
     if row:
         rows.append(row)
     rows.append([("➕ Калькулятор баллов", "open:calc")])
-    rows.append([("🔎 Мои списки", "open:spisok")])
+    rows.append([("🧮 Подбор по ЕГЭ", "open:shansy"), ("🔎 Мои списки", "open:spisok")])
     return rows
 
 
@@ -54,6 +56,15 @@ _GREETING = ("👋 Я помощник абитуриента МПГУ.\n\n"
 
 def _answer_free(question: str) -> str:
     return llm.answer(question)
+
+
+_SHANSY_PROMPT = ("Пришлите ваши предметы ЕГЭ и баллы одним сообщением, например:\n"
+                  "<b>русский 78, обществознание 84, история 90</b>")
+
+
+def _shansy_answer(text: str) -> str:
+    return shansy.answer(text, lists_index=lists.fetch_index(),
+                         history=shansy.fetch_history())
 
 
 def _lookup_code(code: str) -> str:
@@ -78,6 +89,11 @@ def handle_message(chat_id: int, text: str) -> Reply:
         AWAITING_CODE.pop(chat_id, None)
         return Reply(_lookup_code(text), [])
 
+    # 3) ожидаем баллы ЕГЭ после /shansy
+    if AWAITING_SCORES.get(chat_id) and any(ch.isdigit() for ch in text) and not text.startswith("/"):
+        AWAITING_SCORES.pop(chat_id, None)
+        return Reply(_shansy_answer(text), [])
+
     intent, payload = faq.route(text)
     if intent in ("start", "help"):
         return Reply(_GREETING, _menu_keyboard())
@@ -96,6 +112,11 @@ def handle_message(chat_id: int, text: str) -> Reply:
     if intent == "dates":
         text_d, kb = faq.dates_step("")
         return Reply(text_d, kb)
+    if intent == "shansy":
+        if payload:  # /shansy русский 78 ...
+            return Reply(_shansy_answer(payload), [])
+        AWAITING_SCORES[chat_id] = True
+        return Reply(_SHANSY_PROMPT, [])
     # свободный вопрос
     return Reply(_answer_free(payload), [])
 
@@ -115,6 +136,9 @@ def handle_callback(chat_id: int, data: str) -> Reply:
     if data == "open:spisok":
         AWAITING_CODE[chat_id] = True
         return Reply("Пришлите ваш <b>уникальный код</b> (номер заявления) одним сообщением.", [])
+    if data == "open:shansy":
+        AWAITING_SCORES[chat_id] = True
+        return Reply(_SHANSY_PROMPT, [])
     if data.startswith("c:"):
         s = SESSIONS.get(chat_id) or dialog.start()
         SESSIONS[chat_id] = s

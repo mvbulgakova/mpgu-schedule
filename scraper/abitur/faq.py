@@ -198,4 +198,7 @@ def route(text: str) -> Tuple[str, str]:
         return ("spisok", arg)
     if cmd in ("/sroki", "/dates"):
         return ("dates", "")
+    if cmd in ("/shansy", "/chances", "/podbor"):
+        arg = t[len(t.split()[0]):].strip() if t else ""
+        return ("shansy", arg)
     return ("free", t)
