@@ -33,6 +33,21 @@ def extract_view_codes(html: str) -> List[str]:
     return out
 
 
+def extract_view_links(html: str) -> List[tuple]:
+    """[(code, title)] — код списка и текст ссылки (название направления)."""
+    pairs = re.findall(
+        r'<a[^>]*href="[^"]*/competitive-list/view\?code=([0-9]+)"[^>]*>(.*?)</a>',
+        html or "", re.S | re.I)
+    seen, out = set(), []
+    for code, raw in pairs:
+        if code in seen:
+            continue
+        seen.add(code)
+        title = re.sub(r"\s+", " ", re.sub(r"<[^>]*>", " ", unescape(raw))).strip()
+        out.append((code, title))
+    return out
+
+
 def _get(url: str, retries: int = 3) -> str:
     import requests
     last = None
@@ -48,10 +63,14 @@ def _get(url: str, retries: int = 3) -> str:
     raise RuntimeError(f"GET failed {url}: {last}")
 
 
-def crawl(levels: List[str] = None, pause: float = 0.3) -> Dict[str, str]:
-    """Возвращает {code -> html страницы view}. Сеть; в тестах не вызывается."""
+def crawl(levels: List[str] = None, pause: float = 0.3):
+    """Возвращает (pages, meta): {code -> html} и {code -> {direction, level}}.
+
+    Сеть; в тестах не вызывается.
+    """
     levels = levels or LEVELS
     pages: Dict[str, str] = {}
+    meta: Dict[str, dict] = {}
     for lvl in levels:
         try:
             struct = _get(structural_url(lvl))
@@ -63,12 +82,13 @@ def crawl(levels: List[str] = None, pause: float = 0.3) -> Dict[str, str]:
                 dhtml = _get(dir_url)
             except Exception:
                 continue
-            for code in extract_view_codes(dhtml):
+            for code, title in extract_view_links(dhtml):
                 if code in pages:
                     continue
                 time.sleep(pause)
                 try:
                     pages[code] = _get(f"{BASE}/competitive-list/view?code={code}")
+                    meta[code] = {"direction": title, "level": lvl}
                 except Exception:
                     continue
-    return pages
+    return pages, meta

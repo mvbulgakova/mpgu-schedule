@@ -38,3 +38,9 @@ def test_structural_url_for_level():
     u = LF.structural_url("basic_higher_education")
     assert u == ("https://epk25.mpgu.su/competitive-list/structural"
                  "?educationLevel=basic_higher_education")
+
+
+def test_extract_view_links_with_titles():
+    links = LF.extract_view_links(DIRECTION)
+    assert links == [("000000672", "44.03.01 История"),
+                     ("000000673", "46.03.01 История")]

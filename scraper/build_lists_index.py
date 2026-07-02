@@ -36,11 +36,7 @@ def main() -> int:
     from scraper.fetchers import lists_fetcher as LF
     from scraper.storage.git_storage import GitStorage
 
-    # meta собираем параллельно обходу: код -> контекст направления.
-    # Здесь простая версия — контекст берётся из view-страницы отдельно не парсится,
-    # поэтому meta минимальна (url). Расширяемо: прокинуть контекст из crawl().
-    pages = LF.crawl()
-    meta = {code: {} for code in pages}
+    pages, meta = LF.crawl()
     now = dt.datetime.now(dt.timezone(dt.timedelta(hours=3))).isoformat(timespec="seconds")
     index = build_index(pages, meta, updated_at=now)
 
