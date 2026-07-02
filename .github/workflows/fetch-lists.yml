@@ -1,0 +1,43 @@
+name: Fetch Competitive Lists
+
+# Периодический скрейп конкурсных списков epk25 → индекс в data-ветке.
+# Актуально в сроки приёмной кампании.
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 */3 * * *"   # каждые 3 часа
+
+concurrency:
+  group: fetch-lists
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Checkout data branch
+        uses: actions/checkout@v4
+        with:
+          ref: data
+          path: data
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install deps
+        run: pip install requests beautifulsoup4 lxml
+
+      - name: Build lists index
+        env:
+          DATA_PATH: data
+        run: python -m scraper.build_lists_index
