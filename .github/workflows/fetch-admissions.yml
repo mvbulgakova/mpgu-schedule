@@ -1,0 +1,37 @@
+name: Fetch Admissions History
+
+# История проходных баллов по программам из архива mpgu.su → data-ветка.
+# Меняется раз в год — запуск только вручную.
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Checkout data branch
+        uses: actions/checkout@v4
+        with:
+          ref: data
+          path: data
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install deps
+        run: pip install requests beautifulsoup4 lxml
+
+      - name: Build admissions history
+        env:
+          DATA_PATH: data
+        run: python -m scraper.build_admissions_index
