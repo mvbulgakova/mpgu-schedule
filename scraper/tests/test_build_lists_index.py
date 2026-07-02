@@ -11,9 +11,10 @@ from scraper.build_lists_index import build_index
 
 VIEW = """
 <TABLE>
-<TR><TD>№</TD><TD>Уникальный код</TD><TD>Согласие</TD><TD>ПЗ</TD><TD>ОВП</TD><TD>ВПП</TD>
-<TD>БВИ</TD><TD>Сумма</TD><TD>ВИсум</TD><TD>ВИ1</TD><TD>ВИ2</TD><TD>ВИ3</TD><TD>ИД</TD><TD>ПП</TD>
-<TD>Статус</TD><TD>Отказ</TD></TR>
+<TR><TD>№</TD><TD>Уникальный код</TD><TD>Наличие согласия на зачисление</TD><TD>ПЗ</TD><TD>ОВП</TD><TD>ВПП</TD>
+<TD>Основание приема БВИ</TD><TD>Сумма конкурсных баллов</TD><TD>Сумма баллов за ВИ</TD>
+<TD COLSPAN=3>Количество баллов за каждое ВИ</TD><TD>ИД</TD><TD>ПП</TD>
+<TD>Информация о рассмотрении заявления</TD><TD>Причина отказа</TD></TR>
 <TR><TD>1</TD><TD>111</TD><TD>+</TD><TD>1</TD><TD></TD><TD></TD><TD></TD><TD>290</TD><TD>290</TD>
 <TD>96</TD><TD>94</TD><TD>100</TD><TD>0</TD><TD></TD><TD>Рекомендован</TD><TD></TD></TR>
 <TR><TD>2</TD><TD>222</TD><TD></TD><TD>2</TD><TD></TD><TD></TD><TD></TD><TD>250</TD><TD>250</TD>

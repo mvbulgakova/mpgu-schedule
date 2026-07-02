@@ -1,16 +1,14 @@
 """Парсер страницы конкурсного списка epk25 (/competitive-list/view?code=...).
 
-Таблица приходит с uppercase-тегами; BeautifulSoup нормализует регистр.
-Строки абитуриентов опознаются по первой ячейке-числу (позиция).
+Теги приходят в ВЕРХНЕМ регистре; BeautifulSoup нормализует регистр.
+
+Раскладка колонок различается по типу списка (бюджет: «Наличие согласия…»; платный:
+«Заключен договор» + «Оплачено» — на колонку больше). Поэтому колонки резолвятся ПО
+ЗАГОЛОВКАМ, а не по фиксированным индексам. Строки абитуриентов — по первой ячейке-числу.
 """
 from typing import Dict, List, Optional
 
 from bs4 import BeautifulSoup
-
-# Индексы колонок (стабильный порядок экспорта МПГУ).
-C_POS, C_CODE, C_CONSENT, C_PZ, C_OVP, C_VPP, C_BVI = 0, 1, 2, 3, 4, 5, 6
-C_TOTAL, C_VI_SUM, C_VI1, C_VI2, C_VI3, C_ID, C_PP, C_STATUS, C_REJECT = 7, 8, 9, 10, 11, 12, 13, 14, 15
-MIN_CELLS = 15
 
 
 def _int(s: str) -> Optional[int]:
@@ -18,33 +16,87 @@ def _int(s: str) -> Optional[int]:
     return int(s) if s.lstrip("-").isdigit() else None
 
 
-def _cell(cells: List[str], i: int) -> str:
-    return cells[i].strip() if i < len(cells) else ""
+def _header_colmap(header_tr) -> Dict[int, str]:
+    """Разворачивает первую строку заголовка в {leaf_index -> label} с учётом colspan."""
+    cols: Dict[int, str] = {}
+    idx = 0
+    for td in header_tr.find_all("td"):
+        label = td.get_text(" ", strip=True).lower()
+        try:
+            span = int(td.get("colspan", 1))
+        except (TypeError, ValueError):
+            span = 1
+        for _ in range(max(1, span)):
+            cols[idx] = label
+            idx += 1
+    return cols
+
+
+def _find(cols: Dict[int, str], *, contains=None, equals=None) -> Optional[int]:
+    for i, label in cols.items():
+        if equals is not None and label == equals:
+            return i
+        if contains is not None and all(c in label for c in contains):
+            return i
+    return None
 
 
 def parse_view(html: str) -> List[Dict]:
     soup = BeautifulSoup(html or "", "lxml")
+    trs = soup.find_all("tr")
+
+    # найти строку-заголовок (содержит «уникальный код»)
+    header_tr = None
+    for tr in trs:
+        if any("уникальный код" in td.get_text(" ", strip=True).lower()
+               for td in tr.find_all("td")):
+            header_tr = tr
+            break
+    if header_tr is None:
+        return []
+
+    cols = _header_colmap(header_tr)
+    idx = {
+        "code": _find(cols, contains=["уникальный", "код"]),
+        "consent": _find(cols, contains=["согласи"]),
+        "pz": _find(cols, equals="пз"),
+        "ovp": _find(cols, equals="овп"),
+        "vpp": _find(cols, equals="впп"),
+        "bvi": _find(cols, contains=["основание", "бви"]),
+        "total": _find(cols, contains=["сумма", "конкурсных"]),
+        "vi_sum": _find(cols, contains=["сумма", "за ви"]),
+        "id": _find(cols, equals="ид"),
+        "status": _find(cols, contains=["информация", "рассмотрен"]),
+        "reject": _find(cols, contains=["причина", "отказа"]),
+    }
+    if idx["code"] is None:
+        return []
+
+    def cell(cells, key):
+        i = idx[key]
+        return cells[i].strip() if i is not None and i < len(cells) else ""
+
     rows: List[Dict] = []
-    for tr in soup.find_all("tr"):
+    for tr in trs:
         cells = [td.get_text(" ", strip=True) for td in tr.find_all("td")]
-        if len(cells) < MIN_CELLS:
+        if not cells:
             continue
-        pos = _int(_cell(cells, C_POS))
-        code = _cell(cells, C_CODE)
+        pos = _int(cells[0])
+        code = cell(cells, "code")
         if pos is None or not code.isdigit():
-            continue  # заголовки/служебные строки
+            continue
         rows.append({
             "position": pos,
             "unique_code": code,
-            "consent": bool(_cell(cells, C_CONSENT)),
-            "priority_pz": _int(_cell(cells, C_PZ)),
-            "priority_ovp": _int(_cell(cells, C_OVP)),
-            "priority_vpp": _int(_cell(cells, C_VPP)),
-            "bvi": bool(_cell(cells, C_BVI)),
-            "score_total": _int(_cell(cells, C_TOTAL)),
-            "score_vi": _int(_cell(cells, C_VI_SUM)),
-            "id_points": _int(_cell(cells, C_ID)),
-            "status": _cell(cells, C_STATUS),
-            "reject_reason": _cell(cells, C_REJECT),
+            "consent": bool(cell(cells, "consent")),
+            "priority_pz": _int(cell(cells, "pz")),
+            "priority_ovp": _int(cell(cells, "ovp")),
+            "priority_vpp": _int(cell(cells, "vpp")),
+            "bvi": bool(cell(cells, "bvi")),
+            "score_total": _int(cell(cells, "total")),
+            "score_vi": _int(cell(cells, "vi_sum")),
+            "id_points": _int(cell(cells, "id")),
+            "status": cell(cells, "status"),
+            "reject_reason": cell(cells, "reject"),
         })
     return rows
