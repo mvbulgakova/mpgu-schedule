@@ -2,7 +2,7 @@ name: Telegram Bot (polling)
 
 # Бот без внешнего хостинга: каждый запуск опрашивает Telegram ~55 минут и
 # отвечает почти мгновенно, затем выходит; крон перезапускает (≈5 мин пауза в час).
-# Нужен только секрет репозитория BOT_TOKEN (Settings → Secrets → Actions).
+# Секреты репозитория: BOT_TOKEN и ANTHROPIC_API_KEY (Settings → Secrets → Actions).
 # Запустить вручную: Actions → Telegram Bot (polling) → Run workflow.
 
 on:
@@ -31,13 +31,12 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Install dependencies
-        run: pip install anthropic>=0.30
+      - name: Install deps
+        run: pip install "anthropic>=0.30"
 
       - name: Run bot (long-polling)
         env:
           BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-          YANDEX_API_KEY: ${{ secrets.YANDEX_API_KEY }}
           RUN_SECONDS: "3300"
         run: python -m scraper.telegram_bot
