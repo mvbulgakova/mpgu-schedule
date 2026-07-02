@@ -35,7 +35,7 @@ class Reply:
 
 
 def _menu_keyboard() -> List[List[Tuple[str, str]]]:
-    rows, row = [], []
+    rows, row = [[("📅 Сроки поступления", "d:")]], []
     for tid, (label, _) in faq.TOPICS.items():
         row.append((label, f"t:{tid}"))
         if len(row) == 2:
@@ -93,11 +93,17 @@ def handle_message(chat_id: int, text: str) -> Reply:
             return Reply(_lookup_code(payload), [])
         AWAITING_CODE[chat_id] = True
         return Reply("Пришлите ваш <b>уникальный код</b> (номер заявления) одним сообщением.", [])
+    if intent == "dates":
+        text_d, kb = faq.dates_step("")
+        return Reply(text_d, kb)
     # свободный вопрос
     return Reply(_answer_free(payload), [])
 
 
 def handle_callback(chat_id: int, data: str) -> Reply:
+    if data.startswith("d:"):
+        text_d, kb = faq.dates_step(data[2:])
+        return Reply(text_d, kb)
     if data.startswith("t:"):
         ans = faq.topic_answer(data[2:])
         return Reply(ans or "Тема не найдена.", [])

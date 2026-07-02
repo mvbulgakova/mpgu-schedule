@@ -53,3 +53,17 @@ def test_free_question_without_credentials_falls_back(monkeypatch):
                         lambda q: "Спросите кнопками /abitur или у приёмной комиссии: priem@mpgu.su")
     out = bot.handle_message(chat_id=4, text="а когда подавать документы?")
     assert "priem@mpgu.su" in out.text
+
+
+def test_dates_route_via_callback_and_command():
+    out = bot.handle_message(chat_id=7, text="/sroki")
+    data = [cb for row in out.keyboard for (_, cb) in row]
+    assert "d:base" in data
+    out = bot.handle_callback(chat_id=7, data="d:base:budget:ege")
+    assert "25 июля" in out.text
+
+
+def test_menu_has_dates_button():
+    out = bot.handle_message(chat_id=8, text="/abitur")
+    data = [cb for row in out.keyboard for (_, cb) in row]
+    assert "d:" in data
