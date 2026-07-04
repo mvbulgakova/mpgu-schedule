@@ -144,13 +144,22 @@ def _find_history(p: dict, history: Optional[dict]) -> Optional[dict]:
 
 
 def _find_live(p: dict, lists_meta: Optional[dict], total: int) -> Optional[str]:
-    """Строка о живом (бюджетном) списке epk25 для программы, если матч однозначный."""
+    """Строка о живом (бюджетном) списке epk25 для программы.
+
+    Одна программа обычно имеет несколько списков (общий конкурс + квоты) с почти
+    одинаковым названием направления. Матч считаем надёжным, только если ВСЕ значимые
+    слова программы присутствуют в названии направления (подмножество) — это исключает
+    подмену другой программой. Среди совпавших берём общий конкурс — самый многочисленный
+    список (квоты всегда малочисленны). Оценка позиции — ориентир, не гарантия.
+    """
     if not lists_meta:
         return None
     metas = lists_meta.get("lists") or {}
     pw = _words(p["name"])
-    scored = []
-    for code_list, m in metas.items():
+    if len(pw) < 2:  # слишком короткое имя — не рискуем ложным матчем
+        return None
+    cands = []
+    for _code_list, m in metas.items():
         d = m.get("direction") or ""
         if not d.startswith(p["code"]):
             continue
@@ -158,20 +167,17 @@ def _find_live(p: dict, lists_meta: Optional[dict], total: int) -> Optional[str]
             continue
         if m.get("form") and m["form"] != p.get("form"):
             continue
-        scored.append((len(pw & _words(d)), code_list, m))
-    scored.sort(key=lambda t: -t[0])
-    if not scored or (len(scored) > 1 and scored[0][0] == scored[1][0]):
+        if pw <= _words(d):  # все слова программы есть в направлении
+            cands.append(m)
+    if not cands:
         return None
-    _, code_list, m = scored[0]
+    m = max(cands, key=lambda x: x.get("count") or 0)  # общий конкурс — самый большой
     totals = m.get("totals") or []
     if not totals:
         return None
     pos = 1 + sum(1 for t in totals if t > total)
-    places = p.get("places")
-    live = f"сейчас в списке {len(totals)} чел., с суммой {total} ты ~{pos}-й"
-    if places and len(totals) >= places:
-        live += f"; баллы топ-{places}: от {totals[places - 1]}"
-    return live
+    return (f"в списке (общий конкурс) {len(totals)} чел.; с суммой {total} ты был бы "
+            f"примерно на {pos}-м месте (лучший результат сейчас: {totals[0]})")
 
 
 def format_answer(matches: List[dict], history: Optional[dict],

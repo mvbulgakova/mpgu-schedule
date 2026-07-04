@@ -67,9 +67,15 @@ HISTORY = {"programs": {
            "history": {"2019": 274, "2020": 266}, "range3": [266, 274], "last": [2020, 266]}}}
 
 LISTS = {"updated_at": "2026-07-02",
-         "lists": {"L1": {"direction": "44.03.05 Педагогическое образование. История и Обществознание",
-                          "form": "очная", "kind": "бюджет",
-                          "totals": [250, 230]}}}
+         "lists": {
+             # общий конкурс — крупный список
+             "L1": {"direction": "44.03.05 Педагогическое образование. История и Обществознание",
+                    "form": "очная", "kind": "бюджет", "count": 3,
+                    "totals": [250, 230, 210]},
+             # квота того же направления — малочисленный, НЕ должен выбираться
+             "L1q": {"direction": "44.03.05 Педагогическое образование. История и Обществознание",
+                     "form": "очная", "kind": "бюджет", "count": 1,
+                     "totals": [180]}}}
 
 
 def test_format_includes_live_history_and_disclaimer():
@@ -78,9 +84,21 @@ def test_format_includes_live_history_and_disclaimer():
     text = shansy.format_answer(matches, HISTORY, LISTS, scores)
     assert "не гарант" in text.lower()
     assert "2019: 274" in text and "2020: 266" in text
-    assert "в списке 2 чел" in text          # live-блок нашёл список L1
+    # выбран общий конкурс (L1, 3 чел.), а не квота (L1q, 1 чел.)
+    assert "общий конкурс) 3 чел" in text
+    assert "лучший результат сейчас: 250" in text
     assert "240" in text                      # сумма
     assert "ДВИ" not in text.split("Журналистика")[0]  # у пед-программы нет пометки ДВИ
+
+
+def test_live_signal_suppressed_on_ambiguous_program():
+    # программа с коротким/родовым именем не должна ловить чужой список
+    scores = {"русский язык": 70, "обществознание": 80, "история": 90}
+    prog = {"code": "44.03.05", "name": "Педагогическое образование", "form": "очная",
+            "places": 25, "paid_only": False, "dvi": False,
+            "exam_slots": [["История"], ["Обществознание"], ["Русский язык"]]}
+    m = shansy.match_programs(scores, [prog])[0]
+    assert shansy._find_live(prog, LISTS, m["total"]) is None  # <2 значимых слов
 
 
 def test_answer_prompt_on_bad_input():

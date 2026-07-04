@@ -68,11 +68,13 @@ def _shansy_answer(text: str) -> str:
 
 
 def _lookup_code(code: str) -> str:
-    shard = lists.fetch_shard(code)
-    if shard is None:
+    meta = lists.fetch_meta()
+    if meta is None:  # реально недоступен индекс, а не просто редкий код
         return ("Индекс списков сейчас недоступен. Официальные списки: "
                 "https://epk25.mpgu.su/competitive-list")
-    return lists.format_positions(lists.fetch_meta(), shard, code)
+    # shard может быть None, если кодов с таким префиксом нет — это «не найден»
+    shard = lists.fetch_shard(code)
+    return lists.format_positions(meta, shard, code)
 
 
 def handle_message(chat_id: int, text: str) -> Reply:
