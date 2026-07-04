@@ -82,6 +82,25 @@ class GitStorage:
     def write_lists_index(self, index: dict):
         _write_json(self.root / "admissions" / "lists_index.json", index)
 
+    def write_lists_data(self, meta_doc: dict, shards: dict):
+        """Шардированный индекс списков: meta + by_code/<XX>.json.
+
+        Старые шарды и монолитный lists_index.json удаляются.
+        """
+        _write_json(self.root / "admissions" / "lists_meta.json", meta_doc)
+        shard_dir = self.root / "admissions" / "by_code"
+        shard_dir.mkdir(parents=True, exist_ok=True)
+        current = set()
+        for key, doc in shards.items():
+            current.add(f"{key}.json")
+            _write_json(shard_dir / f"{key}.json", doc)
+        for f in shard_dir.glob("*.json"):
+            if f.name not in current:
+                f.unlink()
+        legacy = self.root / "admissions" / "lists_index.json"
+        if legacy.exists():
+            legacy.unlink()
+
     def write_admissions_history(self, doc: dict):
         _write_json(self.root / "admissions" / "history.json", doc)
 

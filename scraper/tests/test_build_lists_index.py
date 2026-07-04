@@ -23,25 +23,30 @@ VIEW = """
 """
 
 
-def test_build_index_maps_codes_to_positions():
+def test_build_index_maps_codes_to_shards():
     pages = {"000000672": VIEW}
-    meta = {"000000672": {"direction": "44.03.01 История",
-                          "level": "basic_higher_education", "university": "main_university"}}
-    idx = build_index(pages, meta, updated_at="2026-07-01T20:00:00+03:00")
-    assert idx["updated_at"] == "2026-07-01T20:00:00+03:00"
-    assert idx["lists"]["000000672"]["count"] == 2
-    assert idx["lists"]["000000672"]["direction"] == "44.03.01 История"
-    e = idx["codes"]["111"][0]
+    meta = {"000000672": {"direction": "44.03.01 История", "form": "заочная",
+                          "kind": "бюджет", "level": "basic_higher_education"}}
+    meta_doc, shards = build_index(pages, meta, updated_at="2026-07-01T20:00:00+03:00")
+    assert meta_doc["updated_at"] == "2026-07-01T20:00:00+03:00"
+    lm = meta_doc["lists"]["000000672"]
+    assert lm["count"] == 2
+    assert lm["direction"] == "44.03.01 История"
+    assert lm["totals"] == [290, 250]      # для /shansy
+    # код 111 → шард "11"
+    e = shards["11"]["codes"]["111"][0]
     assert e["list"] == "000000672"
     assert e["position"] == 1
     assert e["score_total"] == 290
     assert e["consent"] is True
-    assert idx["codes"]["222"][0]["position"] == 2
+    assert shards["22"]["codes"]["222"][0]["position"] == 2
+    assert meta_doc["codes_total"] == 2
 
 
 def test_build_index_code_in_multiple_lists():
     pages = {"A": VIEW, "B": VIEW}
     meta = {"A": {"direction": "d1"}, "B": {"direction": "d2"}}
-    idx = build_index(pages, meta, updated_at="t")
-    assert len(idx["codes"]["111"]) == 2
-    assert {e["list"] for e in idx["codes"]["111"]} == {"A", "B"}
+    meta_doc, shards = build_index(pages, meta, updated_at="t")
+    entries = shards["11"]["codes"]["111"]
+    assert len(entries) == 2
+    assert {e["list"] for e in entries} == {"A", "B"}

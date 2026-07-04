@@ -63,16 +63,16 @@ _SHANSY_PROMPT = ("Пришлите ваши предметы ЕГЭ и балл
 
 
 def _shansy_answer(text: str) -> str:
-    return shansy.answer(text, lists_index=lists.fetch_index(),
+    return shansy.answer(text, lists_meta=lists.fetch_meta(),
                          history=shansy.fetch_history())
 
 
 def _lookup_code(code: str) -> str:
-    index = lists.fetch_index()
-    if not index:
+    shard = lists.fetch_shard(code)
+    if shard is None:
         return ("Индекс списков сейчас недоступен. Официальные списки: "
                 "https://epk25.mpgu.su/competitive-list")
-    return lists.format_positions(index, code)
+    return lists.format_positions(lists.fetch_meta(), shard, code)
 
 
 def handle_message(chat_id: int, text: str) -> Reply:

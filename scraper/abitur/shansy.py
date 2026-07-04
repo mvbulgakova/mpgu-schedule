@@ -143,27 +143,29 @@ def _find_history(p: dict, history: Optional[dict]) -> Optional[dict]:
     return None
 
 
-def _find_live(p: dict, lists_index: Optional[dict], total: int) -> Optional[str]:
-    """Строка о живом списке epk25 для программы (если матч однозначный)."""
-    if not lists_index:
+def _find_live(p: dict, lists_meta: Optional[dict], total: int) -> Optional[str]:
+    """Строка о живом (бюджетном) списке epk25 для программы, если матч однозначный."""
+    if not lists_meta:
         return None
-    lists_meta = lists_index.get("lists") or {}
+    metas = lists_meta.get("lists") or {}
     pw = _words(p["name"])
     scored = []
-    for code_list, m in lists_meta.items():
+    for code_list, m in metas.items():
         d = m.get("direction") or ""
         if not d.startswith(p["code"]):
             continue
+        if m.get("kind") == "платное":
+            continue
+        if m.get("form") and m["form"] != p.get("form"):
+            continue
         scored.append((len(pw & _words(d)), code_list, m))
     scored.sort(key=lambda t: -t[0])
-    if not scored or scored[0][0] < 1 or (len(scored) > 1 and scored[0][0] == scored[1][0]):
+    if not scored or (len(scored) > 1 and scored[0][0] == scored[1][0]):
         return None
     _, code_list, m = scored[0]
-    entries = [e for es in (lists_index.get("codes") or {}).values() for e in es
-               if e["list"] == code_list and e.get("score_total")]
-    if not entries:
+    totals = m.get("totals") or []
+    if not totals:
         return None
-    totals = sorted((e["score_total"] for e in entries), reverse=True)
     pos = 1 + sum(1 for t in totals if t > total)
     places = p.get("places")
     live = f"сейчас в списке {len(totals)} чел., с суммой {total} ты ~{pos}-й"
@@ -173,7 +175,7 @@ def _find_live(p: dict, lists_index: Optional[dict], total: int) -> Optional[str
 
 
 def format_answer(matches: List[dict], history: Optional[dict],
-                  lists_index: Optional[dict], scores: Dict[str, int],
+                  lists_meta: Optional[dict], scores: Dict[str, int],
                   limit: int = 5) -> str:
     if not matches:
         return ("По присланным предметам подходящих программ не нашлось. Проверьте "
@@ -189,7 +191,7 @@ def format_answer(matches: List[dict], history: Optional[dict],
         lines.append(head)
         lines.append(f"   Твоя сумма по ВИ программы: {m['total']}"
                      + (" + ДВИ (сдаётся дополнительно!)" if m["need_dvi"] else ""))
-        live = _find_live(p, lists_index, m["total"])
+        live = _find_live(p, lists_meta, m["total"])
         if live:
             lines.append(f"   Живые списки: {live}")
         h = _find_history(p, history)
@@ -204,7 +206,7 @@ def format_answer(matches: List[dict], history: Optional[dict],
     return "\n".join(lines)
 
 
-def answer(text: str, *, lists_index: Optional[dict] = None,
+def answer(text: str, *, lists_meta: Optional[dict] = None,
            history: Optional[dict] = None) -> str:
     scores = parse_scores(text)
     if scores is None:
@@ -212,4 +214,4 @@ def answer(text: str, *, lists_index: Optional[dict] = None,
                 "<b>русский 78, обществознание 84, история 90</b>\n"
                 "(обязательно укажите русский; баллы 1–100)")
     matches = match_programs(scores, load_programs())
-    return format_answer(matches, history, lists_index, scores)
+    return format_answer(matches, history, lists_meta, scores)

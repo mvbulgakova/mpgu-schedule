@@ -67,11 +67,9 @@ HISTORY = {"programs": {
            "history": {"2019": 274, "2020": 266}, "range3": [266, 274], "last": [2020, 266]}}}
 
 LISTS = {"updated_at": "2026-07-02",
-         "lists": {"L1": {"direction": "44.03.05 Педагогическое образование. История и Обществознание"}},
-         "codes": {"111": [{"list": "L1", "position": 1, "score_total": 250,
-                            "consent": False, "priority_pz": 1, "bvi": False, "status": ""}],
-                   "222": [{"list": "L1", "position": 2, "score_total": 230,
-                            "consent": False, "priority_pz": 2, "bvi": False, "status": ""}]}}
+         "lists": {"L1": {"direction": "44.03.05 Педагогическое образование. История и Обществознание",
+                          "form": "очная", "kind": "бюджет",
+                          "totals": [250, 230]}}}
 
 
 def test_format_includes_live_history_and_disclaimer():
