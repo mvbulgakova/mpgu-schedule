@@ -9,7 +9,11 @@ STEP_LEVEL = "level"
 STEP_PED = "pedagogical"
 STEP_TARGET = "target"
 STEP_ACHIEVE = "achieve"
+STEP_SPORT = "sport"
 STEP_DONE = "done"
+
+# Порядок цикла для кнопки «Олимпиада»: нет → победитель → призёр → нет.
+_OLYMP_CYCLE = {None: "winner", "winner": "prizer", "prizer": None}
 
 # Тумблеры-достижения, доступные на шаге достижений (id -> подпись кнопки).
 TOGGLES_BASE = {
@@ -89,6 +93,13 @@ def handle(s: CalcSession, data: str) -> Tuple[CalcSession, bool]:
     elif field_ == "toggle":
         if hasattr(s, value) and isinstance(getattr(s, value), bool):
             setattr(s, value, not getattr(s, value))
+    elif field_ == "olympcycle":
+        s.olympiad = _OLYMP_CYCLE.get(s.olympiad, "winner")
+    elif field_ == "sportmenu":
+        s.step = STEP_SPORT
+    elif field_ == "sport":
+        s.sport = None if value == "none" else (value if value in A.SPORT else s.sport)
+        s.step = STEP_ACHIEVE
     elif field_ == "done":
         s.step = STEP_DONE
         return s, True
@@ -106,6 +117,10 @@ def render(s: CalcSession) -> View:
     if s.step == STEP_TARGET:
         return View("Шаг 3/4. Поступаете на целевую квоту?", [
             [("Да", "c:target:1"), ("Нет", "c:target:0")]])
+    if s.step == STEP_SPORT:
+        rows = [[(label, f"c:sport:{key}")] for key, (label, _) in A.SPORT.items()]
+        rows.append([("✖️ Без спортивного достижения", "c:sport:none")])
+        return View("🏅 Выберите ОДНО спортивное достижение (учитывается максимальное):", rows)
     if s.step == STEP_ACHIEVE:
         toggles = dict(TOGGLES_BASE)
         if s.level == "spec":
@@ -114,6 +129,11 @@ def render(s: CalcSession) -> View:
         for tid, label in toggles.items():
             mark = "✅ " if getattr(s, tid, False) else "▫️ "
             rows.append([(mark + label, f"c:toggle:{tid}")])
+        olymp_label = {None: "не указана", "winner": "победитель (+10)",
+                       "prizer": "призёр (+5)"}[s.olympiad]
+        rows.append([(f"🏆 Олимпиада (рег. ВсОШ/перечневая): {olymp_label}", "c:olympcycle:1")])
+        sport_label = A.SPORT[s.sport][0] if s.sport else "не указан"
+        rows.append([(f"🏅 Спорт: {sport_label}", "c:sportmenu:1")])
         rows.append([("✔️ Посчитать", "c:done:1")])
         return View(
             "Шаг 4/4. Отметьте достижения (волонтёрство — пришлите число часов сообщением), "

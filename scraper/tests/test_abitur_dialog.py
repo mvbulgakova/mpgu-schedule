@@ -53,6 +53,53 @@ def test_volunteer_hours_via_text():
     assert dialog.compute(s).total == 8
 
 
+def test_olympiad_cycles_none_winner_prizer():
+    s = dialog.start()
+    s, _ = dialog.handle(s, "c:level:base")
+    s, _ = dialog.handle(s, "c:pedagogical:0")
+    s, _ = dialog.handle(s, "c:target:0")
+    assert s.olympiad is None
+    s, _ = dialog.handle(s, "c:olympcycle:1")
+    assert s.olympiad == "winner"
+    s, _ = dialog.handle(s, "c:olympcycle:1")
+    assert s.olympiad == "prizer"
+    s, _ = dialog.handle(s, "c:olympcycle:1")
+    assert s.olympiad is None
+    # победитель олимпиады = 10 баллов
+    s, _ = dialog.handle(s, "c:olympcycle:1")
+    assert dialog.compute(s).total == 10
+
+
+def test_sport_picker_sets_and_clears():
+    s = dialog.start()
+    s, _ = dialog.handle(s, "c:level:base")
+    s, _ = dialog.handle(s, "c:pedagogical:0")
+    s, _ = dialog.handle(s, "c:target:0")
+    # открыть меню спорта → показать варианты
+    s, _ = dialog.handle(s, "c:sportmenu:1")
+    view = dialog.render(s)
+    data = [cb for row in view.keyboard for (_, cb) in row]
+    assert any(cb.startswith("c:sport:") for cb in data)
+    # выбрать КМС (6) — возвращаемся на экран достижений
+    s, _ = dialog.handle(s, "c:sport:kms")
+    assert s.sport == "kms"
+    assert s.step == dialog.STEP_ACHIEVE
+    assert dialog.compute(s).total == 6
+    # снять выбор
+    s, _ = dialog.handle(s, "c:sport:none")
+    assert s.sport is None
+
+
+def test_sport_and_olympiad_capped_together():
+    s = dialog.start()
+    s, _ = dialog.handle(s, "c:level:base")
+    s, _ = dialog.handle(s, "c:pedagogical:0")
+    s, _ = dialog.handle(s, "c:target:0")
+    s, _ = dialog.handle(s, "c:sport:champion_world")   # 10
+    s, _ = dialog.handle(s, "c:olympcycle:1")           # winner 10
+    assert dialog.compute(s).total == 10                # потолок 10
+
+
 def test_result_text_includes_disclaimer():
     s = dialog.start()
     s, _ = dialog.handle(s, "c:level:base")
