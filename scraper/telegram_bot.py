@@ -188,6 +188,15 @@ def main() -> int:
     if not token:
         print("BOT_TOKEN не задан — пропускаю. Выход.")
         return 0
+    # Гарантируем доставку через getUpdates: снимаем возможный вебхук от старого
+    # бота расписания (webhook и long-polling на одном токене несовместимы — иначе
+    # getUpdates отдаёт 409 Conflict и бот молчит). drop_pending_updates не ставим,
+    # чтобы не потерять сообщения, накопившиеся между запусками воркфлоу.
+    try:
+        info = _api(token, "deleteWebhook")
+        print(f"deleteWebhook: {info.get('ok')}")
+    except Exception as e:
+        print(f"deleteWebhook error (продолжаю): {e}")
     deadline = time.time() + RUN_SECONDS
     offset = None
     print(f"Бот запущен на {RUN_SECONDS}s")
