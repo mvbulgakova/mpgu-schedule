@@ -70,9 +70,16 @@ def test_guard_blocks_many_failed_directions():
     assert _guard_incomplete(_md(600), stats, _md(600)) is not None
 
 
-def test_guard_blocks_big_count_drop():
-    # 378 < 85% от 667 → отказ
-    assert _guard_incomplete(_md(378), _OK_STATS, _md(667)) is not None
+def test_guard_blocks_big_count_drop_only_with_failures():
+    # 378 < 85% от 667 ПРИ сетевых сбоях → отказ
+    stats = dict(_OK_STATS, directions_failed=5)  # <10%, но сбои есть
+    assert _guard_incomplete(_md(378), stats, _md(667)) is not None
+
+
+def test_guard_allows_legit_shrink_on_clean_crawl():
+    # то же падение 667→378, но обход ЧИСТЫЙ (сбоев нет) → это честное сокращение,
+    # публикуем (квотные списки закрылись)
+    assert _guard_incomplete(_md(378), _OK_STATS, _md(667)) is None
 
 
 def test_guard_allows_normal_update():

@@ -57,17 +57,25 @@ RETAIN = 0.85  # публиковать нельзя, если списков с
 
 
 def _guard_incomplete(meta_doc: dict, stats: dict, prev):
-    """Возвращает причину отказа в публикации, либо None если публиковать можно."""
+    """Причина отказа в публикации, либо None если публиковать можно.
+
+    Блокируем только при ПРИЗНАКАХ неполного обхода (сетевые сбои), а не при
+    честном сокращении числа списков (квотные списки на epk25 открываются и
+    закрываются по ходу кампании — падение количества само по себе нормально).
+    """
     if stats.get("levels_failed"):
         return f"не прочитаны целые уровни: {stats['levels_failed']}"
     dt_total = stats.get("directions_total", 0)
-    if dt_total and stats.get("directions_failed", 0) > 0.10 * dt_total:
-        return f"не прочитано направлений: {stats['directions_failed']}/{dt_total}"
+    df = stats.get("directions_failed", 0)
+    if dt_total and df > 0.10 * dt_total:
+        return f"не прочитано направлений: {df}/{dt_total}"
+    # Крупное падение числа списков засчитываем только вместе с сетевыми сбоями.
     new_n = len(meta_doc["lists"])
-    if prev:
+    if prev and (df or stats.get("views_failed")):
         old_n = len(prev.get("lists", {}))
         if old_n and new_n < RETAIN * old_n:
-            return f"списков {new_n} < {int(RETAIN * 100)}% от прежних {old_n}"
+            return (f"списков {new_n} < {int(RETAIN * 100)}% от прежних {old_n} "
+                    f"при сетевых сбоях")
     return None
 
 
