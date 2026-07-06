@@ -30,16 +30,22 @@ _UA = {"User-Agent": "MPGU-Abitur-Bot/1.0 (+https://mpgu.su)"}
 
 
 def find_year_pages(hub_html: str) -> Dict[int, str]:
-    """Из HTML хаба — {год: url страницы «Конкурс и проходной балл в YYYY году»}.
+    """Из HTML хаба — {год: url страницы с таблицей проходных баллов}.
 
-    Отбираем ссылки, в тексте которых есть «конкурс» и «проходн», без «филиал».
+    Ловим и «Конкурс и проходной балл в YYYY году», и более ранние
+    «Проходной балл в YYYY году» (без слова «конкурс»). Обязателен «проходн»
+    (это чистая таблица проходных), исключаем филиалы (иная нарезка мест) и
+    «сведения о зачислении»/«приказы» (это списки зачисленных, а не таблица
+    проходных — из них проходной надёжно не вычислить).
     """
     out: Dict[int, str] = {}
     for href, raw in re.findall(r'<a[^>]*href="([^"]+)"[^>]*>(.*?)</a>',
                                 hub_html or "", re.S | re.I):
         text = re.sub(r"\s+", " ", re.sub(r"<[^>]*>", " ", unescape(raw))).strip()
         low = text.lower()
-        if "конкурс" not in low or "проходн" not in low or "филиал" in low:
+        if "проходн" not in low or "филиал" in low:
+            continue
+        if "сведени" in low or "приказ" in low:
             continue
         myear = re.search(r"\b(20\d\d)\b", text) or re.search(r"(20\d\d)", href)
         if not myear:
