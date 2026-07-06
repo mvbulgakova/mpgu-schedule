@@ -96,33 +96,44 @@ def _get(url: str, retries: int = 3) -> str:
 
 
 def crawl(levels: List[str] = None, pause: float = 0.3):
-    """Возвращает (pages, meta): {code -> html} и {code -> {direction, level}}.
+    """Возвращает (pages, meta, stats).
+
+    pages: {code -> html}; meta: {code -> {direction, level, form, kind}};
+    stats: сведения о полноте обхода для защиты от публикации неполного индекса
+    (пропущенный из-за сетевого сбоя уровень/направление = молчаливая потеря данных).
 
     Сеть; в тестах не вызывается.
     """
     levels = levels or LEVELS
     pages: Dict[str, str] = {}
     meta: Dict[str, dict] = {}
+    stats = {"levels_failed": [], "directions_total": 0, "directions_failed": 0,
+             "views_total": 0, "views_failed": 0}
     for lvl in levels:
         try:
             struct = _get(structural_url(lvl))
         except Exception:
+            stats["levels_failed"].append(lvl)  # весь уровень не прочитан — критично
             continue
         for dir_url in extract_direction_links(struct):
+            stats["directions_total"] += 1
             time.sleep(pause)
             try:
                 dhtml = _get(dir_url)
             except Exception:
+                stats["directions_failed"] += 1
                 continue
             for entry in extract_view_entries(dhtml):
                 code = entry["code"]
                 if code in pages:
                     continue
+                stats["views_total"] += 1
                 time.sleep(pause)
                 try:
                     pages[code] = _get(f"{BASE}/competitive-list/view?code={code}")
                     meta[code] = {"direction": entry["direction"], "level": lvl,
                                   "form": entry["form"], "kind": entry["kind"]}
                 except Exception:
+                    stats["views_failed"] += 1
                     continue
-    return pages, meta
+    return pages, meta, stats

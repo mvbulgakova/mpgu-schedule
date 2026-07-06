@@ -7,7 +7,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
-from scraper.build_lists_index import build_index
+from scraper.build_lists_index import build_index, _guard_incomplete
 
 VIEW = """
 <TABLE>
@@ -50,3 +50,35 @@ def test_build_index_code_in_multiple_lists():
     entries = shards["11"]["codes"]["111"]
     assert len(entries) == 2
     assert {e["list"] for e in entries} == {"A", "B"}
+
+
+_OK_STATS = {"levels_failed": [], "directions_total": 100, "directions_failed": 0,
+             "views_total": 300, "views_failed": 0}
+
+
+def _md(n):  # meta_doc с n списками
+    return {"lists": {str(i): {} for i in range(n)}}
+
+
+def test_guard_blocks_failed_level():
+    stats = dict(_OK_STATS, levels_failed=["basic_higher_education"])
+    assert _guard_incomplete(_md(600), stats, _md(600)) is not None
+
+
+def test_guard_blocks_many_failed_directions():
+    stats = dict(_OK_STATS, directions_failed=20)  # 20% > 10%
+    assert _guard_incomplete(_md(600), stats, _md(600)) is not None
+
+
+def test_guard_blocks_big_count_drop():
+    # 378 < 85% от 667 → отказ
+    assert _guard_incomplete(_md(378), _OK_STATS, _md(667)) is not None
+
+
+def test_guard_allows_normal_update():
+    # небольшой рост, обход полный → публикуем
+    assert _guard_incomplete(_md(670), _OK_STATS, _md(667)) is None
+
+
+def test_guard_allows_when_no_previous():
+    assert _guard_incomplete(_md(600), _OK_STATS, None) is None

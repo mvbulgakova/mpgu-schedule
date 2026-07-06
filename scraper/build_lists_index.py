@@ -53,19 +53,53 @@ def build_index(pages: Dict[str, str], meta: Dict[str, dict],
     return meta_doc, shards
 
 
+RETAIN = 0.85  # публиковать нельзя, если списков стало < 85% от прежних (неполный обход)
+
+
+def _guard_incomplete(meta_doc: dict, stats: dict, prev):
+    """Возвращает причину отказа в публикации, либо None если публиковать можно."""
+    if stats.get("levels_failed"):
+        return f"не прочитаны целые уровни: {stats['levels_failed']}"
+    dt_total = stats.get("directions_total", 0)
+    if dt_total and stats.get("directions_failed", 0) > 0.10 * dt_total:
+        return f"не прочитано направлений: {stats['directions_failed']}/{dt_total}"
+    new_n = len(meta_doc["lists"])
+    if prev:
+        old_n = len(prev.get("lists", {}))
+        if old_n and new_n < RETAIN * old_n:
+            return f"списков {new_n} < {int(RETAIN * 100)}% от прежних {old_n}"
+    return None
+
+
 def main() -> int:
+    import json
     from scraper.fetchers import lists_fetcher as LF
     from scraper.storage.git_storage import GitStorage
 
-    pages, meta = LF.crawl()
+    pages, meta, stats = LF.crawl()
     now = dt.datetime.now(dt.timezone(dt.timedelta(hours=3))).isoformat(timespec="seconds")
     meta_doc, shards = build_index(pages, meta, updated_at=now)
 
     storage = GitStorage(os.environ.get("DATA_PATH", "data"))
+    prev_path = storage.root / "admissions" / "lists_meta.json"
+    prev = None
+    if prev_path.exists():
+        try:
+            prev = json.loads(prev_path.read_text(encoding="utf-8"))
+        except Exception:
+            prev = None
+
+    reason = _guard_incomplete(meta_doc, stats, prev)
+    if reason and not os.environ.get("FORCE_PUBLISH"):
+        print(f"ОТМЕНА публикации (защита от потери данных): {reason}. "
+              f"Прежний индекс не тронут. stats={stats}. "
+              f"Опубликовать принудительно: FORCE_PUBLISH=1.")
+        return 1
+
     storage.write_lists_data(meta_doc, shards)
     storage.commit_and_push(f"lists: обновление индекса конкурсных списков ({now})")
     print(f"Списков: {len(meta_doc['lists'])}, кодов: {meta_doc['codes_total']}, "
-          f"шардов: {len(shards)}")
+          f"шардов: {len(shards)}, stats={stats}")
     return 0
 
 
