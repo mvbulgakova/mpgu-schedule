@@ -177,7 +177,13 @@ def _send(token: str, chat_id: int, reply: Reply):
     mk = _markup(reply.keyboard)
     if mk:
         params["reply_markup"] = mk
-    _api(token, "sendMessage", **params)
+    try:
+        _api(token, "sendMessage", **params)
+    except Exception:
+        # Telegram отверг HTML-разметку (нередко в свободном AI-ответе) —
+        # лучше доставить без форматирования, чем не доставить вовсе.
+        params.pop("parse_mode", None)
+        _api(token, "sendMessage", **params)
 
 
 def main() -> int:
