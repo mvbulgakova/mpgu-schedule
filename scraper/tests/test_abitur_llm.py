@@ -66,3 +66,12 @@ def test_answer_without_client_factory_failure_is_graceful():
         raise ValueError("нет ключа")
     out = llm.answer("вопрос", client=None, client_factory=_raise)
     assert "priem@mpgu.su" in out
+
+
+def test_sanitize_converts_markdown_leaks():
+    from scraper.abitur.llm import sanitize
+    assert sanitize("**жирный** текст") == "<b>жирный</b> текст"
+    assert sanitize("# Заголовок\nтело") == "<b>Заголовок</b>\nтело"
+    assert sanitize("- пункт\n* ещё") == "• пункт\n• ещё"
+    # HTML-теги из белого списка не трогаем
+    assert sanitize("<b>ок</b> и <i>ок</i>") == "<b>ок</b> и <i>ок</i>"
