@@ -12,7 +12,7 @@ from scraper.abitur import lists as L
 META = {
     "updated_at": "2026-07-02T20:00:00+03:00", "campaign": "2026",
     "lists": {"000000672": {"direction": "44.03.01 Педагогическое образование. История",
-                            "form": "заочная", "kind": "бюджет",
+                            "form": "заочная", "kind": "бюджет", "count": 40,
                             "totals": [290, 250]}},
 }
 SHARD = {
@@ -73,3 +73,86 @@ def test_no_consent_warning_for_paid_only():
     out = L.format_positions(meta, shard, "222")
     # для чисто платных позиций напоминание про согласие-до-5-августа не показываем
     assert "не отмечено" not in out
+
+
+# ── «Прохожу ли сейчас»: место из N, бюджетные места, вывод по приоритетам ───
+
+META2 = {
+    "updated_at": "t", "campaign": "2026",
+    "lists": {
+        "L1": {"direction": "44.03.01 История", "form": "очная",
+               "kind": "бюджет", "count": 300},
+        "L2": {"direction": "44.03.01 География", "form": "очная",
+               "kind": "бюджет", "count": 200},
+        "P1": {"direction": "44.03.01 История", "form": "очная",
+               "kind": "платное", "count": 50},
+    },
+}
+SHARD2 = {"updated_at": "t", "codes": {"555": [
+    {"list": "L1", "position": 45, "score_total": 250, "consent": True,
+     "priority_pz": 1, "bvi": False, "status": "Участвует в конкурсе"},
+    {"list": "L2", "position": 12, "score_total": 250, "consent": True,
+     "priority_pz": 2, "bvi": False, "status": "Участвует в конкурсе"},
+    {"list": "P1", "position": 3, "score_total": 250, "consent": True,
+     "priority_pz": 3, "bvi": False, "status": "Участвует в конкурсе"},
+]}}
+
+
+def _fake_places(monkeypatch):
+    import scraper.abitur.lists as LM
+    monkeypatch.setattr(LM, "_places_for",
+                        lambda m: {"44.03.01 История": 30,
+                                   "44.03.01 География": 25}.get(m.get("direction")))
+
+
+def test_positions_show_out_of_and_places(monkeypatch):
+    _fake_places(monkeypatch)
+    out = L.format_positions(META2, SHARD2, "555")
+    assert "45 из 300" in out          # место из всех подавших
+    assert "мест: 30" in out           # бюджетные места программы
+    assert "12 из 200" in out and "мест: 25" in out
+
+
+def test_passing_marks_and_priority_summary(monkeypatch):
+    _fake_places(monkeypatch)
+    out = L.format_positions(META2, SHARD2, "555")
+    # L1: 45 > 30 мест → за чертой; L2: 12 ≤ 25 → проходит
+    assert "⏳" in out and "✅" in out
+    # итог по приоритетам: проходит на География (приоритет 2)
+    assert "Сейчас проход" in out and "География" in out
+    # квоты вернутся после приоритетного этапа — сноска присутствует
+    assert "приоритетного этапа" in out
+
+
+def test_summary_when_passing_nowhere(monkeypatch):
+    _fake_places(monkeypatch)
+    shard = {"updated_at": "t", "codes": {"777": [
+        {"list": "L1", "position": 145, "score_total": 200, "consent": True,
+         "priority_pz": 1, "bvi": False, "status": "Участвует в конкурсе"}]}}
+    out = L.format_positions(META2, shard, "777")
+    assert "⏳" in out
+    assert "не все выше" in out.lower() or "линия" in out.lower() or "черт" in out.lower()
+
+
+def test_quota_list_not_compared_with_full_places(monkeypatch):
+    _fake_places(monkeypatch)
+    meta = {"updated_at": "t", "lists": {
+        "G": {"direction": "44.03.01 История", "form": "очная",
+              "kind": "бюджет", "count": 300},
+        "Q": {"direction": "44.03.01 История", "form": "очная",
+              "kind": "бюджет", "count": 18}}}
+    shard = {"updated_at": "t", "codes": {"888": [
+        {"list": "Q", "position": 5, "score_total": 210, "consent": True,
+         "priority_pz": 1, "bvi": False, "status": "Участвует в конкурсе"}]}}
+    out = L.format_positions(meta, shard, "888")
+    # позиция в малом (квотном) списке не сравнивается с полным КЦП
+    assert "мест: 30" not in out
+    assert "квотн" in out.lower()
+
+
+def test_no_places_known_degrades_gracefully(monkeypatch):
+    import scraper.abitur.lists as LM
+    monkeypatch.setattr(LM, "_places_for", lambda m: None)
+    out = L.format_positions(META2, SHARD2, "555")
+    assert "45 из 300" in out          # «из N» остаётся
+    assert "мест:" not in out          # мест не выдумываем

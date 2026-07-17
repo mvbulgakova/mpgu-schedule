@@ -84,6 +84,49 @@ def _list_label(meta: Optional[dict], list_code: str) -> str:
     return f"{name} ({', '.join(extras)})" if extras else name
 
 
+_PLACES_CACHE: Dict[tuple, Optional[int]] = {}
+
+
+def _places_for(m: dict) -> Optional[int]:
+    """Бюджетные места (КЦП) программы для списка epk25; None, если матч ненадёжен.
+
+    Тот же безопасный матчинг, что в /shansy: слова программы — подмножество слов
+    направления, код и форма совпадают; при неоднозначности мест не показываем.
+    """
+    direction, form = m.get("direction") or "", m.get("form") or ""
+    key = (direction, form)
+    if key in _PLACES_CACHE:
+        return _PLACES_CACHE[key]
+    places = None
+    try:
+        from scraper.abitur import shansy
+        code = direction.split()[0] if direction else ""
+        dw = shansy._words(direction)
+        cands = [p for p in shansy.load_programs()
+                 if p["code"] == code and p.get("form") == form
+                 and shansy._words(p["name"]) and shansy._words(p["name"]) <= dw]
+        vals = {p.get("places") for p in cands}
+        if len(vals) == 1:
+            places = vals.pop()
+    except Exception:
+        places = None
+    _PLACES_CACHE[key] = places
+    return places
+
+
+def _is_general_budget(lists_meta: dict, list_code: str) -> bool:
+    """Список — общий конкурс (не квотный)? Общий = крупнейший бюджетный список
+    своего направления+формы; квотные списки того же направления всегда меньше."""
+    m = lists_meta.get(list_code, {})
+    if m.get("kind") != "бюджет":
+        return False
+    same = [x for x in lists_meta.values()
+            if x.get("kind") == "бюджет" and x.get("direction") == m.get("direction")
+            and x.get("form") == m.get("form")]
+    counts = [x.get("count") or 0 for x in same]
+    return not counts or (m.get("count") or 0) >= max(counts)
+
+
 def format_positions(meta: Optional[dict], shard: Optional[dict], code: str) -> str:
     entries = lookup(shard, code)
     updated = (meta or {}).get("updated_at", "") or (shard or {}).get("updated_at", "")
@@ -91,18 +134,54 @@ def format_positions(meta: Optional[dict], shard: Optional[dict], code: str) -> 
         return (f"Уникальный код <b>{_norm(code)}</b> не найден в индексе.\n"
                 f"Проверьте номер или посмотрите официальные списки: {_OFFICIAL}\n"
                 f"Данные обновляются периодически — возможна задержка.")
+    lists_meta_all = (meta or {}).get("lists") or {}
     lines = [f"🔎 <b>Ваши позиции по коду {_norm(code)}:</b>", ""]
+    passing: List[tuple] = []      # (приоритет, направление) — где сейчас «в зелёной зоне»
+    any_places = False
     for e in entries:
+        m = lists_meta_all.get(e["list"], {})
         name = _list_label(meta, e["list"])
+        count = m.get("count")
+        parts = [f"место {e['position']}" + (f" из {count}" if count else "")]
+        if m.get("kind") == "бюджет":
+            if _is_general_budget(lists_meta_all, e["list"]):
+                places = _places_for(m)
+                if places:
+                    any_places = True
+                    ok = e["position"] <= places
+                    parts.append(f"мест: {places} {'✅' if ok else '⏳'}")
+                    if ok:
+                        passing.append((e.get("priority_pz") or 99,
+                                        m.get("direction") or name))
+            else:
+                parts.append("квотный список")
+        parts.append(f"баллы {e.get('score_total')}")
+        if e.get("priority_pz") is not None:
+            parts.append(f"приоритет {e['priority_pz']}")
         flags = []
         if e.get("consent"):
             flags.append("согласие ✅")
         if e.get("bvi"):
             flags.append("БВИ")
-        pri = f", приоритет {e['priority_pz']}" if e.get("priority_pz") is not None else ""
+        status = e.get("status") or ""
+        if status and "участвует" not in status.lower():
+            flags.append(status)
         tail = (" · " + ", ".join(flags)) if flags else ""
-        lines.append(f"• <b>{name}</b>\n   место {e['position']}, "
-                     f"баллы {e.get('score_total')}{pri} — {e.get('status') or '—'}{tail}")
+        lines.append(f"• <b>{name}</b>\n   {' · '.join(parts)}{tail}")
+    lines.append("")
+    if passing:
+        passing.sort()
+        pri, nm = passing[0]
+        lines.append(f"🎯 <b>Сейчас проходите на: {nm}</b> (приоритет {pri}) — "
+                     "если списки не изменятся.")
+    elif any_places:
+        lines.append("⏳ Пока вы ниже черты во всех бюджетных списках. Это не приговор: "
+                     "не все выше вас подадут согласие, а после приоритетного этапа "
+                     "в конкурс вернутся незанятые квотные места.")
+    if any_places:
+        lines.append("ℹ️ «Мест» — все бюджетные места программы (КЦП): часть сейчас "
+                     "зарезервирована под квоты, их незаполненный остаток вернётся в "
+                     "общий конкурс после приоритетного этапа (приказы 3 августа).")
     # Напоминание про согласие: главная причина «пролететь» на зачислении.
     # Показываем, если есть бюджетные позиции и ни в одной согласие не отмечено.
     lists_meta = (meta or {}).get("lists") or {}
