@@ -34,9 +34,27 @@ jobs:
       - name: Install deps
         run: pip install "anthropic>=0.30"
 
+      # Подписки «следи за кодом» переживают рестарты через actions/cache
+      # (не в data-ветке: связка chat_id ↔ код не должна быть публичной).
+      - name: Restore subscriptions
+        uses: actions/cache/restore@v4
+        with:
+          path: subs.json
+          key: bot-subs-${{ github.run_id }}
+          restore-keys: |
+            bot-subs-
+
       - name: Run bot (long-polling)
         env:
           BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           RUN_SECONDS: "3300"
+          SUBS_PATH: subs.json
         run: python -m scraper.telegram_bot
+
+      - name: Save subscriptions
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: subs.json
+          key: bot-subs-${{ github.run_id }}

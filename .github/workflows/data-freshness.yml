@@ -1,0 +1,54 @@
+name: Data Freshness Watchdog
+
+# Сторожевой таймер: если индекс конкурсных списков не обновлялся дольше 8 часов
+# (при базовом кроне раз в 3 часа это значит «обход сломался дважды подряд»),
+# создаёт issue, чтобы о поломке узнали раньше абитуриентов.
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "15 */6 * * *"   # каждые 6 часов
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check lists_meta freshness
+        id: fresh
+        run: |
+          set -e
+          UPDATED=$(curl -sf --max-time 30 \
+            "https://raw.githubusercontent.com/${{ github.repository }}/data/admissions/lists_meta.json" \
+            | python3 -c "import sys,json;print(json.load(sys.stdin)['updated_at'])")
+          echo "updated_at=$UPDATED"
+          AGE_H=$(python3 - "$UPDATED" <<'EOF'
+          import sys, datetime as dt
+          upd = dt.datetime.fromisoformat(sys.argv[1])
+          age = dt.datetime.now(dt.timezone.utc) - upd
+          print(int(age.total_seconds() // 3600))
+          EOF
+          )
+          echo "Возраст данных: ${AGE_H}ч"
+          echo "age_hours=$AGE_H" >> "$GITHUB_OUTPUT"
+
+      - name: Open issue if stale
+        if: ${{ fromJSON(steps.fresh.outputs.age_hours) >= 8 }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TITLE="⚠️ Индекс конкурсных списков устарел (${{ steps.fresh.outputs.age_hours }}ч)"
+          EXISTING=$(gh issue list --repo "${{ github.repository }}" \
+            --state open --search "Индекс конкурсных списков устарел in:title" \
+            --json number --jq 'length')
+          if [ "$EXISTING" = "0" ]; then
+            gh issue create --repo "${{ github.repository }}" \
+              --title "$TITLE" \
+              --body "lists_meta.json не обновлялся ≥8 часов — проверьте воркфлоу Fetch Competitive Lists (последние раны, лог «ОТМЕНА публикации»). /spisok и уведомления подписчикам сейчас показывают устаревшие данные."
+          else
+            echo "Issue уже открыт — не дублирую"
+          fi
