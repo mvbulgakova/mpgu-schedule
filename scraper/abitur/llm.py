@@ -41,6 +41,14 @@ _SYSTEM_HEADER = (
     "сначала поддержи по-человечески, без канцелярита; напомни, что есть дополнительный "
     "этап, платное с переводом на бюджет, следующий год — незачисление не приговор; "
     "посоветуй поговорить с близкими. Не читай нотаций.\n"
+    "КОНСУЛЬТАЦИЯ ПО ВЫБОРУ: если человек выбирает, куда поступать — работай как "
+    "консультант. Сначала уточни (если неясно): какие предметы ЕГЭ сдаёт/любит, с кем "
+    "хочет работать (дети/подростки/взрослые/не с людьми), что интересно, кем видит "
+    "себя. Затем предложи 2–4 направления ИЗ КАТАЛОГА ниже (код + название + форма) с "
+    "коротким честным объяснением «почему подходит». Про «атмосферу», преподавателей и "
+    "сложность учёбы НЕ сочиняй — посоветуй день открытых дверей, паблик института и "
+    "отборочную комиссию. Оценить шансы по баллам — /shansy, свериться с перечнем ВИ "
+    "программы — обязательно на сайте.\n"
     "ФОРМАТ: сообщение уходит в Telegram. НИКАКОГО markdown (#, **, `, [](), таблицы "
     "запрещены). Пиши обычным текстом; выделить можно только тегами <b>жирный</b> и "
     "<i>курсив</i>; списки — строками, начинающимися с «• ». Не используй другие "
@@ -65,8 +73,42 @@ def _default_factory():
     raise ValueError("Нет авторизации: задайте ANTHROPIC_API_KEY")
 
 
+_CATALOG_CACHE: Optional[str] = None
+
+
+def _catalog() -> str:
+    """Компактный каталог программ 2026 из programs_2026.json (для консультаций)."""
+    global _CATALOG_CACHE
+    if _CATALOG_CACHE is not None:
+        return _CATALOG_CACHE
+    try:
+        from scraper.abitur import shansy
+        lines = []
+        for p in shansy.load_programs():
+            name = p["name"]
+            name = name.replace("Педагогическое образование (с двумя профилями "
+                                "подготовки), направленность ", "Пед. (2 профиля): ")
+            name = name.replace("Педагогическое образование, направленность ", "Пед.: ")
+            name = name.replace(", направленность ", ": ")
+            tail = "платно" if p.get("paid_only") else f"мест {p.get('places')}"
+            dvi = ", ДВИ" if p.get("dvi") else ""
+            slots = " + ".join("/".join(a[:28] for a in slot)
+                               for slot in p.get("exam_slots", []))
+            vi = f" | ВИ: {slots}" if slots else ""
+            lines.append(f"{p['code']} {name[:105]} ({p['form']}, {tail}{dvi}){vi}")
+        _CATALOG_CACHE = "\n".join(lines)
+    except Exception:
+        _CATALOG_CACHE = ""
+    return _CATALOG_CACHE
+
+
 def _build_system(kb_text: str):
-    return [{"type": "text", "text": _SYSTEM_HEADER + kb_text,
+    text = _SYSTEM_HEADER + kb_text
+    cat = _catalog()
+    if cat:
+        text += ("\n\n=== КАТАЛОГ ПРОГРАММ 2026 (код, название, форма, бюджетные места"
+                 "/платно, ДВИ) ===\n" + cat)
+    return [{"type": "text", "text": text,
              "cache_control": {"type": "ephemeral"}}]
 
 
@@ -84,18 +126,24 @@ def sanitize(text: str) -> str:
 
 def answer(question: str, *, client=None,
            client_factory: Optional[Callable] = None,
-           kb_text: Optional[str] = None) -> str:
-    """Возвращает текст ответа. При любой ошибке — фолбэк с контактами приёмки."""
+           kb_text: Optional[str] = None,
+           history: Optional[list] = None) -> str:
+    """Возвращает текст ответа. При любой ошибке — фолбэк с контактами приёмки.
+
+    history — предыдущие реплики [{"role": "user"|"assistant", "content": str}, ...]
+    (нужно консультации по выбору: без памяти диалог невозможен).
+    """
     try:
         if client is None:
             factory = client_factory or _default_factory
             client = factory()
         system = _build_system(kb_text if kb_text is not None else faq.load_knowledge())
+        messages = list(history or []) + [{"role": "user", "content": question}]
         resp = client.messages.create(
             model=MODEL,
             max_tokens=_MAX_TOKENS,
             system=system,
-            messages=[{"role": "user", "content": question}],
+            messages=messages,
         )
         for block in resp.content:
             if getattr(block, "type", None) == "text":

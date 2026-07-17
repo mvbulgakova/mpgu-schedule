@@ -51,7 +51,7 @@ def test_topic_callback_returns_answer():
 def test_free_question_without_credentials_falls_back(monkeypatch):
     # фабрика клиента бросает → деградация без падения
     monkeypatch.setattr(bot, "_answer_free",
-                        lambda q: "Спросите кнопками /abitur или у приёмной комиссии: priem@mpgu.su")
+                        lambda cid, q: "Спросите кнопками /abitur или у приёмной комиссии: priem@mpgu.su")
     out = bot.handle_message(chat_id=4, text="а когда подавать документы?")
     assert "priem@mpgu.su" in out.text
 
@@ -94,3 +94,38 @@ def test_volunteer_hours_beat_scores_state(monkeypatch):
     out = bot.handle_message(chat_id=11, text="200")
     assert bot.SESSIONS[11].volunteer_hours == 200
     assert "SHOULD_NOT_APPEAR" not in out.text
+
+
+def test_vybor_starts_consultation_with_history():
+    import scraper.telegram_bot as bot
+    bot.HISTORY.clear()
+    out = bot.handle_message(chat_id=55, text="/vybor")
+    assert "подбер" in out.text.lower()
+    assert bot.HISTORY[55][0]["role"] == "assistant"
+
+
+def test_free_answer_keeps_rolling_history(monkeypatch):
+    import scraper.telegram_bot as bot
+    bot.HISTORY.clear()
+    calls = []
+    def fake_answer(q, history=None, **kw):
+        calls.append(list(history or []))
+        return f"ответ на {q}"
+    monkeypatch.setattr(bot.llm, "answer", fake_answer)
+    bot.handle_message(chat_id=56, text="хочу учить детей языкам")
+    bot.handle_message(chat_id=56, text="а какие экзамены?")
+    # второй вызов видит первый обмен
+    assert any("хочу учить детей языкам" in m.get("content", "") for m in calls[1])
+    # история ограничена
+    for i in range(10):
+        bot.handle_message(chat_id=56, text=f"вопрос {i}")
+    assert len(bot.HISTORY[56]) <= bot._HISTORY_MAX
+
+
+def test_llm_error_not_saved_to_history(monkeypatch):
+    import scraper.telegram_bot as bot
+    bot.HISTORY.clear()
+    monkeypatch.setattr(bot.llm, "answer",
+                        lambda q, history=None, **kw: "Не удалось ответить автоматически. X")
+    bot.handle_message(chat_id=57, text="вопрос")
+    assert 57 not in bot.HISTORY or bot.HISTORY[57] == []

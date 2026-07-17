@@ -34,6 +34,9 @@ AWAITING_CODE: Dict[int, bool] = {}
 AWAITING_SCORES: Dict[int, bool] = {}
 # Подписки: chat_id(str) -> {"code", "last": {list: pos}, "updated_at"}.
 SUBS: Dict[str, dict] = {}
+# Память свободного диалога (консультация по выбору): chat_id -> реплики.
+HISTORY: Dict[int, List[dict]] = {}
+_HISTORY_MAX = 8  # последних реплик (4 обмена)
 
 
 @dataclass
@@ -50,6 +53,7 @@ def _menu_keyboard() -> List[List[Tuple[str, str]]]:
             rows.append(row); row = []
     if row:
         rows.append(row)
+    rows.append([("🧭 Помочь выбрать направление", "open:vybor")])
     rows.append([("➕ Калькулятор баллов", "open:calc")])
     rows.append([("🧮 Подбор по ЕГЭ", "open:shansy"), ("🔎 Мои списки", "open:spisok")])
     return rows
@@ -63,8 +67,24 @@ _GREETING = ("👋 Я помощник абитуриента МПГУ.\n\n"
              "• /sroki — сроки и ближайшие дедлайны")
 
 
-def _answer_free(question: str) -> str:
-    return llm.answer(question)
+def _answer_free(chat_id: int, question: str) -> str:
+    hist = HISTORY.get(chat_id, [])
+    ans = llm.answer(question, history=hist)
+    if not ans.startswith("Не удалось ответить"):
+        hist = hist + [{"role": "user", "content": question},
+                       {"role": "assistant", "content": ans}]
+        HISTORY[chat_id] = hist[-_HISTORY_MAX:]
+    return ans
+
+
+_VYBOR_START = (
+    "🧭 <b>Давайте подберём направление!</b> Расскажите о себе одним сообщением:\n"
+    "1️⃣ какие предметы ЕГЭ сдаёте (или уже сдали) и что из школьного нравится;\n"
+    "2️⃣ с кем хотите работать: малыши, школьники, подростки, взрослые — или вообще "
+    "не с людьми;\n"
+    "3️⃣ что вам интересно: языки, IT, наука, спорт, искусство, психология, история…\n"
+    "4️⃣ кем видите себя после вуза (если пока не знаете — так и напишите).\n\n"
+    "Я предложу подходящие направления МПГУ, а точные шансы посчитаем через /shansy.")
 
 
 _SHANSY_PROMPT = ("Пришлите ваши предметы ЕГЭ и баллы одним сообщением, например:\n"
@@ -169,10 +189,13 @@ def handle_message(chat_id: int, text: str) -> Reply:
                      "код через /spisok и нажмите «🔔 Следить».", [])
     if intent == "unfollow":
         return _unfollow(chat_id)
+    if intent == "vybor":
+        HISTORY[chat_id] = [{"role": "assistant", "content": _VYBOR_START}]
+        return Reply(_VYBOR_START, [])
     # свободный вопрос — логируем обрезанно и без длинных цифр (коды/телефоны),
     # чтобы по логам закрывать пробелы базы знаний
     print(f"Q: {re.sub(r'[0-9]{5,}', '<код>', payload)[:120]}", flush=True)
-    return Reply(_answer_free(payload), [])
+    return Reply(_answer_free(chat_id, payload), [])
 
 
 def handle_callback(chat_id: int, data: str) -> Reply:
@@ -195,6 +218,9 @@ def handle_callback(chat_id: int, data: str) -> Reply:
     if data == "open:spisok":
         AWAITING_CODE[chat_id] = True
         return Reply("Пришлите ваш <b>уникальный код</b> (номер заявления) одним сообщением.", [])
+    if data == "open:vybor":
+        HISTORY[chat_id] = [{"role": "assistant", "content": _VYBOR_START}]
+        return Reply(_VYBOR_START, [])
     if data == "open:shansy":
         AWAITING_SCORES[chat_id] = True
         return Reply(_SHANSY_PROMPT, [])
