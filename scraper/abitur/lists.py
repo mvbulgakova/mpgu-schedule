@@ -136,23 +136,38 @@ def format_positions(meta: Optional[dict], shard: Optional[dict], code: str) -> 
                 f"Данные обновляются периодически — возможна задержка.")
     lists_meta_all = (meta or {}).get("lists") or {}
     lines = [f"🔎 <b>Ваши позиции по коду {_norm(code)}:</b>", ""]
-    passing: List[tuple] = []      # (приоритет, направление) — где сейчас «в зелёной зоне»
+    passing: List[tuple] = []      # (приоритет, направление, sim_place|None)
     any_places = False
+    any_sim = False
+    consented = any(e.get("consent") for e in entries
+                    if lists_meta_all.get(e["list"], {}).get("kind") == "бюджет")
     for e in entries:
         m = lists_meta_all.get(e["list"], {})
         name = _list_label(meta, e["list"])
         count = m.get("count")
         parts = [f"место {e['position']}" + (f" из {count}" if count else "")]
         if m.get("kind") == "бюджет":
-            if _is_general_budget(lists_meta_all, e["list"]):
-                places = _places_for(m)
-                if places:
+            general = m["general"] if "general" in m else \
+                _is_general_budget(lists_meta_all, e["list"])
+            if general:
+                places = m["places"] if "places" in m else _places_for(m)
+                sim_above = e.get("sim_above")
+                if places and sim_above is not None:
+                    any_places = any_sim = True
+                    sim_place = sim_above + 1
+                    ok = sim_place <= places
+                    parts.append(f"с согласием: ~{sim_place}-е из {places} "
+                                 f"{'✅' if ok else '⏳'}")
+                    if ok:
+                        passing.append((e.get("priority_pz") or 99,
+                                        m.get("direction") or name, sim_place, places))
+                elif places:
                     any_places = True
                     ok = e["position"] <= places
                     parts.append(f"мест: {places} {'✅' if ok else '⏳'}")
                     if ok:
                         passing.append((e.get("priority_pz") or 99,
-                                        m.get("direction") or name))
+                                        m.get("direction") or name, None, places))
             else:
                 parts.append("квотный список")
         parts.append(f"баллы {e.get('score_total')}")
@@ -170,15 +185,24 @@ def format_positions(meta: Optional[dict], shard: Optional[dict], code: str) -> 
         lines.append(f"• <b>{name}</b>\n   {' · '.join(parts)}{tail}")
     lines.append("")
     if passing:
-        passing.sort()
-        pri, nm = passing[0]
-        lines.append(f"🎯 <b>Сейчас проходите на: {nm}</b> (приоритет {pri}) — "
+        passing.sort(key=lambda t: t[0])
+        pri, nm, sim_place, places = passing[0]
+        detail = f", ~{sim_place}-е место из {places}" if sim_place else ""
+        head = ("🎯 <b>Сейчас проходите на:" if consented
+                else "🎯 <b>Если подадите согласие сейчас — пройдёте на:")
+        lines.append(f"{head} {nm}</b> (приоритет {pri}{detail}) — "
                      "если списки не изменятся.")
     elif any_places:
         lines.append("⏳ Пока вы ниже черты во всех бюджетных списках. Это не приговор: "
-                     "не все выше вас подадут согласие, а после приоритетного этапа "
-                     "в конкурс вернутся незанятые квотные места.")
-    if any_places:
+                     "конкурсная ситуация меняется каждый день, а после приоритетного "
+                     "этапа в конкурс вернутся незанятые квотные места.")
+    if any_sim:
+        lines.append("ℹ️ Оценка «с согласием» — модель реального конкурса: считаются "
+                     "только подавшие согласие, а те, кто проходит на свой более высокий "
+                     "приоритет, из конкурса исключаются. «Мест» — все места программы "
+                     "(КЦП): после приоритетного этапа (приказы 3 августа) незанятые "
+                     "квотные места добавятся. Это ориентир, не гарантия.")
+    elif any_places:
         lines.append("ℹ️ «Мест» — все бюджетные места программы (КЦП): часть сейчас "
                      "зарезервирована под квоты, их незаполненный остаток вернётся в "
                      "общий конкурс после приоритетного этапа (приказы 3 августа).")

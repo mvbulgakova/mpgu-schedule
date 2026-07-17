@@ -14,6 +14,9 @@ STEP_DONE = "done"
 
 # Порядок цикла для кнопки «Олимпиада»: нет → победитель → призёр → нет.
 _OLYMP_CYCLE = {None: "winner", "winner": "prizer", "prizer": None}
+# Цикл для конкурсов МПГУ (Прил. 3): нет → победитель → призёр II → призёр III → участник → нет.
+_MPGU_CYCLE = {None: "winner", "winner": "prizer2", "prizer2": "prizer3",
+               "prizer3": "participant", "participant": None}
 
 # Тумблеры-достижения, доступные на шаге достижений (id -> подпись кнопки).
 TOGGLES_BASE = {
@@ -32,6 +35,7 @@ class CalcSession:
     pedagogical: bool = False
     target_quota: bool = False
     sport: Optional[str] = None
+    mpgu_contest: Optional[str] = None
     edu_honors: bool = False
     abilimpiks: bool = False
     svo: bool = False
@@ -58,7 +62,8 @@ def start() -> CalcSession:
 def _to_input(s: CalcSession) -> CalcInput:
     return CalcInput(
         level=s.level or "base", pedagogical=s.pedagogical,
-        target_quota=s.target_quota, sport=s.sport, edu_honors=s.edu_honors,
+        target_quota=s.target_quota, sport=s.sport, mpgu_contest=s.mpgu_contest,
+        edu_honors=s.edu_honors,
         abilimpiks=s.abilimpiks, svo=s.svo, do_profile=s.do_profile,
         olympiad=s.olympiad, volunteer_hours=s.volunteer_hours,
         publications=s.publications, patents=s.patents, fieb=s.fieb,
@@ -95,6 +100,8 @@ def handle(s: CalcSession, data: str) -> Tuple[CalcSession, bool]:
             setattr(s, value, not getattr(s, value))
     elif field_ == "olympcycle":
         s.olympiad = _OLYMP_CYCLE.get(s.olympiad, "winner")
+    elif field_ == "mpgucycle":
+        s.mpgu_contest = _MPGU_CYCLE.get(s.mpgu_contest, "winner")
     elif field_ == "sportmenu":
         s.step = STEP_SPORT
     elif field_ == "sport":
@@ -131,15 +138,21 @@ def render(s: CalcSession) -> View:
             rows.append([(mark + label, f"c:toggle:{tid}")])
         olymp_label = {None: "не указана", "winner": "победитель (+10)",
                        "prizer": "призёр (+5)"}[s.olympiad]
-        rows.append([(f"🏆 Олимпиада (рег. ВсОШ/перечневая): {olymp_label}", "c:olympcycle:1")])
+        rows.append([(f"🏆 Олимпиада 10/5 (рег. ВсОШ и др.): {olymp_label}", "c:olympcycle:1")])
+        mpgu_label = {None: "не указан", "winner": "победитель (+10)",
+                      "prizer2": "призёр II (+8)", "prizer3": "призёр III (+6)",
+                      "participant": "участник (+4)"}[s.mpgu_contest]
+        rows.append([(f"🎓 Конкурс/олимпиада МПГУ: {mpgu_label}", "c:mpgucycle:1")])
         sport_label = A.SPORT[s.sport][0] if s.sport else "не указан"
         rows.append([(f"🏅 Спорт: {sport_label}", "c:sportmenu:1")])
         rows.append([("✔️ Посчитать", "c:done:1")])
         return View(
             "Шаг 4/4. Отметьте достижения (волонтёрство — пришлите число часов сообщением), "
-            "затем «Посчитать».\n\nℹ️ Победа/призёрство в ЗАКЛЮЧИТЕЛЬНОМ этапе ВсОШ — это "
-            "право БВИ (поступление без экзаменов), а не баллы; здесь отмечайте региональный "
-            "этап и перечневые олимпиады.", rows)
+            "затем «Посчитать».\n\nℹ️ Заключительный этап ВсОШ — это БВИ (без экзаменов), "
+            "а не баллы. Перечневые олимпиады могут давать БВИ или 100 баллов за предмет "
+            "(при ЕГЭ ≥75) — тогда баллы ИД за них не начисляются; здесь отмечайте их, "
+            "только если особое право не используете. «Конкурс МПГУ» — олимпиады и конкурсы "
+            "самого университета (Приложение 3) и педагогические конкурсы.", rows)
     return View("Готово.", [])
 
 

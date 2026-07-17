@@ -18,13 +18,54 @@ def _shard_key(unique_code: str) -> str:
     return (c[:2] if len(c) >= 2 else c.zfill(2))
 
 
+def simulate_admission(candidates: Dict[str, list],
+                       places: Dict[str, int]) -> Dict[str, set]:
+    """Отложенное зачисление (deferred acceptance) — как реальный алгоритм приёма.
+
+    candidates: {person: [(priority, list_code, position), ...]} — только подавшие
+    согласие, только общие бюджетные списки. places: {list_code: мест}.
+    Каждый человек занимает место лишь в СВОЁМ ВЫСШЕМ проходном приоритете; кого
+    вытеснили — пробует следующий. Возвращает {list_code: множество зачисленных}.
+    """
+    import heapq
+    prefs = {p: sorted(cs) for p, cs in candidates.items() if cs}
+    ptr = {p: 0 for p in prefs}
+    held: Dict[str, list] = {lc: [] for lc in places}
+    free = list(prefs)
+    while free:
+        p = free.pop()
+        while ptr[p] < len(prefs[p]):
+            _, lc, pos = prefs[p][ptr[p]]
+            ptr[p] += 1
+            cap = places.get(lc) or 0
+            if cap <= 0:
+                continue
+            heapq.heappush(held[lc], (-pos, p))   # худший (наибольшая позиция) сверху
+            if len(held[lc]) <= cap:
+                break                              # закрепился здесь
+            _, bumped = heapq.heappop(held[lc])
+            if bumped != p:
+                free.append(bumped)                # вытеснили другого — тот ищет дальше
+                break
+            # вытеснили нас самих — пробуем следующий приоритет
+    return {lc: {person for _, person in h} for lc, h in held.items()}
+
+
 def build_index(pages: Dict[str, str], meta: Dict[str, dict],
-                updated_at: str) -> Tuple[dict, Dict[str, dict]]:
-    """Возвращает (meta_doc, shards): метаданные списков и шарды кодов."""
+                updated_at: str, places_fn=None) -> Tuple[dict, Dict[str, dict]]:
+    """Возвращает (meta_doc, shards): метаданные списков и шарды кодов.
+
+    places_fn(meta_записи) -> бюджетные места программы (для тестов подменяемо;
+    по умолчанию — матчинг из scraper.abitur.lists).
+    """
+    if places_fn is None:
+        from scraper.abitur.lists import _places_for as places_fn
+
     lists: Dict[str, dict] = {}
-    codes: Dict[str, list] = {}
+    rows_by_list: Dict[str, list] = {}
     for code_list, html in pages.items():
-        rows = parse_view(html)
+        rows = sorted(parse_view(html), key=lambda r: r["position"])
+        rows_by_list[code_list] = rows
         m = dict(meta.get(code_list, {}))
         m["count"] = len(rows)
         m["totals"] = sorted((r["score_total"] for r in rows
@@ -32,8 +73,37 @@ def build_index(pages: Dict[str, str], meta: Dict[str, dict],
         m.setdefault("url",
                      f"https://epk25.mpgu.su/competitive-list/view?code={code_list}")
         lists[code_list] = m
+
+    # Общий конкурс = крупнейший бюджетный список направления+формы; ему ищем места.
+    for lc, m in lists.items():
+        if m.get("kind") != "бюджет":
+            continue
+        same = [x for x in lists.values()
+                if x.get("kind") == "бюджет" and x.get("direction") == m.get("direction")
+                and x.get("form") == m.get("form")]
+        m["general"] = (m["count"] or 0) >= max((x.get("count") or 0) for x in same)
+        if m["general"]:
+            m["places"] = places_fn(m)
+
+    # Симуляция: только согласившиеся в общих бюджетных списках с известными местами.
+    places = {lc: m["places"] for lc, m in lists.items()
+              if m.get("general") and m.get("places")}
+    candidates: Dict[str, list] = {}
+    for lc in places:
+        for r in rows_by_list[lc]:
+            if r.get("consent"):
+                candidates.setdefault(r["unique_code"], []).append(
+                    (r.get("priority_pz") or 99, lc, r["position"]))
+    admitted = simulate_admission(candidates, places)
+
+    codes: Dict[str, list] = {}
+    for code_list, rows in rows_by_list.items():
+        adm = admitted.get(code_list)
+        adm_positions = (sorted(r["position"] for r in rows
+                                if r["unique_code"] in adm) if adm is not None else None)
+        cons_cum = 0
         for r in rows:
-            codes.setdefault(r["unique_code"], []).append({
+            entry = {
                 "list": code_list,
                 "position": r["position"],
                 "score_total": r["score_total"],
@@ -41,7 +111,15 @@ def build_index(pages: Dict[str, str], meta: Dict[str, dict],
                 "priority_pz": r["priority_pz"],
                 "bvi": r["bvi"],
                 "status": r["status"],
-            })
+            }
+            if code_list in places:
+                entry["cons_above"] = cons_cum
+                if adm_positions is not None:
+                    import bisect
+                    entry["sim_above"] = bisect.bisect_left(adm_positions, r["position"])
+            if r.get("consent"):
+                cons_cum += 1
+            codes.setdefault(r["unique_code"], []).append(entry)
 
     meta_doc = {"updated_at": updated_at, "campaign": "2026",
                 "lists": lists, "codes_total": len(codes)}

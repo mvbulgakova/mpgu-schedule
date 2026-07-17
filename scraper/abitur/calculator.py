@@ -16,12 +16,13 @@ class CalcInput:
     svo: bool
     do_profile: bool
     olympiad: Optional[str]          # "winner" | "prizer" | None
-    volunteer_hours: int             # 0 = нет
-    publications: Optional[str]      # spec: "one" | "multi" | None
-    patents: bool                    # spec
-    fieb: Optional[str]              # spec: "gold" | "silver" | None
-    premia: Optional[str]            # spec: "federal" | "regional" | None
-    target_points: int = 0           # целевые ИД (профориентация), сырые
+    mpgu_contest: Optional[str] = None   # ключ A.MPGU_CONTEST или None
+    volunteer_hours: int = 0         # 0 = нет
+    publications: Optional[str] = None   # spec: "one" | "multi" | None
+    patents: bool = False                # spec
+    fieb: Optional[str] = None           # spec: "gold" | "silver" | None
+    premia: Optional[str] = None         # spec: "federal" | "regional" | None
+    target_points: int = 0               # целевые ИД (профориентация), сырые
 
 
 @dataclass
@@ -52,6 +53,10 @@ def calculate(inp: CalcInput) -> CalcResult:
 
     if inp.olympiad in A.OLYMPIAD:
         label, pts = A.OLYMPIAD[inp.olympiad]
+        items.append((label, pts))
+
+    if inp.mpgu_contest in A.MPGU_CONTEST:
+        label, pts = A.MPGU_CONTEST[inp.mpgu_contest]
         items.append((label, pts))
 
     vp = A.volunteer_points(inp.level, inp.pedagogical, inp.volunteer_hours)

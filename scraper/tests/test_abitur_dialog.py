@@ -109,3 +109,29 @@ def test_result_text_includes_disclaimer():
     text = dialog.result_text(dialog.compute(s))
     assert "приёмной комиссией" in text or "предварительн" in text.lower()
     assert "10" in text
+
+
+def test_mpgu_contest_cycle_and_points():
+    s = dialog.start()
+    s, _ = dialog.handle(s, "c:level:base")
+    s, _ = dialog.handle(s, "c:pedagogical:1")
+    s, _ = dialog.handle(s, "c:target:0")
+    assert s.mpgu_contest is None
+    for expected, pts in [("winner", 10), ("prizer2", 8), ("prizer3", 6),
+                          ("participant", 4)]:
+        s, _ = dialog.handle(s, "c:mpgucycle:1")
+        assert s.mpgu_contest == expected
+        assert dialog.compute(s).total == pts
+    s, _ = dialog.handle(s, "c:mpgucycle:1")
+    assert s.mpgu_contest is None
+
+
+def test_mpgu_contest_capped_with_others():
+    s = dialog.start()
+    s, _ = dialog.handle(s, "c:level:base")
+    s, _ = dialog.handle(s, "c:pedagogical:1")
+    s, _ = dialog.handle(s, "c:target:0")
+    s, _ = dialog.handle(s, "c:toggle:edu_honors")   # 10
+    s, _ = dialog.handle(s, "c:mpgucycle:1")         # winner 10
+    r = dialog.compute(s)
+    assert r.general_raw == 20 and r.total == 10     # потолок держится
