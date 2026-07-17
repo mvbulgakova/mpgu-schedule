@@ -2,8 +2,11 @@
 
 Все факты выверены по Правилам приёма МПГУ 2026/27 (пункты указаны в комментариях).
 """
+import datetime as dt
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
+
+_MSK = dt.timezone(dt.timedelta(hours=3))
 
 _KB_PATH = Path(__file__).with_name("knowledge.md")
 
@@ -162,6 +165,56 @@ DATES_FINAL: Dict[str, str] = {
 
 Keyboard = List[List[Tuple[str, str]]]
 
+# Контрольные точки по маршрутам для «осталось N дней» (Правила 2026, разд. 6).
+_DEADLINES: Dict[str, List[Tuple[dt.datetime, str]]] = {
+    "base:budget:vi": [
+        (dt.datetime(2026, 7, 15, 23, 59, tzinfo=_MSK), "подача документов (со сдачей ВИ) — до 15 июля"),
+        (dt.datetime(2026, 7, 25, 23, 59, tzinfo=_MSK), "вступительные испытания — до 25 июля"),
+        (dt.datetime(2026, 8, 1, 12, 0, tzinfo=_MSK), "согласие на приоритетном этапе — до 1 августа 12:00"),
+        (dt.datetime(2026, 8, 5, 12, 0, tzinfo=_MSK), "согласие на основном этапе — до 5 августа 12:00"),
+        (dt.datetime(2026, 8, 9, 12, 0, tzinfo=_MSK), "согласие на дополнительном этапе — до 9 августа 12:00"),
+    ],
+    "base:budget:ege": [
+        (dt.datetime(2026, 7, 25, 17, 0, tzinfo=_MSK), "подача документов — до 25 июля 17:00 мск"),
+        (dt.datetime(2026, 8, 5, 12, 0, tzinfo=_MSK), "согласие на основном этапе — до 5 августа 12:00"),
+        (dt.datetime(2026, 8, 9, 12, 0, tzinfo=_MSK), "согласие на дополнительном этапе — до 9 августа 12:00"),
+    ],
+    "base:paid": [
+        (dt.datetime(2026, 8, 20, 23, 59, tzinfo=_MSK), "документы, если сдаёте внутренние ВИ — до 20 августа"),
+        (dt.datetime(2026, 8, 26, 23, 59, tzinfo=_MSK), "подача документов — до 26 августа"),
+        (dt.datetime(2026, 8, 27, 18, 0, tzinfo=_MSK), "договор и оплата 1-го семестра — до 27 августа 18:00"),
+    ],
+    "spec:budget": [
+        (dt.datetime(2026, 8, 8, 23, 59, tzinfo=_MSK), "подача документов — до 8 августа"),
+        (dt.datetime(2026, 8, 24, 12, 0, tzinfo=_MSK), "согласие на основном этапе — до 24 августа 12:00"),
+        (dt.datetime(2026, 8, 26, 12, 0, tzinfo=_MSK), "согласие на доп. этапе — до 26 августа 12:00"),
+    ],
+    "spec:paid": [
+        (dt.datetime(2026, 8, 20, 23, 59, tzinfo=_MSK), "подача документов — до 20 августа"),
+        (dt.datetime(2026, 8, 28, 18, 0, tzinfo=_MSK), "договор и оплата 1-го семестра — до 28 августа 18:00"),
+    ],
+}
+
+
+def countdown(path: str, now: Optional[dt.datetime] = None) -> str:
+    """«⏳ Ближайший срок: … (осталось N дн.)» для финального ключа маршрута.
+
+    Пустая строка, если все контрольные точки маршрута уже прошли.
+    """
+    now = now or dt.datetime.now(_MSK)
+    for when, label in _DEADLINES.get(path, []):
+        if when < now:
+            continue
+        days = (when.date() - now.date()).days
+        if days == 0:
+            tail = "это СЕГОДНЯ"
+        elif days == 1:
+            tail = "остался 1 день"
+        else:
+            tail = f"осталось {days} дн."
+        return f"⏳ Ближайший срок: {label} ({tail})"
+    return ""
+
 
 def dates_step(path: str) -> Tuple[str, Keyboard]:
     """Шаг маршрута дат. path: '' | 'base' | 'spec' | 'base:budget' | финальный ключ."""
@@ -176,11 +229,10 @@ def dates_step(path: str) -> Tuple[str, Keyboard]:
         return ("Как поступаете?", [
             [("Сдаю внутренние ВИ", "d:base:budget:vi")],
             [("Только по ЕГЭ", "d:base:budget:ege")]])
-    if path == "spec:budget":
-        return (DATES_FINAL["spec:budget"], [])
     final = DATES_FINAL.get(path)
     if final:
-        return (final, [])
+        cd = countdown(path)
+        return (final + (f"\n\n{cd}" if cd else ""), [])
     return ("Не понял шаг — начнём заново: /sroki", [])
 
 
@@ -213,4 +265,9 @@ def route(text: str) -> Tuple[str, str]:
     if cmd in ("/shansy", "/chances", "/podbor"):
         arg = t[len(t.split()[0]):].strip() if t else ""
         return ("shansy", arg)
+    if cmd in ("/follow", "/sledit"):
+        arg = t[len(t.split()[0]):].strip() if t else ""
+        return ("follow", arg)
+    if cmd in ("/unfollow", "/stop"):
+        return ("unfollow", "")
     return ("free", t)

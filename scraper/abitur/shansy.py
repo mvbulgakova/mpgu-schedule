@@ -13,7 +13,8 @@ from typing import Dict, List, Optional, Tuple
 _PROGRAMS_PATH = Path(__file__).with_name("programs_2026.json")
 
 DATA_BASE = os.environ.get(
-    "DATA_BASE", "https://cdn.jsdelivr.net/gh/mvbulgakova/mpgu-schedule@data")
+    "DATA_BASE", "https://raw.githubusercontent.com/mvbulgakova/mpgu-schedule/data")
+_FALLBACK_BASE = "https://cdn.jsdelivr.net/gh/mvbulgakova/mpgu-schedule@data"
 _HISTORY_PATH = "admissions/history.json"
 _HCACHE = {"ts": 0.0, "data": None}
 _TTL = 3600
@@ -113,15 +114,17 @@ def fetch_history(force: bool = False) -> Optional[dict]:
     now = time.time()
     if not force and _HCACHE["data"] is not None and now - _HCACHE["ts"] < _TTL:
         return _HCACHE["data"]
-    try:
-        req = urllib.request.Request(f"{DATA_BASE}/{_HISTORY_PATH}",
-                                     headers={"User-Agent": "MPGU-Abitur-Bot"})
-        with urllib.request.urlopen(req, timeout=30) as r:
-            data = json.loads(r.read().decode("utf-8"))
-        _HCACHE["data"], _HCACHE["ts"] = data, now
-        return data
-    except Exception:
-        return _HCACHE["data"]
+    for base in (DATA_BASE, _FALLBACK_BASE):
+        try:
+            req = urllib.request.Request(f"{base}/{_HISTORY_PATH}",
+                                         headers={"User-Agent": "MPGU-Abitur-Bot"})
+            with urllib.request.urlopen(req, timeout=30) as r:
+                data = json.loads(r.read().decode("utf-8"))
+            _HCACHE["data"], _HCACHE["ts"] = data, now
+            return data
+        except Exception:
+            continue
+    return _HCACHE["data"]
 
 
 _STOP = {"направленность", "образование", "педагогическое"}

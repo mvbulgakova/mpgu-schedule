@@ -85,3 +85,43 @@ def test_dates_route_finals_have_correct_deadlines():
 def test_dates_route_unknown_path_recovers():
     text, kb = faq.dates_step("bogus:path")
     assert "/sroki" in text
+
+
+# ── «Осталось N дней» в финалах маршрута дат ─────────────────────────────────
+
+import datetime as _dt
+
+_MSK = _dt.timezone(_dt.timedelta(hours=3))
+
+
+def test_countdown_shows_nearest_future_deadline():
+    # 17 июля: для ЕГЭ-пути ближайший срок — документы до 25 июля 17:00 (8 дней)
+    now = _dt.datetime(2026, 7, 17, 12, 0, tzinfo=_MSK)
+    line = faq.countdown("base:budget:ege", now=now)
+    assert line and "осталось 8 дн" in line and "25 июля" in line
+
+
+def test_countdown_switches_after_deadline_passes():
+    # 26 июля: документы уже всё, ближайшее — согласие 5 августа 12:00
+    now = _dt.datetime(2026, 7, 26, 12, 0, tzinfo=_MSK)
+    line = faq.countdown("base:budget:ege", now=now)
+    assert line and "5 августа" in line
+
+
+def test_countdown_today_says_today():
+    now = _dt.datetime(2026, 7, 25, 10, 0, tzinfo=_MSK)
+    line = faq.countdown("base:budget:ege", now=now)
+    assert "СЕГОДНЯ" in line
+
+
+def test_countdown_empty_when_stage_over():
+    now = _dt.datetime(2026, 9, 30, 12, 0, tzinfo=_MSK)
+    assert faq.countdown("base:budget:ege", now=now) == ""
+
+
+def test_dates_step_final_includes_countdown():
+    # dates_step должен дописывать countdown к финальному тексту
+    text, kb = faq.dates_step("base:budget:ege")
+    assert kb == []
+    # к 2026-07-17 (текущая кампания) в тексте есть блок «⏳»
+    assert "⏳" in text

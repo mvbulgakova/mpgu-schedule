@@ -9,8 +9,11 @@ import time
 import urllib.request
 from typing import Dict, List, Optional
 
+# Первичный источник — raw.githubusercontent (кэш ~5 мин: важно для уведомлений
+# об изменении позиций); jsDelivr — фолбэк (кэширует ветку до 12 часов).
 DATA_BASE = os.environ.get(
-    "DATA_BASE", "https://cdn.jsdelivr.net/gh/mvbulgakova/mpgu-schedule@data")
+    "DATA_BASE", "https://raw.githubusercontent.com/mvbulgakova/mpgu-schedule/data")
+_FALLBACK_BASE = "https://cdn.jsdelivr.net/gh/mvbulgakova/mpgu-schedule@data"
 _TTL = 300  # секунд
 
 _META_CACHE = {"ts": 0.0, "data": None}
@@ -24,13 +27,18 @@ def _norm(code: str) -> str:
 
 
 def _get_json(path: str) -> Optional[dict]:
-    try:
-        req = urllib.request.Request(f"{DATA_BASE}/{path}",
-                                     headers={"User-Agent": "MPGU-Abitur-Bot"})
-        with urllib.request.urlopen(req, timeout=30) as r:
-            return json.loads(r.read().decode("utf-8"))
-    except Exception:
-        return None
+    bases = [DATA_BASE]
+    if _FALLBACK_BASE != DATA_BASE:
+        bases.append(_FALLBACK_BASE)
+    for base in bases:
+        try:
+            req = urllib.request.Request(f"{base}/{path}",
+                                         headers={"User-Agent": "MPGU-Abitur-Bot"})
+            with urllib.request.urlopen(req, timeout=30) as r:
+                return json.loads(r.read().decode("utf-8"))
+        except Exception:
+            continue
+    return None
 
 
 def fetch_meta(force: bool = False) -> Optional[dict]:
@@ -95,6 +103,17 @@ def format_positions(meta: Optional[dict], shard: Optional[dict], code: str) -> 
         tail = (" · " + ", ".join(flags)) if flags else ""
         lines.append(f"• <b>{name}</b>\n   место {e['position']}, "
                      f"баллы {e.get('score_total')}{pri} — {e.get('status') or '—'}{tail}")
+    # Напоминание про согласие: главная причина «пролететь» на зачислении.
+    # Показываем, если есть бюджетные позиции и ни в одной согласие не отмечено.
+    lists_meta = (meta or {}).get("lists") or {}
+    budget = [e for e in entries
+              if lists_meta.get(e["list"], {}).get("kind") == "бюджет"]
+    if budget and not any(e.get("consent") for e in budget):
+        lines.append("")
+        lines.append("⚠️ <b>В бюджетных списках согласие на зачисление не отмечено.</b> "
+                     "Без согласия зачислить не могут: на основном этапе его нужно подать "
+                     "до <b>5 августа 12:00</b> (отметка на Госуслугах или заявление в ПК). "
+                     "Если уже подали — обновление могло ещё не дойти до списков.")
     if updated:
         lines.append("")
         lines.append(f"Обновлено: {updated}")

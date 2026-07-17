@@ -10,6 +10,7 @@
 """
 import json
 import os
+import re
 import sys
 import time
 import urllib.parse
@@ -17,10 +18,13 @@ import urllib.request
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Tuple
 
-from scraper.abitur import dialog, faq, llm, lists, shansy
+from scraper.abitur import dialog, faq, follow, llm, lists, shansy
 
 RUN_SECONDS = int(os.environ.get("RUN_SECONDS", "3300"))
 MAX_MSG_LEN = 1000
+# Файл подписок «следи за кодом» (переживает рестарты через actions/cache).
+SUBS_PATH = os.environ.get("SUBS_PATH", "")
+SUBS_CHECK_SECONDS = 600
 
 # In-memory состояние калькулятора по chat_id (эфемерно, теряется при рестарте).
 SESSIONS: Dict[int, dialog.CalcSession] = {}
@@ -28,6 +32,8 @@ SESSIONS: Dict[int, dialog.CalcSession] = {}
 AWAITING_CODE: Dict[int, bool] = {}
 # Ожидание сообщения с баллами ЕГЭ после /shansy.
 AWAITING_SCORES: Dict[int, bool] = {}
+# Подписки: chat_id(str) -> {"code", "last": {list: pos}, "updated_at"}.
+SUBS: Dict[str, dict] = {}
 
 
 @dataclass
@@ -50,8 +56,11 @@ def _menu_keyboard() -> List[List[Tuple[str, str]]]:
 
 
 _GREETING = ("👋 Я помощник абитуриента МПГУ.\n\n"
-             "Спросите про поступление или выберите тему ниже. "
-             "Команда /bally — калькулятор дополнительных баллов.")
+             "Спросите про поступление или выберите тему ниже.\n"
+             "• /spisok — позиция в конкурсных списках, 🔔 можно следить за изменениями\n"
+             "• /shansy — подбор программ по вашим баллам ЕГЭ\n"
+             "• /bally — калькулятор дополнительных баллов\n"
+             "• /sroki — сроки и ближайшие дедлайны")
 
 
 def _answer_free(question: str) -> str:
@@ -67,14 +76,46 @@ def _shansy_answer(text: str) -> str:
                          history=shansy.fetch_history())
 
 
-def _lookup_code(code: str) -> str:
+def _lookup_code(code: str) -> Reply:
     meta = lists.fetch_meta()
     if meta is None:  # реально недоступен индекс, а не просто редкий код
-        return ("Индекс списков сейчас недоступен. Официальные списки: "
-                "https://epk25.mpgu.su/competitive-list")
+        return Reply("Индекс списков сейчас недоступен. Официальные списки: "
+                     "https://epk25.mpgu.su/competitive-list", [])
     # shard может быть None, если кодов с таким префиксом нет — это «не найден»
     shard = lists.fetch_shard(code)
-    return lists.format_positions(meta, shard, code)
+    text = lists.format_positions(meta, shard, code)
+    kb: List[List[Tuple[str, str]]] = []
+    if lists.lookup(shard, code):
+        kb = [[("🔔 Следить за этим кодом", f"f:{lists._norm(code)}")]]
+    return Reply(text, kb)
+
+
+def _save_subs():
+    if SUBS_PATH:
+        follow.save(SUBS_PATH, SUBS)
+
+
+def _follow_code(chat_id: int, code: str) -> Reply:
+    meta = lists.fetch_meta()
+    shard = lists.fetch_shard(code)
+    entries = lists.lookup(shard, code)
+    if not entries:
+        return Reply("Код не найден в списках — подписка не оформлена. "
+                     "Проверьте номер через /spisok.", [])
+    SUBS[str(chat_id)] = {"code": lists._norm(code),
+                          "last": follow.positions_of(entries),
+                          "updated_at": (meta or {}).get("updated_at", "")}
+    _save_subs()
+    return Reply(f"🔔 Слежу за кодом <b>{lists._norm(code)}</b>. Пришлю сообщение, когда "
+                 "ваши позиции в списках изменятся (проверяю несколько раз в час; "
+                 "в начале каждого часа возможна пауза ~5 минут). Отписаться: /unfollow", [])
+
+
+def _unfollow(chat_id: int) -> Reply:
+    if SUBS.pop(str(chat_id), None) is not None:
+        _save_subs()
+        return Reply("🔕 Подписка отключена.", [])
+    return Reply("Активной подписки нет. Оформить: /spisok → кнопка «Следить».", [])
 
 
 def handle_message(chat_id: int, text: str) -> Reply:
@@ -89,7 +130,7 @@ def handle_message(chat_id: int, text: str) -> Reply:
     # 2) ожидаем уникальный код после /spisok
     if AWAITING_CODE.get(chat_id) and any(ch.isdigit() for ch in text) and not text.startswith("/"):
         AWAITING_CODE.pop(chat_id, None)
-        return Reply(_lookup_code(text), [])
+        return _lookup_code(text)
 
     # 3) ожидаем баллы ЕГЭ после /shansy
     if AWAITING_SCORES.get(chat_id) and any(ch.isdigit() for ch in text) and not text.startswith("/"):
@@ -108,7 +149,7 @@ def handle_message(chat_id: int, text: str) -> Reply:
         return Reply(v.text, v.keyboard)
     if intent == "spisok":
         if payload:  # /spisok 12345
-            return Reply(_lookup_code(payload), [])
+            return _lookup_code(payload)
         AWAITING_CODE[chat_id] = True
         return Reply("Пришлите ваш <b>уникальный код</b> (номер заявления) одним сообщением.", [])
     if intent == "dates":
@@ -119,7 +160,16 @@ def handle_message(chat_id: int, text: str) -> Reply:
             return Reply(_shansy_answer(payload), [])
         AWAITING_SCORES[chat_id] = True
         return Reply(_SHANSY_PROMPT, [])
-    # свободный вопрос
+    if intent == "follow":
+        if payload:
+            return _follow_code(chat_id, payload)
+        return Reply("Пришлите команду с кодом: <b>/follow 1234567</b> — или найдите свой "
+                     "код через /spisok и нажмите «🔔 Следить».", [])
+    if intent == "unfollow":
+        return _unfollow(chat_id)
+    # свободный вопрос — логируем обрезанно и без длинных цифр (коды/телефоны),
+    # чтобы по логам закрывать пробелы базы знаний
+    print(f"Q: {re.sub(r'[0-9]{5,}', '<код>', payload)[:120]}", flush=True)
     return Reply(_answer_free(payload), [])
 
 
@@ -127,6 +177,11 @@ def handle_callback(chat_id: int, data: str) -> Reply:
     if data.startswith("d:"):
         text_d, kb = faq.dates_step(data[2:])
         return Reply(text_d, kb)
+    if data.startswith("f:"):
+        arg = data[2:]
+        if arg == "off":
+            return _unfollow(chat_id)
+        return _follow_code(chat_id, arg)
     if data.startswith("t:"):
         ans = faq.topic_answer(data[2:])
         return Reply(ans or "Тема не найдена.", [])
@@ -152,6 +207,35 @@ def handle_callback(chat_id: int, data: str) -> Reply:
         v = dialog.render(s)
         return Reply(v.text, v.keyboard)
     return Reply("Неизвестная команда.", [])
+
+
+def _check_subs(token: str):
+    """Сверяет позиции подписчиков со свежими данными; шлёт диффы."""
+    if not SUBS:
+        return
+    meta = lists.fetch_meta(force=True)
+    if not meta:
+        return
+    upd = meta.get("updated_at", "")
+    changed = False
+    for chat, sub in list(SUBS.items()):
+        if sub.get("updated_at") == upd:
+            continue  # данные не менялись с прошлой сверки этого подписчика
+        shard = lists.fetch_shard(sub["code"])
+        if shard is None:
+            continue  # сеть/CDN моргнули — попробуем в следующий проход
+        entries = lists.lookup(shard, sub["code"])
+        txt = follow.diff_text(sub["code"], sub.get("last") or {}, entries, meta)
+        sub["last"] = follow.positions_of(entries)
+        sub["updated_at"] = upd
+        changed = True
+        if txt:
+            try:
+                _send(token, int(chat), Reply(txt, []))
+            except Exception as e:
+                print(f"notify error {chat}: {e}")
+    if changed:
+        _save_subs()
 
 
 # ── Telegram I/O ──────────────────────────────────────────────────────────────
@@ -203,10 +287,20 @@ def main() -> int:
         print(f"deleteWebhook: {info.get('ok')}")
     except Exception as e:
         print(f"deleteWebhook error (продолжаю): {e}")
+    if SUBS_PATH:
+        SUBS.update(follow.load(SUBS_PATH))
+        print(f"Подписок загружено: {len(SUBS)}")
     deadline = time.time() + RUN_SECONDS
     offset = None
+    last_subs_check = 0.0
     print(f"Бот запущен на {RUN_SECONDS}s")
     while time.time() < deadline:
+        if time.time() - last_subs_check > SUBS_CHECK_SECONDS:
+            last_subs_check = time.time()
+            try:
+                _check_subs(token)
+            except Exception as e:
+                print(f"subs check error: {e}")
         try:
             resp = _api(token, "getUpdates", offset=offset or "", timeout=30,
                         allowed_updates='["message","callback_query"]')
