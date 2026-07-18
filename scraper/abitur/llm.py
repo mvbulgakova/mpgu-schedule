@@ -15,8 +15,9 @@ from scraper.abitur import faq
 MODEL = "claude-haiku-4-5"
 _MAX_TOKENS = 800  # 512 обрезало длинные ответы (например, кризисные) на полуслове
 
-_FALLBACK = ("Не удалось ответить автоматически. Уточните в приёмной комиссии МПГУ: "
-             "priem@mpgu.su, +7 (499) 702-41-41. Сайт: https://mpgu.su/postuplenie/")
+_FALLBACK = ("Не удалось ответить автоматически 😔 Попробуйте переспросить через минуту "
+             "или уточните в приёмной комиссии МПГУ: priem@mpgu.su, +7 (499) 702-41-41.\n"
+             "Если ошибка повторяется — напишите @soldat_olovyanniy.")
 
 _SYSTEM_HEADER = (
     "Ты — помощник абитуриента МПГУ. Отвечай ТОЛЬКО на основе базы знаний ниже. "
@@ -64,14 +65,18 @@ _SESSION_TOKEN_FILE = "/home/claude/.claude/remote/.session_ingress_token"
 
 def _default_factory():
     import anthropic
+    # Жёсткий таймаут и один ретрай: у SDK по умолчанию 600 с × ретраи — один
+    # зависший запрос блокировал весь цикл бота, и сообщения копились до
+    # следующего запуска воркфлоу.
+    kw = {"timeout": 30.0, "max_retries": 1}
     api_key = os.environ.get("ANTHROPIC_API_KEY")
     if api_key:
-        return anthropic.Anthropic(api_key=api_key)
+        return anthropic.Anthropic(api_key=api_key, **kw)
     token_file = os.environ.get("CLAUDE_SESSION_INGRESS_TOKEN_FILE", _SESSION_TOKEN_FILE)
     if os.path.exists(token_file):
         token = Path(token_file).read_text().strip()
         if token:
-            return anthropic.Anthropic(auth_token=token)
+            return anthropic.Anthropic(auth_token=token, **kw)
     raise ValueError("Нет авторизации: задайте ANTHROPIC_API_KEY")
 
 
@@ -168,5 +173,7 @@ def answer(question: str, *, client=None,
             if getattr(block, "type", None) == "text":
                 return sanitize(block.text)
         return _FALLBACK
-    except Exception:
+    except Exception as e:
+        # причина — в логи воркфлоу: иначе фолбэк невозможно диагностировать
+        print(f"llm error: {type(e).__name__}: {str(e)[:300]}", flush=True)
         return _FALLBACK
