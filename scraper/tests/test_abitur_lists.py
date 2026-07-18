@@ -156,3 +156,53 @@ def test_no_places_known_degrades_gracefully(monkeypatch):
     out = L.format_positions(META2, SHARD2, "555")
     assert "45 из 300" in out          # «из N» остаётся
     assert "мест:" not in out          # мест не выдумываем
+
+
+# ── Компактный вид /spisok (короткие строки + вердикт) ───────────────────────
+
+META3 = {"updated_at": "2026-07-18T16:38:29+03:00", "campaign": "2026", "lists": {
+    "G1": {"direction": "44.03.01 Педагогическое образование. География",
+           "form": "заочная", "kind": "бюджет", "count": 287,
+           "general": True, "places": 15},
+    "G2": {"direction": "44.03.02 Психолого-педагогическое образование. Практическая психология. Профессиональное консультирование",
+           "form": "очная", "kind": "бюджет", "count": 945,
+           "general": True, "places": 25},
+    "P1": {"direction": "44.03.01 Педагогическое образование. География",
+           "form": "заочная", "kind": "платное", "count": 51},
+}}
+SHARD3 = {"updated_at": "t", "codes": {"777": [
+    {"list": "G2", "position": 77, "score_total": 241, "consent": False,
+     "priority_pz": 3, "bvi": False, "status": "Участвует в конкурсе",
+     "cons_above": 4, "sim_above": 1},
+    {"list": "G1", "position": 12, "score_total": 250, "consent": False,
+     "priority_pz": 1, "bvi": False, "status": "Участвует в конкурсе",
+     "cons_above": 2, "sim_above": 2},
+    {"list": "P1", "position": 3, "score_total": 250, "consent": False,
+     "priority_pz": 2, "bvi": False, "status": "Участвует в конкурсе"},
+]}}
+
+
+def test_short_format_is_compact_and_sorted_by_priority():
+    out = L.format_positions_short(META3, SHARD3, "777")
+    lines = [l for l in out.split("\n") if l.startswith(("✅", "⏳", "▫️", "💳"))]
+    assert len(lines) == 3
+    # сортировка по приоритету: П1 (география) первым
+    assert "П1" in lines[0] and "География" in lines[0]
+    assert "~3-е из 15" in lines[0]           # sim_above=2 → ~3-е
+    assert "П2" in lines[1] and "💳" in lines[1]   # платное с маркером
+    # длинное название обрезано, «Педагогическое образование.» убрано
+    assert "Психолого-педагогическое образование." not in out
+    # вердикт есть
+    assert "пройдёте на" in out or "проходите на" in out
+    # компакт: без огромных сносок
+    assert "КЦП" not in out
+
+
+def test_short_format_has_consent_warning_one_liner():
+    out = L.format_positions_short(META3, SHARD3, "777")
+    assert "5 августа" in out and "огласие" in out
+
+
+def test_short_not_found_same_as_full():
+    out = L.format_positions_short(META3, {"updated_at": "t", "codes": {}}, "999")
+    assert "не найден" in out.lower()

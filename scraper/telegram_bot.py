@@ -70,12 +70,15 @@ def _menu_keyboard() -> List[List[Tuple[str, str]]]:
     return rows
 
 
-_GREETING = ("👋 Я помощник абитуриента МПГУ.\n\n"
-             "Спросите про поступление или выберите тему ниже.\n"
-             "• /spisok — позиция в конкурсных списках, 🔔 можно следить за изменениями\n"
-             "• /shansy — подбор программ по вашим баллам ЕГЭ\n"
-             "• /bally — калькулятор дополнительных баллов\n"
-             "• /sroki — сроки и ближайшие дедлайны")
+_GREETING = ("👋 Привет! Я помощник абитуриента МПГУ.\n\n"
+             "Задайте вопрос своими словами — или выберите тему кнопкой ниже.\n\n"
+             "<b>Самое нужное:</b>\n"
+             "🔎 /spisok — прохожу ли я и на что (🔔 можно следить)\n"
+             "🧮 /shansy — подбор программ по баллам ЕГЭ\n"
+             "🧭 /vybor — помочь выбрать направление\n"
+             "➕ /bally — калькулятор доп. баллов\n"
+             "📅 /sroki — сроки и дедлайны\n\n"
+             "<i>Вопросы о работе бота: @soldat_olovyanniy</i>")
 
 
 def _answer_free(chat_id: int, question: str) -> str:
@@ -109,17 +112,22 @@ def _shansy_answer(text: str) -> str:
                          history=shansy.fetch_history())
 
 
-def _lookup_code(code: str) -> Reply:
+def _lookup_code(code: str, detailed: bool = False) -> Reply:
     meta = lists.fetch_meta()
     if meta is None:  # реально недоступен индекс, а не просто редкий код
         return Reply("Индекс списков сейчас недоступен. Официальные списки: "
                      "https://epk25.mpgu.su/competitive-list", [])
     # shard может быть None, если кодов с таким префиксом нет — это «не найден»
     shard = lists.fetch_shard(code)
-    text = lists.format_positions(meta, shard, code)
+    fmt = lists.format_positions if detailed else lists.format_positions_short
+    text = fmt(meta, shard, code)
     kb: List[List[Tuple[str, str]]] = []
     if lists.lookup(shard, code):
-        kb = [[("🔔 Следить за этим кодом", f"f:{lists._norm(code)}")]]
+        norm = lists._norm(code)
+        row = [("🔔 Следить", f"f:{norm}")]
+        if not detailed:
+            row.insert(0, ("📋 Подробнее", f"x:{norm}"))
+        kb = [row]
     return Reply(text, kb)
 
 
@@ -231,6 +239,8 @@ def _handle_callback(chat_id: int, data: str) -> Reply:
         if arg == "off":
             return _unfollow(chat_id)
         return _follow_code(chat_id, arg)
+    if data.startswith("x:"):   # развернуть подробности по коду
+        return _lookup_code(data[2:], detailed=True)
     if data.startswith("t:"):
         ans = faq.topic_answer(data[2:])
         return Reply(ans or "Тема не найдена.", [])
@@ -311,7 +321,8 @@ _BOT_DESCRIPTION = (
     "🧭 /vybor — консультация по выбору направления\n"
     "➕ /bally — калькулятор доп. баллов\n"
     "📅 /sroki — дедлайны кампании 2026\n"
-    "И отвечаю на свободные вопросы по Правилам приёма.")
+    "И отвечаю на свободные вопросы по Правилам приёма.\n"
+    "Вопросы о работе бота: @soldat_olovyanniy")
 _BOT_SHORT_DESCRIPTION = ("Помощник абитуриента МПГУ: списки и «прохожу ли я», "
                           "подбор по ЕГЭ, доп. баллы, сроки-2026.")
 

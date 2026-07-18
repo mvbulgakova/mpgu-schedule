@@ -127,6 +127,79 @@ def _is_general_budget(lists_meta: dict, list_code: str) -> bool:
     return not counts or (m.get("count") or 0) >= max(counts)
 
 
+_BOILERPLATE = ("Педагогическое образование (с двумя профилями подготовки).",
+                "Педагогическое образование.",
+                "Психолого-педагогическое образование.",
+                "Специальное (дефектологическое) образование.")
+
+
+def _short_name(direction: str, maxlen: int = 42) -> str:
+    """Компактное имя направления: без кода и типового префикса, с обрезкой."""
+    import re as _re
+    s = _re.sub(r"^\d{2}\.\d{2}\.\d{2}\s*", "", direction or "").strip()
+    for b in _BOILERPLATE:
+        if s.startswith(b):
+            s = s[len(b):].strip()
+            break
+    return (s[:maxlen - 1] + "…") if len(s) > maxlen else s
+
+
+_FORM_SHORT = {"очная": "", "заочная": " (заоч)", "очно-заочная": " (оч-заоч)"}
+
+
+def format_positions_short(meta: Optional[dict], shard: Optional[dict],
+                           code: str) -> str:
+    """Компактная сводка: строка на список + вердикт. Детали — по кнопке."""
+    entries = lookup(shard, code)
+    if not entries:
+        return format_positions(meta, shard, code)   # «не найден» и так короткий
+    lists_meta_all = (meta or {}).get("lists") or {}
+    consented = any(e.get("consent") for e in entries
+                    if lists_meta_all.get(e["list"], {}).get("kind") == "бюджет")
+    n = len(entries)
+    word = ("список" if n % 10 == 1 and n % 100 != 11 else
+            "списка" if n % 10 in (2, 3, 4) and n % 100 not in (12, 13, 14) else
+            "списков")
+    lines = [f"🔎 <b>Код {_norm(code)}</b> — {n} {word}:", ""]
+    passing: List[tuple] = []
+    entries_sorted = sorted(entries, key=lambda e: (e.get("priority_pz") or 99,))
+    for e in entries_sorted:
+        m = lists_meta_all.get(e["list"], {})
+        name = _short_name(m.get("direction") or e["list"]) + \
+            _FORM_SHORT.get(m.get("form") or "", "")
+        pri = f"П{e['priority_pz']}" if e.get("priority_pz") is not None else "—"
+        places = m.get("places")
+        sim_above = e.get("sim_above")
+        if m.get("kind") == "платное":
+            lines.append(f"💳 {pri} · {e['position']}/{m.get('count', '?')} · {name}")
+        elif m.get("general") and places and sim_above is not None:
+            sim_place = sim_above + 1
+            ok = sim_place <= places
+            lines.append(f"{'✅' if ok else '⏳'} {pri} · ~{sim_place}-е из {places} · {name}")
+            if ok:
+                passing.append((e.get("priority_pz") or 99, name, sim_place, places))
+        elif not m.get("general") and m.get("kind") == "бюджет" and "general" in m:
+            lines.append(f"▫️ {pri} · квота · {e['position']}/{m.get('count', '?')} · {name}")
+        else:
+            lines.append(f"▫️ {pri} · {e['position']}/{m.get('count', '?')} · {name}")
+    lines.append("")
+    if passing:
+        passing.sort(key=lambda t: t[0])
+        _, nm, sim_place, places = passing[0]
+        head = "Сейчас проходите на" if consented else \
+            "Если подадите согласие сейчас — пройдёте на"
+        lines.append(f"🎯 <b>{head}: {nm}</b> (~{sim_place}-е из {places})")
+    budget = [e for e in entries
+              if lists_meta_all.get(e["list"], {}).get("kind") == "бюджет"]
+    if budget and not consented:
+        lines.append("⚠️ Согласие на зачисление не отмечено — на основном этапе "
+                     "нужно до <b>5 августа 12:00</b>")
+    upd = (meta or {}).get("updated_at", "")
+    if upd:
+        lines.append(f"<i>Обновлено: {upd[11:16]} {upd[8:10]}.{upd[5:7]}</i>")
+    return "\n".join(lines)
+
+
 def format_positions(meta: Optional[dict], shard: Optional[dict], code: str) -> str:
     entries = lookup(shard, code)
     updated = (meta or {}).get("updated_at", "") or (shard or {}).get("updated_at", "")

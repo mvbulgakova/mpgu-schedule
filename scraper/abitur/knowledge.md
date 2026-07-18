@@ -335,3 +335,4 @@ https://mpgu.su/studentam/obshhezhitiya-2/
 Адрес: Москва, пр-т Вернадского, 88 (м. Юго-Западная, выход №3).
 Контакты приёмной комиссии: https://mpgu.su/postuplenie/priemnaya-komissiya/
 Официальный FAQ: https://mpgu.su/voprosy-otvety-dlja-abiturientov/
+Вопросы о работе ЭТОГО телеграм-бота (ошибки, предложения): @soldat_olovyanniy
