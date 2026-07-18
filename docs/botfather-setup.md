@@ -24,7 +24,17 @@ Username существующего бота в BotFather сменить нел�
 тем, кто его не запускал. Подписки на позицию (`subs.json` в actions/cache)
 относятся к старому боту; после переезда подписчикам нужно оформить их заново.
 
-## Тексты для BotFather
+## ⚡ Автонастройка (актуально)
+
+Команды, описание и короткое описание бот теперь регистрирует САМ при каждом
+запуске (Bot API: setMyCommands/setMyDescription/setMyShortDescription в
+`telegram_bot._setup_profile`). Вставлять их в BotFather вручную НЕ нужно;
+чтобы поменять тексты — правьте константы в `scraper/telegram_bot.py`.
+
+Вручную в BotFather остаётся только аватарка: `/setuserpic` → выбрать бота →
+отправить картинку (готовая: `docs/priem_mpgu_bot_avatar.png`).
+
+## Тексты для BotFather (справочно — теперь ставятся автоматически)
 
 ### /setcommands
 ```

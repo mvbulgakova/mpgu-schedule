@@ -43,6 +43,17 @@ _HISTORY_MAX = 8  # последних реплик (4 обмена)
 class Reply:
     text: str
     keyboard: List[List[Tuple[str, str]]] = field(default_factory=list)
+    is_menu: bool = False   # сам экран меню — к нему кнопку «Меню» не добавляем
+
+
+_MENU_ROW = [("🏠 Меню", "open:menu")]
+
+
+def _finalize(r: Reply) -> Reply:
+    """Дописывает кнопку возврата в меню ко всем ответам, кроме самого меню."""
+    if r.is_menu:
+        return r
+    return Reply(r.text, list(r.keyboard) + [_MENU_ROW], r.is_menu)
 
 
 def _menu_keyboard() -> List[List[Tuple[str, str]]]:
@@ -141,6 +152,10 @@ def _unfollow(chat_id: int) -> Reply:
 
 
 def handle_message(chat_id: int, text: str) -> Reply:
+    return _finalize(_handle_message(chat_id, text))
+
+
+def _handle_message(chat_id: int, text: str) -> Reply:
     text = (text or "")[:MAX_MSG_LEN].strip()
     # 1) ввод часов волонтёрства во время калькулятора — высший приоритет для числа
     sess = SESSIONS.get(chat_id)
@@ -161,9 +176,9 @@ def handle_message(chat_id: int, text: str) -> Reply:
 
     intent, payload = faq.route(text)
     if intent in ("start", "help"):
-        return Reply(_GREETING, _menu_keyboard())
+        return Reply(_GREETING, _menu_keyboard(), is_menu=True)
     if intent == "menu":
-        return Reply("Выберите тему:", _menu_keyboard())
+        return Reply("Выберите тему:", _menu_keyboard(), is_menu=True)
     if intent == "calc":
         s = dialog.start()
         SESSIONS[chat_id] = s
@@ -199,6 +214,15 @@ def handle_message(chat_id: int, text: str) -> Reply:
 
 
 def handle_callback(chat_id: int, data: str) -> Reply:
+    return _finalize(_handle_callback(chat_id, data))
+
+
+def _handle_callback(chat_id: int, data: str) -> Reply:
+    if data == "open:menu":
+        # выход из любых режимов ожидания — «спасательная» кнопка
+        AWAITING_CODE.pop(chat_id, None)
+        AWAITING_SCORES.pop(chat_id, None)
+        return Reply("Выберите тему:", _menu_keyboard(), is_menu=True)
     if data.startswith("d:"):
         text_d, kb = faq.dates_step(data[2:])
         return Reply(text_d, kb)
@@ -266,6 +290,44 @@ def _check_subs(token: str):
         _save_subs()
 
 
+# Оформление бота: команды и описания регистрируются самим ботом при старте
+# (Bot API setMyCommands/setMyDescription) — BotFather не нужен, кроме аватарки.
+_BOT_COMMANDS = [
+    {"command": "start", "description": "главное меню"},
+    {"command": "spisok", "description": "моя позиция: прохожу ли я и на что"},
+    {"command": "follow", "description": "следить за изменением позиции"},
+    {"command": "unfollow", "description": "отключить слежение"},
+    {"command": "shansy", "description": "подбор программ по баллам ЕГЭ"},
+    {"command": "vybor", "description": "консультация по выбору направления"},
+    {"command": "bally", "description": "калькулятор доп. баллов"},
+    {"command": "sroki", "description": "сроки и ближайшие дедлайны"},
+    {"command": "help", "description": "помощь"},
+]
+_BOT_DESCRIPTION = (
+    "Помогаю поступающим в МПГУ:\n"
+    "🔎 /spisok — позиция в списках: прохожу ли я и на что\n"
+    "🔔 слежение — сообщу, когда позиция изменится\n"
+    "🧮 /shansy — подбор программ по баллам ЕГЭ\n"
+    "🧭 /vybor — консультация по выбору направления\n"
+    "➕ /bally — калькулятор доп. баллов\n"
+    "📅 /sroki — дедлайны кампании 2026\n"
+    "И отвечаю на свободные вопросы по Правилам приёма.")
+_BOT_SHORT_DESCRIPTION = ("Помощник абитуриента МПГУ: списки и «прохожу ли я», "
+                          "подбор по ЕГЭ, доп. баллы, сроки-2026.")
+
+
+def _setup_profile(token: str):
+    """Идемпотентная регистрация команд и описаний (раз в запуск, ~раз в час)."""
+    try:
+        _api(token, "setMyCommands", commands=json.dumps(_BOT_COMMANDS))
+        _api(token, "setMyDescription", description=_BOT_DESCRIPTION)
+        _api(token, "setMyShortDescription",
+             short_description=_BOT_SHORT_DESCRIPTION)
+        print("Профиль бота обновлён (команды/описания)")
+    except Exception as e:
+        print(f"setup profile error (не критично): {e}")
+
+
 # ── Telegram I/O ──────────────────────────────────────────────────────────────
 
 def _api(token: str, method: str, **params):
@@ -315,6 +377,7 @@ def main() -> int:
         print(f"deleteWebhook: {info.get('ok')}")
     except Exception as e:
         print(f"deleteWebhook error (продолжаю): {e}")
+    _setup_profile(token)
     if SUBS_PATH:
         SUBS.update(follow.load(SUBS_PATH))
         print(f"Подписок загружено: {len(SUBS)}")

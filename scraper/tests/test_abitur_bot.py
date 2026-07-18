@@ -129,3 +129,24 @@ def test_llm_error_not_saved_to_history(monkeypatch):
                         lambda q, history=None, **kw: "Не удалось ответить автоматически. X")
     bot.handle_message(chat_id=57, text="вопрос")
     assert 57 not in bot.HISTORY or bot.HISTORY[57] == []
+
+
+def test_menu_button_on_every_reply_and_escape():
+    bot.AWAITING_CODE.clear(); bot.AWAITING_SCORES.clear()
+    # у обычного ответа есть кнопка возврата в меню
+    out = bot.handle_message(chat_id=91, text="/spisok")
+    data = [cb for row in out.keyboard for (_, cb) in row]
+    assert "open:menu" in data
+    assert bot.AWAITING_CODE.get(91) is True
+    # нажатие «Меню» выходит из режима ожидания кода
+    out2 = bot.handle_callback(chat_id=91, data="open:menu")
+    assert 91 not in bot.AWAITING_CODE
+    d2 = [cb for row in out2.keyboard for (_, cb) in row]
+    assert "open:calc" in d2          # это само меню
+    assert "open:menu" not in d2      # в меню кнопки «Меню» нет
+
+
+def test_start_menu_has_no_menu_button():
+    out = bot.handle_message(chat_id=92, text="/start")
+    data = [cb for row in out.keyboard for (_, cb) in row]
+    assert "open:menu" not in data
