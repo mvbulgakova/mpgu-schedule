@@ -102,12 +102,29 @@ def _catalog() -> str:
     return _CATALOG_CACHE
 
 
+_EXTRA_DIR = Path(__file__).with_name("kb_extra")
+_EXTRA_CACHE: Optional[str] = None
+
+
+def _kb_extra() -> str:
+    """Доп. справочники (цены, олимпиады, квоты) из kb_extra/*.md — тоже источник истины."""
+    global _EXTRA_CACHE
+    if _EXTRA_CACHE is None:
+        parts = []
+        if _EXTRA_DIR.is_dir():
+            for f in sorted(_EXTRA_DIR.glob("*.md")):
+                parts.append(f"\n\n=== {f.stem} ===\n" + f.read_text(encoding="utf-8"))
+        _EXTRA_CACHE = "".join(parts)
+    return _EXTRA_CACHE
+
+
 def _build_system(kb_text: str):
     text = _SYSTEM_HEADER + kb_text
     cat = _catalog()
     if cat:
         text += ("\n\n=== КАТАЛОГ ПРОГРАММ 2026 (код, название, форма, бюджетные места"
                  "/платно, ДВИ) ===\n" + cat)
+    text += _kb_extra()
     return [{"type": "text", "text": text,
              "cache_control": {"type": "ephemeral"}}]
 
