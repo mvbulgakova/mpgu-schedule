@@ -98,3 +98,26 @@ def test_no_duplicate_programs():
              frozenset(frozenset(s) for s in p["exam_slots"]))
             for p in progs]
     assert len(keys) == len(set(keys)), "полные дубли программ в каталоге"
+
+
+def test_paid_places_pinned_to_dogovor_order():
+    """Пины договорных мест (приказ kcpbvobacspecdogovor_2, столбец РФ)."""
+    import json
+    from pathlib import Path
+    progs = json.loads((Path(__file__).resolve().parents[1] / "abitur"
+                        / "programs_2026.json").read_text(encoding="utf-8"))["programs"]
+
+    def pp(pred):
+        vals = {p.get("paid_places") for p in progs
+                if pred(p) and p.get("paid_only")}
+        assert len(vals) == 1, vals
+        return vals.pop()
+
+    assert pp(lambda p: p["form"] == "очная"
+              and p["name"].endswith("Журналистика и Литература")) == 300
+    assert pp(lambda p: p["form"] == "очная"
+              and p["name"].endswith("направленность Юриспруденция")) == 50
+    assert pp(lambda p: p["form"] == "очная"
+              and "Графический дизайн/Дизайн среды" in p["name"]) == 100
+    # у бюджетных программ поля paid_places не бывает
+    assert all("paid_places" not in p for p in progs if not p.get("paid_only"))

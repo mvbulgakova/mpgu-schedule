@@ -88,13 +88,15 @@ _PLACES_CACHE: Dict[tuple, Optional[int]] = {}
 
 
 def _places_for(m: dict) -> Optional[int]:
-    """Бюджетные места (КЦП) программы для списка epk25; None, если матч ненадёжен.
+    """Места программы для списка epk25; None, если матч ненадёжен.
 
-    Тот же безопасный матчинг, что в /shansy: слова программы — подмножество слов
-    направления, код и форма совпадают; при неоднозначности мест не показываем.
+    Для бюджетных списков — КЦП (places), для платных — договорные места РФ
+    (paid_places). Тот же безопасный матчинг, что в /shansy: слова программы —
+    подмножество слов направления; при неоднозначности мест не показываем.
     """
     direction, form = m.get("direction") or "", m.get("form") or ""
-    key = (direction, form)
+    paid = (m.get("kind") == "платное")
+    key = (direction, form, paid)
     if key in _PLACES_CACHE:
         return _PLACES_CACHE[key]
     places = None
@@ -102,10 +104,12 @@ def _places_for(m: dict) -> Optional[int]:
         from scraper.abitur import shansy
         code = direction.split()[0] if direction else ""
         dw = shansy._words(direction)
+        field = "paid_places" if paid else "places"
         cands = [p for p in shansy.load_programs()
                  if p["code"] == code and p.get("form") == form
+                 and bool(p.get("paid_only")) == paid
                  and shansy._words(p["name"]) and shansy._words(p["name"]) <= dw]
-        vals = {p.get("places") for p in cands}
+        vals = {p.get(field) for p in cands}
         if len(vals) == 1:
             places = vals.pop()
     except Exception:
@@ -171,7 +175,9 @@ def format_positions_short(meta: Optional[dict], shard: Optional[dict],
         places = m.get("places")
         sim_above = e.get("sim_above")
         if m.get("kind") == "платное":
-            lines.append(f"💳 {pri} · {e['position']}/{m.get('count', '?')} · {name}")
+            pp = _places_for(m)
+            pp_s = f" · мест {pp}" if pp else ""
+            lines.append(f"💳 {pri} · {e['position']}/{m.get('count', '?')}{pp_s} · {name}")
         elif m.get("general") and places and sim_above is not None:
             sim_place = sim_above + 1
             ok = sim_place <= places
@@ -243,6 +249,10 @@ def format_positions(meta: Optional[dict], shard: Optional[dict], code: str) -> 
                                         m.get("direction") or name, None, places))
             else:
                 parts.append("квотный список")
+        elif m.get("kind") == "платное":
+            pp = _places_for(m)
+            if pp:
+                parts.append(f"мест (РФ): {pp}")
         parts.append(f"баллы {e.get('score_total')}")
         if e.get("priority_pz") is not None:
             parts.append(f"приоритет {e['priority_pz']}")

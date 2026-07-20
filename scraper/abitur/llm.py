@@ -97,7 +97,11 @@ def _catalog() -> str:
                                 "подготовки), направленность ", "Пед. (2 профиля): ")
             name = name.replace("Педагогическое образование, направленность ", "Пед.: ")
             name = name.replace(", направленность ", ": ")
-            tail = "платно" if p.get("paid_only") else f"мест {p.get('places')}"
+            if p.get("paid_only"):
+                pp = p.get("paid_places")
+                tail = f"платно, мест {pp}" if pp else "платно"
+            else:
+                tail = f"мест {p.get('places')}"
             dvi = ", ДВИ" if p.get("dvi") else ""
             slots = " + ".join("/".join(a[:28] for a in slot)
                                for slot in p.get("exam_slots", []))
