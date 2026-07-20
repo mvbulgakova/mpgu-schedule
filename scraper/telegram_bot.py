@@ -18,7 +18,7 @@ import urllib.request
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Tuple
 
-from scraper.abitur import dialog, faq, feedback, follow, llm, lists, shansy
+from scraper.abitur import campaign, dialog, faq, feedback, follow, llm, lists, shansy
 
 RUN_SECONDS = int(os.environ.get("RUN_SECONDS", "3300"))
 MAX_MSG_LEN = 1000
@@ -458,6 +458,11 @@ def main() -> int:
     if not token:
         print("BOT_TOKEN не задан — пропускаю. Выход.")
         return 0
+    warn = campaign.staleness_warning()
+    if warn:
+        print(warn, flush=True)
+    else:
+        print(f"Кампания: {campaign.CAMPAIGN}", flush=True)
     # Гарантируем доставку через getUpdates: снимаем возможный вебхук от старого
     # бота расписания (webhook и long-polling на одном токене несовместимы — иначе
     # getUpdates отдаёт 409 Conflict и бот молчит). drop_pending_updates не ставим,

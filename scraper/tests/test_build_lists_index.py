@@ -151,3 +151,16 @@ def test_build_index_sim_fields():
     # 333 (согласие, поз.3): 111 занял единственное место → выше один зачисленный
     e333 = shards["33"]["codes"]["333"][0]
     assert e333["sim_above"] == 1
+
+
+def test_build_index_reports_coverage():
+    pages = {"G1": VIEW_SIM}
+    meta = {"G1": {"direction": "44.03.01 История", "form": "очная", "kind": "бюджет"}}
+    # места известны → покрытие 1.0
+    md, _ = build_index(pages, meta, updated_at="t", places_fn=lambda m: 30)
+    assert md["coverage"]["general_budget_lists"] == 1
+    assert md["coverage"]["with_places"] == 1
+    assert md["coverage"]["match_rate"] == 1.0
+    # места неизвестны → покрытие 0.0 (сигнал сломанного матчинга)
+    md2, _ = build_index(pages, meta, updated_at="t", places_fn=lambda m: None)
+    assert md2["coverage"]["match_rate"] == 0.0

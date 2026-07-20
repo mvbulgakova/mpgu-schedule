@@ -85,6 +85,16 @@ def build_index(pages: Dict[str, str], meta: Dict[str, dict],
         if m["general"]:
             m["places"] = places_fn(m)
 
+    # Покрытие сопоставления: сколько общих бюджетных списков получили места из
+    # каталога. Резкое падение = нечёткий матчинг сломался на новых данных
+    # (тихий промах становится видимым — см. main() и вотчдог).
+    gen_budget = [m for m in lists.values() if m.get("general")]
+    matched = [m for m in gen_budget if m.get("places")]
+    coverage = {"general_budget_lists": len(gen_budget),
+                "with_places": len(matched),
+                "match_rate": round(len(matched) / len(gen_budget), 3)
+                if gen_budget else None}
+
     # Симуляция: только согласившиеся в общих бюджетных списках с известными местами.
     places = {lc: m["places"] for lc, m in lists.items()
               if m.get("general") and m.get("places")}
@@ -122,7 +132,7 @@ def build_index(pages: Dict[str, str], meta: Dict[str, dict],
             codes.setdefault(r["unique_code"], []).append(entry)
 
     meta_doc = {"updated_at": updated_at, "campaign": "2026",
-                "lists": lists, "codes_total": len(codes)}
+                "lists": lists, "codes_total": len(codes), "coverage": coverage}
     shards: Dict[str, dict] = {}
     for ucode, entries in codes.items():
         sk = _shard_key(ucode)
@@ -182,10 +192,18 @@ def main() -> int:
               f"Опубликовать принудительно: FORCE_PUBLISH=1.")
         return 1
 
+    cov = meta_doc["coverage"]
+    if cov["match_rate"] is not None and cov["match_rate"] < 0.6:
+        print(f"⚠️ НИЗКОЕ ПОКРЫТИЕ мест: сопоставлено {cov['with_places']}/"
+              f"{cov['general_budget_lists']} общих бюджетных списков "
+              f"({int(cov['match_rate'] * 100)}%). Возможно, сломался матчинг "
+              f"программ (новые названия/КЦП) — проверьте programs_2026.json.")
+
     storage.write_lists_data(meta_doc, shards)
     storage.commit_and_push(f"lists: обновление индекса конкурсных списков ({now})")
     print(f"Списков: {len(meta_doc['lists'])}, кодов: {meta_doc['codes_total']}, "
-          f"шардов: {len(shards)}, stats={stats}")
+          f"шардов: {len(shards)}, покрытие мест: {cov['with_places']}/"
+          f"{cov['general_budget_lists']} ({cov['match_rate']}), stats={stats}")
     return 0
 
 
