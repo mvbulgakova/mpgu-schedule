@@ -1,19 +1,22 @@
 name: Telegram Bot (polling)
 
-# Бот без внешнего хостинга: каждый запуск опрашивает Telegram ~55 минут и
-# отвечает почти мгновенно, затем выходит; крон перезапускает (≈5 мин пауза в час).
+# Бот без внешнего хостинга: запуск опрашивает Telegram ~5.5 часов, затем выходит.
+# Планировщик GitHub пропускает кроны в часы пик (реальные интервалы 1–3.5 ч) —
+# поэтому раны длинные, а частые кроны служат «подхватом»: пока ран идёт, новый
+# триггер ЖДЁТ в очереди (cancel-in-progress: false) и стартует сразу после его
+# завершения. Для суток покрытия хватает 4–5 сработавших кронов из 24.
 # Секреты репозитория: BOT_TOKEN и ANTHROPIC_API_KEY (Settings → Secrets → Actions).
-# Запустить вручную: Actions → Telegram Bot (polling) → Run workflow.
+# Срочно передеплоить код: отменить текущий ран вручную → очередь стартует новый.
 
 on:
   schedule:
-    - cron: "0 * * * *"   # каждый час
+    - cron: "0 * * * *"   # каждый час (сработает — встанет в очередь)
   workflow_dispatch:
 
-# При ручном запуске или новом кроне — отменяем старый, стартуем свежий
+# НЕ отменяем работающий ран: новый ждёт в очереди и подхватывает сразу после
 concurrency:
   group: telegram-bot-poll
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 permissions:
   contents: read
@@ -21,7 +24,7 @@ permissions:
 jobs:
   poll:
     runs-on: ubuntu-latest
-    timeout-minutes: 58
+    timeout-minutes: 350
     steps:
       - uses: actions/checkout@v4
         with:
@@ -51,7 +54,7 @@ jobs:
         env:
           BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-          RUN_SECONDS: "3300"
+          RUN_SECONDS: "19800"
           SUBS_PATH: subs.json
           FEEDBACK_PATH: feedback.json
           ADMIN_CHAT_ID: ${{ secrets.ADMIN_CHAT_ID }}
