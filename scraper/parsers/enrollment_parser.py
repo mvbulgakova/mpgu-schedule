@@ -66,14 +66,18 @@ def parse_text(txt: str) -> Dict[Tuple[str, str, str], int]:
             if osnov and "юджет" not in osnov.group(1):
                 continue                          # не бюджет — пропускаем
             sums = [int(s) for s in _REC_B.findall(b)]
-        else:                                     # формат A/C: последнее крупное число
+        else:                                     # формат A/C: сумма = максимум записи
+            # Сумма конкурсных баллов = сумма 3 ВИ + ИД, всегда больше любого
+            # отдельного балла (ВИ ≤ 100, ИД ≤ 10). Берём максимум, а не
+            # последнее число: у некоторых записей балл ВИ «профильная
+            # подготовка — 100» стоит после суммы и ломал «последнее число».
             sums = []
             for r in _REC_A.split(b)[1:]:
                 r = r.split("Направление подготовки")[0]
                 big = [int(x) for x in re.findall(r"\b(\d{2,3})\b", r)
                        if 100 <= int(x) <= 310]
                 if big:
-                    sums.append(big[-1])
+                    sums.append(max(big))
         if sums:
             res.setdefault((code, form, prog), []).append(min(sums))
     return {k: min(v) for k, v in res.items()}
