@@ -5,8 +5,10 @@ admissions/by_code/<XX>.json  — позиции абитуриентов (ша�
 """
 import json
 import os
+import re
 import time
 import urllib.request
+from pathlib import Path
 from typing import Dict, List, Optional
 
 # Первичный источник — raw.githubusercontent (кэш ~5 мин: важно для уведомлений
@@ -86,13 +88,58 @@ def _list_label(meta: Optional[dict], list_code: str) -> str:
 
 _PLACES_CACHE: Dict[tuple, Optional[int]] = {}
 
+_ALIAS_PATH = Path(__file__).with_name("list_aliases_2026.json")
+_ALIASES: Optional[Dict[str, str]] = None
+
+
+def _norm_text(s: str) -> str:
+    return re.sub(r"\s+", " ", (s or "").lower()).strip()
+
+
+def _aliases() -> Dict[str, str]:
+    """направление списка (нормализованное) → название программы каталога."""
+    global _ALIASES
+    if _ALIASES is None:
+        try:
+            doc = json.loads(_ALIAS_PATH.read_text(encoding="utf-8"))
+            _ALIASES = {_norm_text(a["direction"]): _norm_text(a["program"])
+                        for a in doc.get("aliases", [])}
+        except Exception:
+            _ALIASES = {}
+    return _ALIASES
+
+
+def _match_programs(direction: str, form: str, paid: bool) -> List[dict]:
+    """Программы каталога, надёжно соответствующие списку epk25.
+
+    1. Ручная привязка (list_aliases_2026.json) — для сокращённых/обрезанных
+       названий на epk25, где матчинг по словам бессилен.
+    2. Иначе — слова программы ⊆ слов направления; кандидаты, чьи слова —
+       СТРОГОЕ подмножество слов другого кандидата, отбрасываются: короткое
+       имя («История») совпало «заодно» с объединённой конкурсной группой
+       («История и Воспитательная работа/…»), а не наоборот.
+    """
+    from scraper.abitur import shansy
+    code = direction.split()[0] if direction else ""
+    progs = [p for p in shansy.load_programs()
+             if p["code"] == code and p.get("form") == form
+             and bool(p.get("paid_only")) == paid]
+    alias = _aliases().get(_norm_text(direction))
+    if alias:
+        hit = [p for p in progs if _norm_text(p["name"]) == alias]
+        if hit:
+            return hit
+    dw = shansy._words(direction)
+    ws = [(p, shansy._words(p["name"])) for p in progs
+          if shansy._words(p["name"]) and shansy._words(p["name"]) <= dw]
+    return [p for p, w in ws if not any(w < w2 for _, w2 in ws)]
+
 
 def _places_for(m: dict) -> Optional[int]:
     """Места программы для списка epk25; None, если матч ненадёжен.
 
     Для бюджетных списков — КЦП (places), для платных — договорные места РФ
-    (paid_places). Тот же безопасный матчинг, что в /shansy: слова программы —
-    подмножество слов направления; при неоднозначности мест не показываем.
+    (paid_places). При неоднозначности мест не показываем (см. _match_programs).
     """
     direction, form = m.get("direction") or "", m.get("form") or ""
     paid = (m.get("kind") == "платное")
@@ -101,15 +148,8 @@ def _places_for(m: dict) -> Optional[int]:
         return _PLACES_CACHE[key]
     places = None
     try:
-        from scraper.abitur import shansy
-        code = direction.split()[0] if direction else ""
-        dw = shansy._words(direction)
         field = "paid_places" if paid else "places"
-        cands = [p for p in shansy.load_programs()
-                 if p["code"] == code and p.get("form") == form
-                 and bool(p.get("paid_only")) == paid
-                 and shansy._words(p["name"]) and shansy._words(p["name"]) <= dw]
-        vals = {p.get(field) for p in cands}
+        vals = {p.get(field) for p in _match_programs(direction, form, paid)}
         if len(vals) == 1:
             places = vals.pop()
     except Exception:
@@ -129,13 +169,8 @@ def _quota_for(m: dict) -> Optional[int]:
         return _QUOTA_CACHE[key]
     q = None
     try:
-        from scraper.abitur import shansy
-        code = direction.split()[0] if direction else ""
-        dw = shansy._words(direction)
-        cands = [p for p in shansy.load_programs()
-                 if p["code"] == code and p.get("form") == form and not p.get("paid_only")
-                 and shansy._words(p["name"]) and shansy._words(p["name"]) <= dw]
-        vals = {p.get("quota_places") for p in cands}
+        vals = {p.get("quota_places")
+                for p in _match_programs(direction, form, paid=False)}
         if len(vals) == 1:
             q = vals.pop()
     except Exception:

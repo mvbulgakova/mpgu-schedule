@@ -231,3 +231,68 @@ def test_short_format_has_consent_warning_one_liner(monkeypatch):
 def test_short_not_found_same_as_full():
     out = L.format_positions_short(META3, {"updated_at": "t", "codes": {}}, "999")
     assert "не найден" in out.lower()
+
+
+# ── Матчинг списка → программа: специфичность и ручные привязки ──────────────
+
+def _progs(monkeypatch, progs):
+    import scraper.abitur.shansy as S
+    import scraper.abitur.lists as LM
+    LM._PLACES_CACHE.clear(); LM._QUOTA_CACHE.clear()
+    monkeypatch.setattr(S, "load_programs", lambda: progs)
+
+
+def test_specific_group_beats_generic_short_name(monkeypatch):
+    # «История» (32) совпадает «заодно» с группой «История и Воспитательная
+    # работа/…» (58) — берём группу, а не молчим из-за неоднозначности
+    _progs(monkeypatch, [
+        {"code": "44.03.01", "form": "очная", "paid_only": False, "places": 58,
+         "name": "Педагогическое образование, направленность История и Воспитательная работа/Обществознание и Экономико-правовое образование"},
+        {"code": "44.03.01", "form": "очная", "paid_only": False, "places": 32,
+         "name": "Педагогическое образование, направленность История"},
+    ])
+    m = {"direction": "44.03.01 Педагогическое образование. История и "
+                      "Воспитательная работа/Обществознание и Экономико-правовое образование",
+         "form": "очная", "kind": "бюджет"}
+    assert L._places_for(m) == 58
+
+
+def test_ambiguity_without_nesting_still_silent(monkeypatch):
+    # два кандидата с разными местами, ни один не вложен в другой → честный None
+    _progs(monkeypatch, [
+        {"code": "44.03.01", "form": "очная", "paid_only": False, "places": 20,
+         "name": "Педагогическое образование, направленность Химия и Экология"},
+        {"code": "44.03.01", "form": "очная", "paid_only": False, "places": 30,
+         "name": "Педагогическое образование, направленность Биология и Экология"},
+    ])
+    m = {"direction": "44.03.01 Педагогическое образование. Химия и Биология и Экология",
+         "form": "очная", "kind": "бюджет"}
+    assert L._places_for(m) is None
+
+
+def test_alias_map_resolves_abbreviated_direction():
+    # реальная привязка из list_aliases_2026.json: «Доп» на epk25 ≠ «Дополнительное»
+    import scraper.abitur.lists as LM
+    LM._PLACES_CACHE.clear(); LM._QUOTA_CACHE.clear()
+    m = {"direction": "44.03.01 Педагогическое образование. Изобразительное "
+                      "искусство и Доп образование",
+         "form": "очная", "kind": "бюджет"}
+    assert L._places_for(m) == 30
+    assert L._quota_for(m) == 6
+
+
+def test_alias_file_targets_exist_in_catalog():
+    # каждая привязка указывает ровно на одну программу каталога (code+form)
+    import json as J
+    from pathlib import Path
+    from scraper.abitur import shansy
+    doc = J.loads((Path(L.__file__).parent / "list_aliases_2026.json")
+                  .read_text(encoding="utf-8"))
+    progs = shansy.load_programs()
+    assert doc["aliases"], "файл привязок пуст"
+    for a in doc["aliases"]:
+        code = a["direction"].split()[0]
+        hits = {L._norm_text(p["name"]) for p in progs
+                if p["code"] == code and not p.get("paid_only")
+                and L._norm_text(p["name"]) == L._norm_text(a["program"])}
+        assert len(hits) == 1, f"привязка не находит программу: {a['direction'][:60]}"
