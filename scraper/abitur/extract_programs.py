@@ -121,6 +121,9 @@ def parse_programs(text: str) -> List[dict]:
         name = re.sub(r"\s+", " ", " ".join(p["name_parts"])).strip(" ,")
         paid = "*" in name
         name = name.replace("*", "").strip()
+        # Хвост «Профиль по выбору: …» — перечисление профилей, не название.
+        # На epk25 длинные названия обрезаются, и матчинг мест по словам ломается.
+        name = re.sub(r"\s*Профиль по выбору:.*$", "", name).strip(" ,.")
         dvi = any("испытание" in a.lower() for slot in p["exam_slots"] for a in slot)
         out.append({"code": p["code"], "name": name, "form": p["form"] or "очная",
                     "exam_slots": p["exam_slots"], "paid_only": paid, "dvi": dvi,
