@@ -89,31 +89,63 @@ def _list_label(meta: Optional[dict], list_code: str) -> str:
 _PLACES_CACHE: Dict[tuple, Optional[int]] = {}
 
 _ALIAS_PATH = Path(__file__).with_name("list_aliases_2026.json")
-_ALIASES: Optional[Dict[str, str]] = None
+_MAG_PATH = Path(__file__).with_name("programs_mag_2026.json")
+_ALIASES: Optional[dict] = None
+_MAG: Optional[List[dict]] = None
 
 
 def _norm_text(s: str) -> str:
     return re.sub(r"\s+", " ", (s or "").lower()).strip()
 
 
-def _aliases() -> Dict[str, str]:
-    """направление списка (нормализованное) → название программы каталога."""
+def _aliases() -> dict:
+    """{"dir": направление→программа, "code": код списка→программа} (нормализовано)."""
     global _ALIASES
     if _ALIASES is None:
+        by_dir, by_code = {}, {}
         try:
             doc = json.loads(_ALIAS_PATH.read_text(encoding="utf-8"))
-            _ALIASES = {_norm_text(a["direction"]): _norm_text(a["program"])
-                        for a in doc.get("aliases", [])}
+            for a in doc.get("aliases", []):
+                if a.get("list_code"):
+                    by_code[a["list_code"]] = _norm_text(a["program"])
+                else:
+                    by_dir[_norm_text(a["direction"])] = _norm_text(a["program"])
         except Exception:
-            _ALIASES = {}
+            pass
+        _ALIASES = {"dir": by_dir, "code": by_code}
     return _ALIASES
 
 
-def _match_programs(direction: str, form: str, paid: bool) -> List[dict]:
+def alias_list_codes() -> set:
+    """Коды списков с ручной привязкой по коду (нужны build_lists_index)."""
+    return set(_aliases()["code"])
+
+
+def _mag_programs() -> List[dict]:
+    """Магистратура (бюджет): отдельный каталог только для матчинга мест."""
+    global _MAG
+    if _MAG is None:
+        try:
+            doc = json.loads(_MAG_PATH.read_text(encoding="utf-8"))
+            _MAG = doc.get("programs", [])
+        except Exception:
+            _MAG = []
+    return _MAG
+
+
+def _list_code_of(m: dict) -> str:
+    mm = re.search(r"code=(\d+)", m.get("url") or "")
+    return mm.group(1) if mm else ""
+
+
+def _match_programs(direction: str, form: str, paid: bool,
+                    list_code: str = "") -> List[dict]:
     """Программы каталога, надёжно соответствующие списку epk25.
 
-    1. Ручная привязка (list_aliases_2026.json) — для сокращённых/обрезанных
-       названий на epk25, где матчинг по словам бессилен.
+    1. Ручная привязка (list_aliases_2026.json) по коду списка — когда у двух
+       списков одинаковое направление+форма (Москва и филиал) — или по
+       направлению: сокращённые/обрезанные названия на epk25, где матчинг
+       по словам бессилен.
     2. Иначе — слова программы ⊆ слов направления; кандидаты, чьи слова —
        СТРОГОЕ подмножество слов другого кандидата, отбрасываются: короткое
        имя («История») совпало «заодно» с объединённой конкурсной группой
@@ -121,10 +153,11 @@ def _match_programs(direction: str, form: str, paid: bool) -> List[dict]:
     """
     from scraper.abitur import shansy
     code = direction.split()[0] if direction else ""
-    progs = [p for p in shansy.load_programs()
+    progs = [p for p in shansy.load_programs() + _mag_programs()
              if p["code"] == code and p.get("form") == form
              and bool(p.get("paid_only")) == paid]
-    alias = _aliases().get(_norm_text(direction))
+    al = _aliases()
+    alias = al["code"].get(list_code) or al["dir"].get(_norm_text(direction))
     if alias:
         hit = [p for p in progs if _norm_text(p["name"]) == alias]
         if hit:
@@ -143,13 +176,15 @@ def _places_for(m: dict) -> Optional[int]:
     """
     direction, form = m.get("direction") or "", m.get("form") or ""
     paid = (m.get("kind") == "платное")
-    key = (direction, form, paid)
+    lc = _list_code_of(m)
+    key = (direction, form, paid, lc)
     if key in _PLACES_CACHE:
         return _PLACES_CACHE[key]
     places = None
     try:
         field = "paid_places" if paid else "places"
-        vals = {p.get(field) for p in _match_programs(direction, form, paid)}
+        vals = {p.get(field)
+                for p in _match_programs(direction, form, paid, list_code=lc)}
         if len(vals) == 1:
             places = vals.pop()
     except Exception:
@@ -164,13 +199,15 @@ _QUOTA_CACHE: Dict[tuple, Optional[int]] = {}
 def _quota_for(m: dict) -> Optional[int]:
     """Мест под квотами (особая+отдельная) у программы бюджетного списка; None если неизвестно."""
     direction, form = m.get("direction") or "", m.get("form") or ""
-    key = (direction, form)
+    lc = _list_code_of(m)
+    key = (direction, form, lc)
     if key in _QUOTA_CACHE:
         return _QUOTA_CACHE[key]
     q = None
     try:
         vals = {p.get("quota_places")
-                for p in _match_programs(direction, form, paid=False)}
+                for p in _match_programs(direction, form, paid=False,
+                                         list_code=lc)}
         if len(vals) == 1:
             q = vals.pop()
     except Exception:

@@ -75,14 +75,22 @@ def build_index(pages: Dict[str, str], meta: Dict[str, dict],
                      f"https://epk25.mpgu.su/competitive-list/view?code={code_list}")
         lists[code_list] = m
 
-    # Общий конкурс = крупнейший бюджетный список направления+формы; ему ищем места.
+    # Общий конкурс = крупнейший бюджетный список направления+формы; ему ищем
+    # места. Исключение — ручная привязка по коду списка (кампус-дубли вроде
+    # Покровского филиала): такой список — свой отдельный общий конкурс.
+    try:
+        from scraper.abitur.lists import alias_list_codes
+        aliased = alias_list_codes()
+    except Exception:
+        aliased = set()
     for lc, m in lists.items():
         if m.get("kind") != "бюджет":
             continue
         same = [x for x in lists.values()
                 if x.get("kind") == "бюджет" and x.get("direction") == m.get("direction")
                 and x.get("form") == m.get("form")]
-        m["general"] = (m["count"] or 0) >= max((x.get("count") or 0) for x in same)
+        m["general"] = (lc in aliased
+                        or (m["count"] or 0) >= max((x.get("count") or 0) for x in same))
         if m["general"]:
             m["places"] = places_fn(m)
 

@@ -288,7 +288,7 @@ def test_alias_file_targets_exist_in_catalog():
     from scraper.abitur import shansy
     doc = J.loads((Path(L.__file__).parent / "list_aliases_2026.json")
                   .read_text(encoding="utf-8"))
-    progs = shansy.load_programs()
+    progs = shansy.load_programs() + L._mag_programs()
     assert doc["aliases"], "файл привязок пуст"
     for a in doc["aliases"]:
         code = a["direction"].split()[0]
@@ -296,3 +296,34 @@ def test_alias_file_targets_exist_in_catalog():
                 if p["code"] == code and not p.get("paid_only")
                 and L._norm_text(p["name"]) == L._norm_text(a["program"])}
         assert len(hits) == 1, f"привязка не находит программу: {a['direction'][:60]}"
+
+
+# ── Магистратура: каталог мест и кампус-дубли ────────────────────────────────
+
+def test_mag_places_by_word_match():
+    import scraper.abitur.lists as LM
+    LM._PLACES_CACHE.clear(); LM._QUOTA_CACHE.clear()
+    m = {"direction": "45.04.02 Лингвистика. Теория и практика перевода "
+                      "(английский язык)", "form": "очная", "kind": "бюджет"}
+    assert L._places_for(m) == 20
+    assert L._quota_for(m) is None   # в магистратуре нет особой/отдельной квоты
+
+
+def test_mag_campus_duplicate_resolved_by_list_code():
+    # Москва и Покровский филиал: направление+форма одинаковы, места разные
+    import scraper.abitur.lists as LM
+    LM._PLACES_CACHE.clear(); LM._QUOTA_CACHE.clear()
+    base = {"direction": "44.04.01 Педагогическое образование. Менеджмент "
+                         "в образовании", "form": "очная", "kind": "бюджет"}
+    msk = dict(base, url="https://epk25.mpgu.su/competitive-list/view?code=000000217")
+    fil = dict(base, url="https://epk25.mpgu.su/competitive-list/view?code=000000255")
+    assert L._places_for(msk) == 25
+    assert L._places_for(fil) == 15
+
+
+def test_mag_catalog_totals_pinned():
+    # приказ КЦП (спец. уровни ВО): 52 программы главного кампуса на 1476 мест
+    progs = L._mag_programs()
+    main = [p for p in progs if "филиал" not in p["name"]]
+    assert len(main) == 52
+    assert sum(p["places"] for p in main) == 1476

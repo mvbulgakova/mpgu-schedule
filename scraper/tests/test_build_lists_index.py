@@ -153,6 +153,24 @@ def test_build_index_sim_fields():
     assert e333["sim_above"] == 1
 
 
+def test_build_index_code_alias_marks_general(monkeypatch):
+    # кампус-дубль (филиал): список меньше московского, но с привязкой по коду
+    # — это свой отдельный общий конкурс, а не квотный список
+    import scraper.abitur.lists as LM
+    monkeypatch.setattr(LM, "alias_list_codes", lambda: {"B"})
+    big = VIEW.replace("</TABLE>",
+                       "<TR><TD>3</TD><TD>333</TD><TD></TD><TD>1</TD><TD></TD><TD></TD>"
+                       "<TD></TD><TD>240</TD><TD>240</TD><TD>80</TD><TD>80</TD><TD>80</TD>"
+                       "<TD>0</TD><TD></TD><TD>На рассмотрении</TD><TD></TD></TR></TABLE>")
+    meta = {"A": {"direction": "44.04.01 Менеджмент", "form": "очная", "kind": "бюджет"},
+            "B": {"direction": "44.04.01 Менеджмент", "form": "очная", "kind": "бюджет"}}
+    md, _ = build_index({"A": big, "B": VIEW}, meta, updated_at="t",
+                        places_fn=lambda m: 10)
+    assert md["lists"]["A"]["general"] is True    # крупнейший — как раньше
+    assert md["lists"]["B"]["general"] is True    # принудительно по привязке
+    assert md["lists"]["B"]["places"] == 10
+
+
 def test_build_index_reports_coverage():
     pages = {"G1": VIEW_SIM}
     meta = {"G1": {"direction": "44.03.01 История", "form": "очная", "kind": "бюджет"}}
