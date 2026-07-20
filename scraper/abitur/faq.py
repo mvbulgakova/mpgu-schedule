@@ -288,4 +288,13 @@ def route(text: str) -> Tuple[str, str]:
         return ("follow", arg)
     if cmd in ("/unfollow", "/stop"):
         return ("unfollow", "")
+    if cmd in ("/otzyv", "/feedback"):
+        arg = t[len(t.split()[0]):].strip() if t else ""
+        return ("otzyv", arg)
+    if cmd == "/myid":
+        return ("myid", "")
+    if cmd == "/export":
+        return ("export", "")
+    if cmd in ("/fb_stats", "/feedback_stats"):
+        return ("fb_stats", "")
     return ("free", t)

@@ -56,3 +56,45 @@ def test_dvi_flag_consistency():
         has_ispytanie = any("испытание" in s.lower()
                             for slot in p["exam_slots"] for s in slot)
         assert p["dvi"] == has_ispytanie, p["name"]
+
+
+def test_places_pinned_to_kcp_order():
+    """Регресс-пины мест по приказу КЦП (групповой файл kcpbvobacspec_1)."""
+    import json
+    from pathlib import Path
+    progs = json.loads((Path(__file__).resolve().parents[1] / "abitur"
+                        / "programs_2026.json").read_text(encoding="utf-8"))["programs"]
+
+    def places(pred):
+        vals = {p.get("places") for p in progs
+                if pred(p) and not p.get("paid_only")}
+        assert len(vals) == 1, vals
+        return vals.pop()
+
+    # у платных программ мест КЦП не бывает
+    assert all(p.get("places") is None for p in progs if p.get("paid_only"))
+
+    assert places(lambda p: p["form"] == "очная"
+                  and p["name"].endswith("направленность Химия")) == 15
+    assert places(lambda p: p["form"] == "очная" and p["name"].endswith(
+        "направленность Иностранный язык (английский)")) == 20
+    assert places(lambda p: p["form"] == "очная"
+                  and "История и Воспитательная работа/Обществознание" in p["name"]) == 58
+    assert places(lambda p: p["form"] == "очная"
+                  and "Психология и педагогика. Профессиональное консультирование/"
+                  in p["name"].replace(" /", "/")) in (100,)
+
+
+def test_no_duplicate_programs():
+    """Полные дубли (включая одинаковые ВИ с точностью до порядка) — запрещены.
+
+    Одноимённые программы с РАЗНЫМИ ВИ допустимы (разные конкурсные группы).
+    """
+    import json
+    from pathlib import Path
+    progs = json.loads((Path(__file__).resolve().parents[1] / "abitur"
+                        / "programs_2026.json").read_text(encoding="utf-8"))["programs"]
+    keys = [(p["code"], p.get("form"), p["name"], bool(p.get("paid_only")),
+             frozenset(frozenset(s) for s in p["exam_slots"]))
+            for p in progs]
+    assert len(keys) == len(set(keys)), "полные дубли программ в каталоге"

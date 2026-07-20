@@ -18,13 +18,16 @@ import urllib.request
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Tuple
 
-from scraper.abitur import dialog, faq, follow, llm, lists, shansy
+from scraper.abitur import dialog, faq, feedback, follow, llm, lists, shansy
 
 RUN_SECONDS = int(os.environ.get("RUN_SECONDS", "3300"))
 MAX_MSG_LEN = 1000
 # Файл подписок «следи за кодом» (переживает рестарты через actions/cache).
 SUBS_PATH = os.environ.get("SUBS_PATH", "")
 SUBS_CHECK_SECONDS = 600
+# Обратная связь: файл-хранилище и chat_id администратора (для /export, /fb_stats).
+FEEDBACK_PATH = os.environ.get("FEEDBACK_PATH", "")
+ADMIN_CHAT_ID = int(os.environ.get("ADMIN_CHAT_ID", "0") or "0")
 
 # In-memory состояние калькулятора по chat_id (эфемерно, теряется при рестарте).
 SESSIONS: Dict[int, dialog.CalcSession] = {}
@@ -37,6 +40,9 @@ SUBS: Dict[str, dict] = {}
 # Память свободного диалога (консультация по выбору): chat_id -> реплики.
 HISTORY: Dict[int, List[dict]] = {}
 _HISTORY_MAX = 8  # последних реплик (4 обмена)
+# Обратная связь: накопленные записи и режим «жду отзыв».
+FEEDBACK: List[dict] = []
+AWAITING_FEEDBACK: Dict[int, bool] = {}
 
 
 @dataclass
@@ -44,16 +50,20 @@ class Reply:
     text: str
     keyboard: List[List[Tuple[str, str]]] = field(default_factory=list)
     is_menu: bool = False   # сам экран меню — к нему кнопку «Меню» не добавляем
+    document: Optional[Tuple[bytes, str]] = None   # (содержимое, имя файла) для sendDocument
 
 
 _MENU_ROW = [("🏠 Меню", "open:menu")]
 
 
 def _finalize(r: Reply) -> Reply:
-    """Дописывает кнопку возврата в меню ко всем ответам, кроме самого меню."""
-    if r.is_menu:
+    """Дописывает кнопку возврата в меню ко всем ответам, кроме самого меню.
+
+    Пустой ответ (тихий игнор админ-команд от посторонних) не трогаем.
+    """
+    if r.is_menu or (not r.text and not r.document):
         return r
-    return Reply(r.text, list(r.keyboard) + [_MENU_ROW], r.is_menu)
+    return Reply(r.text, list(r.keyboard) + [_MENU_ROW], r.is_menu, r.document)
 
 
 def _menu_keyboard() -> List[List[Tuple[str, str]]]:
@@ -159,6 +169,25 @@ def _unfollow(chat_id: int) -> Reply:
     return Reply("Активной подписки нет. Оформить: /spisok → кнопка «Следить».", [])
 
 
+_OTZYV_THANKS = ("Спасибо! 🙏 Записал анонимно — это поможет отвечать абитуриентам "
+                 "честнее. Есть ещё впечатления — просто отправьте /otzyv снова.")
+
+
+def _save_feedback(chat_id: int, kind: str, text: str):
+    global FEEDBACK
+    FEEDBACK = feedback.add(FEEDBACK_PATH or None, FEEDBACK, chat_id, kind, text)
+
+
+def _otzyv(chat_id: int, payload: str) -> Reply:
+    if payload:
+        _save_feedback(chat_id, "otzyv", payload)
+        return Reply(_OTZYV_THANKS, [])
+    AWAITING_FEEDBACK[chat_id] = True
+    return Reply("✍️ Поделитесь впечатлениями одним сообщением: общежития, учёба, "
+                 "преподаватели, быт — что угодно. Сохраню анонимно (кто вы — "
+                 "не записывается).", [])
+
+
 def handle_message(chat_id: int, text: str) -> Reply:
     return _finalize(_handle_message(chat_id, text))
 
@@ -181,6 +210,12 @@ def _handle_message(chat_id: int, text: str) -> Reply:
     if AWAITING_SCORES.get(chat_id) and any(ch.isdigit() for ch in text) and not text.startswith("/"):
         AWAITING_SCORES.pop(chat_id, None)
         return Reply(_shansy_answer(text), [])
+
+    # 4) ожидаем отзыв после /otzyv
+    if AWAITING_FEEDBACK.get(chat_id) and text and not text.startswith("/"):
+        AWAITING_FEEDBACK.pop(chat_id, None)
+        _save_feedback(chat_id, "otzyv", text)
+        return Reply(_OTZYV_THANKS, [])
 
     intent, payload = faq.route(text)
     if intent in ("start", "help"):
@@ -215,8 +250,25 @@ def _handle_message(chat_id: int, text: str) -> Reply:
     if intent == "vybor":
         HISTORY[chat_id] = [{"role": "assistant", "content": _VYBOR_START}]
         return Reply(_VYBOR_START, [])
-    # свободный вопрос — логируем обрезанно и без длинных цифр (коды/телефоны),
-    # чтобы по логам закрывать пробелы базы знаний
+    if intent == "otzyv":
+        return _otzyv(chat_id, payload)
+    if intent == "myid":
+        return Reply(f"Ваш chat id: <b>{chat_id}</b>", [])
+    if intent == "export":
+        if chat_id != ADMIN_CHAT_ID:
+            return Reply("", [])   # молча
+        items = FEEDBACK
+        if not items:
+            return Reply("База обратной связи пуста.", [])
+        name = f"feedback_{len(items)}.csv"
+        return Reply(f"Выгрузка: {len(items)} записей.", [],
+                     document=(feedback.to_csv(items), name))
+    if intent == "fb_stats":
+        if chat_id != ADMIN_CHAT_ID:
+            return Reply("", [])   # молча
+        return Reply(feedback.stats_text(FEEDBACK), [])
+    # свободный вопрос — сохраняем для аналитики (хеш вместо личности) и в логи
+    _save_feedback(chat_id, "question", payload)
     print(f"Q: {re.sub(r'[0-9]{5,}', '<код>', payload)[:120]}", flush=True)
     return Reply(_answer_free(chat_id, payload), [])
 
@@ -356,7 +408,34 @@ def _markup(keyboard: List[List[Tuple[str, str]]]) -> Optional[str]:
         [{"text": t, "callback_data": cb} for (t, cb) in row] for row in keyboard]})
 
 
+def _send_document(token: str, chat_id: int, data: bytes, filename: str,
+                   caption: str = ""):
+    """sendDocument через multipart/form-data (стандартной библиотекой)."""
+    boundary = "----mpguBotBoundary7351"
+    parts = []
+    for k, v in (("chat_id", str(chat_id)), ("caption", caption)):
+        parts.append(f"--{boundary}\r\nContent-Disposition: form-data; "
+                     f"name=\"{k}\"\r\n\r\n{v}\r\n".encode())
+    parts.append((f"--{boundary}\r\nContent-Disposition: form-data; "
+                  f"name=\"document\"; filename=\"{filename}\"\r\n"
+                  f"Content-Type: text/csv\r\n\r\n").encode())
+    parts.append(data)
+    parts.append(f"\r\n--{boundary}--\r\n".encode())
+    body = b"".join(parts)
+    req = urllib.request.Request(
+        f"https://api.telegram.org/bot{token}/sendDocument", data=body,
+        headers={"Content-Type": f"multipart/form-data; boundary={boundary}"})
+    with urllib.request.urlopen(req, timeout=60) as r:
+        return json.loads(r.read().decode("utf-8"))
+
+
 def _send(token: str, chat_id: int, reply: Reply):
+    if reply.document is not None:
+        data, filename = reply.document
+        _send_document(token, chat_id, data, filename, caption=reply.text)
+        return
+    if not reply.text:
+        return  # тихий игнор (админ-команды от посторонних)
     params = {"chat_id": chat_id, "text": reply.text, "parse_mode": "HTML",
               "disable_web_page_preview": "true"}
     mk = _markup(reply.keyboard)
@@ -392,6 +471,9 @@ def main() -> int:
     if SUBS_PATH:
         SUBS.update(follow.load(SUBS_PATH))
         print(f"Подписок загружено: {len(SUBS)}")
+    if FEEDBACK_PATH:
+        FEEDBACK.extend(feedback.load(FEEDBACK_PATH))
+        print(f"Записей обратной связи: {len(FEEDBACK)}")
     deadline = time.time() + RUN_SECONDS
     offset = None
     last_subs_check = 0.0
