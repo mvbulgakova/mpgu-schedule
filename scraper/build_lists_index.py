@@ -68,6 +68,7 @@ def build_index(pages: Dict[str, str], meta: Dict[str, dict],
         rows_by_list[code_list] = rows
         m = dict(meta.get(code_list, {}))
         m["count"] = len(rows)
+        m["consented"] = sum(1 for r in rows if r.get("consent"))
         m["totals"] = sorted((r["score_total"] for r in rows
                               if r.get("score_total")), reverse=True)
         m.setdefault("url",

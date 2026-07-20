@@ -98,11 +98,13 @@ SHARD2 = {"updated_at": "t", "codes": {"555": [
 ]}}
 
 
-def _fake_places(monkeypatch):
+def _fake_places(monkeypatch, quota=None):
     import scraper.abitur.lists as LM
+    LM._PLACES_CACHE.clear(); LM._QUOTA_CACHE.clear()
     monkeypatch.setattr(LM, "_places_for",
                         lambda m: {"44.03.01 История": 30,
                                    "44.03.01 География": 25}.get(m.get("direction")))
+    monkeypatch.setattr(LM, "_quota_for", lambda m: quota)
 
 
 def test_positions_show_out_of_and_places(monkeypatch):
@@ -119,9 +121,27 @@ def test_passing_marks_and_priority_summary(monkeypatch):
     # L1: 45 > 30 мест → за чертой; L2: 12 ≤ 25 → проходит
     assert "⏳" in out and "✅" in out
     # итог по приоритетам: проходит на География (приоритет 2)
-    assert "Сейчас проход" in out and "География" in out
-    # квоты вернутся после приоритетного этапа — сноска присутствует
+    assert "прошли на" in out and "География" in out
+    # честная оговорка про долю согласий и дедлайн
+    assert "предварительно" in out.lower() and "5 августа" in out
     assert "приоритетного этапа" in out
+
+
+def test_general_seats_subtract_quota(monkeypatch):
+    # КЦП 25, квота 6 → в общем конкурсе 19 (как на Госуслугах), не 25
+    _fake_places(monkeypatch, quota=6)
+    meta = {"updated_at": "t", "lists": {"L": {
+        "direction": "44.03.01 География", "form": "очная", "kind": "бюджет",
+        "count": 300, "consented": 40, "general": True, "places": 25}}}
+    shard = {"updated_at": "t", "codes": {"555": [
+        {"list": "L", "position": 90, "score_total": 250, "consent": True,
+         "priority_pz": 1, "bvi": False, "status": "Участвует",
+         "cons_above": 30, "sim_above": 11}]}}
+    out = L.format_positions(meta, shard, "555")
+    assert "~12-е из 19" in out          # 25 − 6 квотных = 19
+    assert "КЦП 25" in out               # полное число тоже упомянуто
+    # оговорка показывает долю согласий
+    assert "40 из 300" in out
 
 
 def test_summary_when_passing_nowhere(monkeypatch):
@@ -182,7 +202,10 @@ SHARD3 = {"updated_at": "t", "codes": {"777": [
 ]}}
 
 
-def test_short_format_is_compact_and_sorted_by_priority():
+def test_short_format_is_compact_and_sorted_by_priority(monkeypatch):
+    import scraper.abitur.lists as LM
+    LM._QUOTA_CACHE.clear()
+    monkeypatch.setattr(LM, "_quota_for", lambda m: None)   # без вычета квот в тесте
     out = L.format_positions_short(META3, SHARD3, "777")
     lines = [l for l in out.split("\n") if l.startswith(("✅", "⏳", "▫️", "💳"))]
     assert len(lines) == 3
@@ -193,12 +216,14 @@ def test_short_format_is_compact_and_sorted_by_priority():
     # длинное название обрезано, «Педагогическое образование.» убрано
     assert "Психолого-педагогическое образование." not in out
     # вердикт есть
-    assert "пройдёте на" in out or "проходите на" in out
-    # компакт: без огромных сносок
-    assert "КЦП" not in out
+    assert "прошли бы на" in out
+    # честная оговорка
+    assert "предварительно" in out.lower()
 
 
-def test_short_format_has_consent_warning_one_liner():
+def test_short_format_has_consent_warning_one_liner(monkeypatch):
+    import scraper.abitur.lists as LM
+    monkeypatch.setattr(LM, "_quota_for", lambda m: None)
     out = L.format_positions_short(META3, SHARD3, "777")
     assert "5 августа" in out and "огласие" in out
 

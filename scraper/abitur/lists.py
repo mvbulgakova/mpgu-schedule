@@ -118,6 +118,56 @@ def _places_for(m: dict) -> Optional[int]:
     return places
 
 
+_QUOTA_CACHE: Dict[tuple, Optional[int]] = {}
+
+
+def _quota_for(m: dict) -> Optional[int]:
+    """Мест под квотами (особая+отдельная) у программы бюджетного списка; None если неизвестно."""
+    direction, form = m.get("direction") or "", m.get("form") or ""
+    key = (direction, form)
+    if key in _QUOTA_CACHE:
+        return _QUOTA_CACHE[key]
+    q = None
+    try:
+        from scraper.abitur import shansy
+        code = direction.split()[0] if direction else ""
+        dw = shansy._words(direction)
+        cands = [p for p in shansy.load_programs()
+                 if p["code"] == code and p.get("form") == form and not p.get("paid_only")
+                 and shansy._words(p["name"]) and shansy._words(p["name"]) <= dw]
+        vals = {p.get("quota_places") for p in cands}
+        if len(vals) == 1:
+            q = vals.pop()
+    except Exception:
+        q = None
+    _QUOTA_CACHE[key] = q
+    return q
+
+
+def _general_seats(m: dict, places: int):
+    """(мест в общем конкурсе сейчас, квотных). Общий = КЦП − квоты (если известны)."""
+    quota = _quota_for(m)
+    if quota is None:
+        return places, None
+    return max(places - quota, 0), quota
+
+
+def _consent_caveat(entries: List[Dict], lists_meta_all: dict) -> str:
+    """Честная оговорка: оценка основана на подавших согласие СЕЙЧАС, а их пока мало."""
+    share = ""
+    for e in entries:
+        m = lists_meta_all.get(e["list"], {})
+        if m.get("general") and m.get("consented") is not None and m.get("count"):
+            pct = round(100 * m["consented"] / m["count"]) if m["count"] else 0
+            share = (f" В этом списке согласие подали пока лишь {m['consented']} "
+                     f"из {m['count']} (~{pct}%).")
+            break
+    return ("⚠️ <b>Это очень предварительно.</b>" + share + " Большинство подаёт "
+            "согласие ближе к <b>5 августа</b> — конкурентов станет больше, и позиция, "
+            "скорее всего, ухудшится. Не расслабляйтесь и не понижайте приоритеты, "
+            "которые действительно хотите.")
+
+
 def _is_general_budget(lists_meta: dict, list_code: str) -> bool:
     """Список — общий конкурс (не квотный)? Общий = крупнейший бюджетный список
     своего направления+формы; квотные списки того же направления всегда меньше."""
@@ -180,10 +230,11 @@ def format_positions_short(meta: Optional[dict], shard: Optional[dict],
             lines.append(f"💳 {pri} · {e['position']}/{m.get('count', '?')}{pp_s} · {name}")
         elif m.get("general") and places and sim_above is not None:
             sim_place = sim_above + 1
-            ok = sim_place <= places
-            lines.append(f"{'✅' if ok else '⏳'} {pri} · ~{sim_place}-е из {places} · {name}")
+            seats, _q = _general_seats(m, places)
+            ok = sim_place <= seats
+            lines.append(f"{'✅' if ok else '⏳'} {pri} · ~{sim_place}-е из {seats} · {name}")
             if ok:
-                passing.append((e.get("priority_pz") or 99, name, sim_place, places))
+                passing.append((e.get("priority_pz") or 99, name, sim_place, seats))
         elif not m.get("general") and m.get("kind") == "бюджет" and "general" in m:
             lines.append(f"▫️ {pri} · квота · {e['position']}/{m.get('count', '?')} · {name}")
         else:
@@ -191,10 +242,11 @@ def format_positions_short(meta: Optional[dict], shard: Optional[dict],
     lines.append("")
     if passing:
         passing.sort(key=lambda t: t[0])
-        _, nm, sim_place, places = passing[0]
-        head = "Сейчас проходите на" if consented else \
-            "Если подадите согласие сейчас — пройдёте на"
-        lines.append(f"🎯 <b>{head}: {nm}</b> (~{sim_place}-е из {places})")
+        _, nm, sim_place, seats = passing[0]
+        lines.append(f"📊 <b>Будь приём сейчас — прошли бы на: {nm}</b> "
+                     f"(~{sim_place}-е из {seats})")
+        lines.append(_consent_caveat(entries, lists_meta_all))
+        lines.append("Подробнее — «📋 Подробнее».")
     budget = [e for e in entries
               if lists_meta_all.get(e["list"], {}).get("kind") == "бюджет"]
     if budget and not consented:
@@ -234,19 +286,23 @@ def format_positions(meta: Optional[dict], shard: Optional[dict], code: str) -> 
                 if places and sim_above is not None:
                     any_places = any_sim = True
                     sim_place = sim_above + 1
-                    ok = sim_place <= places
-                    parts.append(f"с согласием: ~{sim_place}-е из {places} "
+                    seats, quota = _general_seats(m, places)
+                    ok = sim_place <= seats
+                    seats_s = (f"{seats} (общий конкурс; +{quota} квотных к КЦП {places})"
+                               if quota else f"{seats}")
+                    parts.append(f"с согласием: ~{sim_place}-е из {seats_s} "
                                  f"{'✅' if ok else '⏳'}")
                     if ok:
                         passing.append((e.get("priority_pz") or 99,
-                                        m.get("direction") or name, sim_place, places))
+                                        m.get("direction") or name, sim_place, seats))
                 elif places:
                     any_places = True
-                    ok = e["position"] <= places
-                    parts.append(f"мест: {places} {'✅' if ok else '⏳'}")
+                    seats, quota = _general_seats(m, places)
+                    ok = e["position"] <= seats
+                    parts.append(f"мест: {seats} {'✅' if ok else '⏳'}")
                     if ok:
                         passing.append((e.get("priority_pz") or 99,
-                                        m.get("direction") or name, None, places))
+                                        m.get("direction") or name, None, seats))
             else:
                 parts.append("квотный список")
         elif m.get("kind") == "платное":
@@ -269,26 +325,24 @@ def format_positions(meta: Optional[dict], shard: Optional[dict], code: str) -> 
     lines.append("")
     if passing:
         passing.sort(key=lambda t: t[0])
-        pri, nm, sim_place, places = passing[0]
-        detail = f", ~{sim_place}-е место из {places}" if sim_place else ""
-        head = ("🎯 <b>Сейчас проходите на:" if consented
-                else "🎯 <b>Если подадите согласие сейчас — пройдёте на:")
-        lines.append(f"{head} {nm}</b> (приоритет {pri}{detail}) — "
-                     "если списки не изменятся.")
+        pri, nm, sim_place, seats = passing[0]
+        detail = f", ~{sim_place}-е из {seats}" if sim_place else ""
+        lines.append(f"📊 <b>Если бы приём закончился ПРЯМО СЕЙЧАС, вы бы прошли на: "
+                     f"{nm}</b> (приоритет {pri}{detail}).")
+        lines.append(_consent_caveat(entries, lists_meta_all))
     elif any_places:
-        lines.append("⏳ Пока вы ниже черты во всех бюджетных списках. Это не приговор: "
-                     "конкурсная ситуация меняется каждый день, а после приоритетного "
-                     "этапа в конкурс вернутся незанятые квотные места.")
+        lines.append("⏳ Пока вы ниже черты во всех бюджетных списках. Но согласий подано "
+                     "мало — расклад ещё сильно поменяется; и после приоритетного этапа "
+                     "в конкурс вернутся незанятые квотные места.")
     if any_sim:
-        lines.append("ℹ️ Оценка «с согласием» — модель реального конкурса: считаются "
-                     "только подавшие согласие, а те, кто проходит на свой более высокий "
-                     "приоритет, из конкурса исключаются. «Мест» — все места программы "
-                     "(КЦП): после приоритетного этапа (приказы 3 августа) незанятые "
-                     "квотные места добавятся. Это ориентир, не гарантия.")
+        lines.append("ℹ️ Как считается: учитываются только подавшие согласие, и кто "
+                     "проходит на свой более высокий приоритет — из конкурса убираются. "
+                     "«Мест» — в общем конкурсе сейчас (КЦП минус квоты); незанятые "
+                     "квотные вернутся после приоритетного этапа (приказы 3 августа). "
+                     "На Госуслугах видно текущее число мест общего конкурса.")
     elif any_places:
-        lines.append("ℹ️ «Мест» — все бюджетные места программы (КЦП): часть сейчас "
-                     "зарезервирована под квоты, их незаполненный остаток вернётся в "
-                     "общий конкурс после приоритетного этапа (приказы 3 августа).")
+        lines.append("ℹ️ «Мест» — в общем конкурсе (КЦП минус квоты). Незанятые квотные "
+                     "места вернутся в общий конкурс после приоритетного этапа (3 августа).")
     # Напоминание про согласие: главная причина «пролететь» на зачислении.
     # Показываем, если есть бюджетные позиции и ни в одной согласие не отмечено.
     lists_meta = (meta or {}).get("lists") or {}
