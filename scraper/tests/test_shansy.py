@@ -115,3 +115,21 @@ def test_small_program_not_hidden_by_top5():
     assert "Также подходят по предметам:" in out
     assert "подходящих программ" in out
     assert "напишите её название" in out
+
+
+def test_history_line_prefers_recent_years():
+    line = shansy._history_line({"history": {"2015": 121, "2019": 209,
+                                             "2024": 231, "2025": 247}})
+    assert "2024: 231" in line and "2025: 247" in line
+    assert "2015" not in line and "121" not in line  # старое не показываем
+    assert "общий конкурс" in line
+
+
+def test_history_line_old_only_is_flagged():
+    line = shansy._history_line({"history": {"2015": 121, "2019": 209}})
+    assert "устар" in line and "2019: 209" in line
+
+
+def test_history_line_empty():
+    assert shansy._history_line(None) is None
+    assert shansy._history_line({"history": {}}) is None

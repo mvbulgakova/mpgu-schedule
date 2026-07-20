@@ -76,8 +76,12 @@ def main() -> int:
     rows: List[dict] = []
     for year, html in pages.items():
         got = parse_score_table(html, year)
-        print(f"{year}: {len(got)} строк")
+        print(f"{year}: {len(got)} строк (таблица проходных)")
         rows.extend(got)
+
+    # 2022+ сводных таблиц нет — проходные восстанавливаем из списков зачисления
+    from scraper.fetchers.enrollment_fetcher import collect_rows as enroll_rows
+    rows.extend(enroll_rows())
 
     doc = build_history(rows, programs)
     matched = len(doc["programs"])

@@ -134,6 +134,23 @@ def _words(s: str) -> set:
     return {w for w in re.findall(r"[а-яё]{4,}", (s or "").lower()) if w not in _STOP}
 
 
+def _history_line(h: Optional[dict]) -> Optional[str]:
+    """Строка проходных для показа. Приоритет — годам 2021+ (списочная эпоха,
+    те же правила приёма, что сейчас). Допандемийные (до 2021) показываем только
+    если свежих нет, и явно помечаем «устаревшие»: 121 балл 2015-го вводит в
+    заблуждение при нынешнем конкурсе."""
+    if not h or not h.get("history"):
+        return None
+    hist = h["history"]
+    recent = sorted((y for y in hist if int(y) >= 2021), key=int)
+    if recent:
+        s = ", ".join(f"{y}: {hist[y]}" for y in recent)
+        return f"Проходной на бюджет (общий конкурс): {s}"
+    old = sorted(hist, key=int)[-2:]
+    s = ", ".join(f"{y}: {hist[y]}" for y in old)
+    return (f"Проходной (устар., до 2021, сейчас конкурс выше): {s}")
+
+
 def _find_history(p: dict, history: Optional[dict]) -> Optional[dict]:
     if not history:
         return None
@@ -204,10 +221,9 @@ def format_answer(matches: List[dict], history: Optional[dict],
         if live:
             lines.append(f"   Живые списки: {live}")
         h = _find_history(p, history)
-        if h and h.get("history"):
-            yrs = sorted(h["history"])
-            hist_s = ", ".join(f"{y}: {h['history'][y]}" for y in yrs)
-            lines.append(f"   Проходной прошлых лет: {hist_s}")
+        hist_line = _history_line(h)
+        if hist_line:
+            lines.append("   " + hist_line)
         lines.append("")
     rest = matches[limit:]
     if rest:
