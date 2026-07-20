@@ -209,6 +209,22 @@ def format_answer(matches: List[dict], history: Optional[dict],
             hist_s = ", ".join(f"{y}: {h['history'][y]}" for y in yrs)
             lines.append(f"   Проходной прошлых лет: {hist_s}")
         lines.append("")
+    rest = matches[limit:]
+    if rest:
+        # программа не должна «исчезать» из-за топ-5: перечисляем остальные кратко
+        def _tail(m):
+            p = m["program"]
+            nm = p["name"].split("направленность", 1)[-1].strip(" ,")
+            cap = p.get("places") or "платно"
+            return f"{p['code']} {nm[:45]} ({cap})"
+        shown = ", ".join(_tail(m) for m in rest[:12])
+        more = f" и ещё {len(rest) - 12}" if len(rest) > 12 else ""
+        lines.append(f"Также подходят по предметам: {shown}{more}.")
+        lines.append(f"Выше — {min(limit, len(matches))} самых вместительных из "
+                     f"{len(matches)} подходящих программ. Интересует конкретная "
+                     f"(в т.ч. платно) — напишите её название, расскажу про места, "
+                     f"цены и живые списки.")
+        lines.append("")
     lines.append("⚠️ Это ориентир, а не гарантия: проходной-2026 станет известен только "
                  "после зачисления. Данные списков обновляются периодически. "
                  "Официальные списки: https://epk25.mpgu.su/competitive-list")

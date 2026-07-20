@@ -104,3 +104,14 @@ def test_live_signal_suppressed_on_ambiguous_program():
 def test_answer_prompt_on_bad_input():
     out = shansy.answer("привет")
     assert "русский 78" in out
+
+
+def test_small_program_not_hidden_by_top5():
+    # реальный кейс: биология+русский+общество подходят к 60+ программам;
+    # «Социальная психология развития» (20 мест) не влезает в топ-5 —
+    # ответ обязан показать, сколько программ подошло всего, и позвать
+    # спросить конкретную по названию
+    out = shansy.answer("русский 52, обществознание 55, биология 51")
+    assert "Также подходят по предметам:" in out
+    assert "подходящих программ" in out
+    assert "напишите её название" in out
