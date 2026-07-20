@@ -36,12 +36,15 @@ jobs:
 
       # Подписки «следи за кодом» переживают рестарты через actions/cache
       # (не в data-ветке: связка chat_id ↔ код не должна быть публичной).
-      - name: Restore subscriptions
+      - name: Restore state (subscriptions + feedback)
         uses: actions/cache/restore@v4
         with:
-          path: subs.json
-          key: bot-subs-${{ github.run_id }}
+          path: |
+            subs.json
+            feedback.json
+          key: bot-state-${{ github.run_id }}
           restore-keys: |
+            bot-state-
             bot-subs-
 
       - name: Run bot (long-polling)
@@ -50,12 +53,16 @@ jobs:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           RUN_SECONDS: "3300"
           SUBS_PATH: subs.json
+          FEEDBACK_PATH: feedback.json
+          ADMIN_CHAT_ID: ${{ secrets.ADMIN_CHAT_ID }}
           PYTHONUNBUFFERED: "1"   # реальные метки времени в логах, а не всё при выходе
         run: python -m scraper.telegram_bot
 
-      - name: Save subscriptions
+      - name: Save state (subscriptions + feedback)
         if: always()
         uses: actions/cache/save@v4
         with:
-          path: subs.json
-          key: bot-subs-${{ github.run_id }}
+          path: |
+            subs.json
+            feedback.json
+          key: bot-state-${{ github.run_id }}
