@@ -33,16 +33,30 @@ def build_history(rows: List[dict], programs: List[dict]) -> dict:
     for r in rows:
         cands = by_code_form.get((r["code"], r["form"]), [])
         rw = _words(r["program"])
-        scored = sorted(((len(rw & _words(p["name"])), p) for p in cands),
-                        key=lambda t: -t[0])
         best = None
-        if len(cands) == 1 and scored and scored[0][0] >= 1:
-            best = scored[0][1]
-        elif scored and scored[0][0] >= 2 and (
-                len(scored) == 1 or scored[0][0] > scored[1][0]):
-            # строгий однозначный лидер: точность важнее покрытия —
-            # склеить историю чужой программы хуже, чем не показать её
-            best = scored[0][1]
+        if rw and cands:
+            ws = [(p, _words(p["name"])) for p in cands]
+            # профиль зачисления обычно уже/конкретнее группы каталога: сначала
+            # кандидаты, чьи слова полностью покрывают слова профиля (профиль ⊆
+            # каталог). Ранжируем по (пересечение, специфичность = меньше лишних
+            # слов): «История» → «История», а не «История и Воспитательная …».
+            cover = [(p, w) for p, w in ws if rw <= w]
+            pool = cover or ws
+            scored = sorted(((len(rw & w), -len(w - rw), p) for p, w in pool),
+                            key=lambda t: (-t[0], -t[1]))
+            top_overlap, top_extra = scored[0][0], -scored[0][1]
+            unique = len(scored) == 1 or (
+                (scored[0][0], scored[0][1]) != (scored[1][0], scored[1][1]))
+            # надёжно, если: единственный кандидат; либо однозначный лидер с
+            # заметным пересечением (≥2); либо профиль полностью покрыт почти
+            # точным именем (≤1 лишнее слово) — «История»→«История», но не
+            # «История»→«История и Воспитательная работа» (там 3 лишних слова).
+            if len(cands) == 1 and top_overlap >= 1:
+                best = scored[0][2]
+            elif unique and (top_overlap >= 2 or (top_overlap >= 1 and top_extra <= 1)):
+                # точность важнее покрытия — склеить историю чужой программы
+                # хуже, чем не показать её
+                best = scored[0][2]
         if best is None:
             unmatched.append(r)
             continue

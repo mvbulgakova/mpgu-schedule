@@ -46,3 +46,37 @@ def test_unmatched_rows_are_kept():
     doc = build_history(ROWS, PROGRAMS)
     assert len(doc["unmatched"]) == 1
     assert doc["unmatched"][0]["code"] == "99.99.99"
+
+
+def test_specific_profile_beats_broader_group():
+    # профиль зачисления «История» должен лечь в каталожную «История», а не
+    # в более широкую группу «История и Воспитательная работа/…»
+    programs = [
+        {"code": "44.03.01", "form": "очная", "places": 32,
+         "name": "Педагогическое образование, направленность История"},
+        {"code": "44.03.01", "form": "очная", "places": 58,
+         "name": "Педагогическое образование, направленность История и "
+                 "Воспитательная работа/Обществознание"},
+    ]
+    rows = [{"year": 2025, "code": "44.03.01", "program": "История",
+             "form": "очная", "passing": 210, "competition": None}]
+    doc = build_history(rows, programs)
+    hit = [v for v in doc["programs"].values()
+           if v["history"].get("2025") == 210]
+    assert len(hit) == 1
+    assert hit[0]["name"].endswith("История")   # не «…и Воспитательная работа»
+
+
+def test_true_ambiguity_still_unmatched():
+    # если два кандидата одинаково хороши и оба не покрывают профиль — не гадаем
+    programs = [
+        {"code": "44.03.01", "form": "очная", "places": 20,
+         "name": "Педагогическое образование, направленность Химия и Экология"},
+        {"code": "44.03.01", "form": "очная", "places": 30,
+         "name": "Педагогическое образование, направленность Биология и Экология"},
+    ]
+    rows = [{"year": 2025, "code": "44.03.01", "program": "Физика и Экология",
+             "form": "очная", "passing": 200, "competition": None}]
+    doc = build_history(rows, programs)
+    assert doc["programs"] == {}
+    assert len(doc["unmatched"]) == 1
