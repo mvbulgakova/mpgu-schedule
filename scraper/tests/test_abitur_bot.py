@@ -150,3 +150,37 @@ def test_start_menu_has_no_menu_button():
     out = bot.handle_message(chat_id=92, text="/start")
     data = [cb for row in out.keyboard for (_, cb) in row]
     assert "open:menu" not in data
+
+
+def test_split_text_short_is_single_chunk():
+    assert bot._split_text("привет") == ["привет"]
+
+
+def test_split_text_respects_limit_on_line_boundaries():
+    text = "\n".join(f"строка номер {i} с текстом" for i in range(400))
+    chunks = bot._split_text(text, limit=1000)
+    assert len(chunks) > 1
+    assert all(len(c) <= 1000 for c in chunks)
+    # склейка обратно даёт исходный текст (границы — переносы строк)
+    assert "\n".join(chunks) == text
+
+
+def test_split_text_hard_splits_overlong_line():
+    chunks = bot._split_text("x" * 5000, limit=1000)
+    assert all(len(c) <= 1000 for c in chunks)
+    assert "".join(chunks) == "x" * 5000
+
+
+def test_long_shansy_answer_sends_multiple_chunks(monkeypatch):
+    # реальный баг: ответ >4096 → Telegram 400. Теперь режется на части.
+    sent = []
+    monkeypatch.setattr(bot, "_api",
+                        lambda token, method, **p: sent.append(p) or {"ok": True})
+    big = bot.Reply("\n".join(f"строка {i}" for i in range(2000)),
+                    [[("🏠 Меню", "open:menu")]])
+    bot._send("tok", 1, big)
+    assert len(sent) >= 2                          # разбилось на несколько сообщений
+    assert all(len(p["text"]) <= 4000 for p in sent)
+    # клавиатура только на последней части
+    assert "reply_markup" in sent[-1]
+    assert not any("reply_markup" in p for p in sent[:-1])

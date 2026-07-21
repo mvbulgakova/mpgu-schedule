@@ -429,6 +429,28 @@ def _send_document(token: str, chat_id: int, data: bytes, filename: str,
         return json.loads(r.read().decode("utf-8"))
 
 
+_TG_LIMIT = 4000  # лимит Telegram 4096; берём с запасом на entity/эмодзи
+
+
+def _split_text(text: str, limit: int = _TG_LIMIT) -> List[str]:
+    """Режем длинный текст на части ≤limit по границам строк (наши <b>…</b>
+    инлайновые и не пересекают перенос строки, поэтому разметка не рвётся)."""
+    if len(text) <= limit:
+        return [text]
+    chunks, cur = [], ""
+    for line in text.split("\n"):
+        while len(line) > limit:                 # одна строка длиннее лимита — рубим жёстко
+            if cur:
+                chunks.append(cur); cur = ""
+            chunks.append(line[:limit]); line = line[limit:]
+        if cur and len(cur) + 1 + len(line) > limit:
+            chunks.append(cur); cur = ""
+        cur = f"{cur}\n{line}" if cur else line
+    if cur:
+        chunks.append(cur)
+    return chunks
+
+
 def _send(token: str, chat_id: int, reply: Reply):
     if reply.document is not None:
         data, filename = reply.document
@@ -436,18 +458,20 @@ def _send(token: str, chat_id: int, reply: Reply):
         return
     if not reply.text:
         return  # тихий игнор (админ-команды от посторонних)
-    params = {"chat_id": chat_id, "text": reply.text, "parse_mode": "HTML",
-              "disable_web_page_preview": "true"}
+    chunks = _split_text(reply.text)
     mk = _markup(reply.keyboard)
-    if mk:
-        params["reply_markup"] = mk
-    try:
-        _api(token, "sendMessage", **params)
-    except Exception:
-        # Telegram отверг HTML-разметку (нередко в свободном AI-ответе) —
-        # лучше доставить без форматирования, чем не доставить вовсе.
-        params.pop("parse_mode", None)
-        _api(token, "sendMessage", **params)
+    for i, chunk in enumerate(chunks):
+        params = {"chat_id": chat_id, "text": chunk, "parse_mode": "HTML",
+                  "disable_web_page_preview": "true"}
+        if mk and i == len(chunks) - 1:          # клавиатуру — только к последней части
+            params["reply_markup"] = mk
+        try:
+            _api(token, "sendMessage", **params)
+        except Exception:
+            # Telegram отверг HTML-разметку (нередко в свободном AI-ответе) —
+            # лучше доставить без форматирования, чем не доставить вовсе.
+            params.pop("parse_mode", None)
+            _api(token, "sendMessage", **params)
 
 
 def main() -> int:
