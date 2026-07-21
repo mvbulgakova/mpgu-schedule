@@ -115,6 +115,27 @@ def build_index(pages: Dict[str, str], meta: Dict[str, dict],
                     (r.get("priority_pz") or 99, lc, r["position"]))
     admitted = simulate_admission(candidates, places)
 
+    # Сигналы для прогноза проходного-2026 (см. scraper.abitur.prediction):
+    #   sim_cutoff — минимальный балл среди зачисленных в симуляции (живой пол);
+    #   general_seats — места общего конкурса (КЦП − квоты);
+    #   cap — G-й сверху балл среди всех подавших (верхний сценарий).
+    try:
+        from scraper.abitur.lists import _quota_for
+    except Exception:  # noqa: BLE001
+        _quota_for = lambda m: None            # noqa: E731
+    for lc, cap_places in places.items():
+        m = lists[lc]
+        adm = admitted.get(lc) or set()
+        adm_scores = [r["score_total"] for r in rows_by_list[lc]
+                      if r["unique_code"] in adm and r.get("score_total")]
+        m["sim_cutoff"] = min(adm_scores) if adm_scores else None
+        quota = _quota_for(m) or 0
+        seats = max(cap_places - quota, 0) or cap_places
+        m["general_seats"] = seats
+        totals = m.get("totals") or []
+        if totals and seats:
+            m["cap"] = totals[seats - 1] if len(totals) >= seats else totals[-1]
+
     codes: Dict[str, list] = {}
     for code_list, rows in rows_by_list.items():
         adm = admitted.get(code_list)

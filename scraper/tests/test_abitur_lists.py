@@ -327,3 +327,22 @@ def test_mag_catalog_totals_pinned():
     main = [p for p in progs if "филиал" not in p["name"]]
     assert len(main) == 52
     assert sum(p["places"] for p in main) == 1476
+
+
+def test_spisok_detail_shows_prediction_block(monkeypatch):
+    import scraper.abitur.lists as LM
+    LM._PLACES_CACHE.clear(); LM._QUOTA_CACHE.clear()
+    monkeypatch.setattr(LM, "_quota_for", lambda m: None)
+    monkeypatch.setattr(LM, "_history_for", lambda m: {"2024": 242, "2025": 244})
+    meta = {"updated_at": "t", "lists": {"L": {
+        "direction": "44.03.01 История", "form": "очная", "kind": "бюджет",
+        "count": 300, "general": True, "places": 20, "consented": 40,
+        "sim_cutoff": 230, "cap": 270, "general_seats": 20}}}
+    shard = {"updated_at": "t", "codes": {"555": [
+        {"list": "L", "position": 5, "score_total": 260, "consent": True,
+         "priority_pz": 1, "bvi": False, "status": "Участвует",
+         "cons_above": 3, "sim_above": 4}]}}
+    out = L.format_positions(meta, shard, "555")
+    assert "Примерный проходной-2026: ориентир ~242–244" in out
+    assert "по согласиям проходят от ~230" in out
+    assert "топ-20" in out and "~270" in out

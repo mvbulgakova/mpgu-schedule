@@ -153,6 +153,31 @@ def test_build_index_sim_fields():
     assert e333["sim_above"] == 1
 
 
+def test_build_index_prediction_signals(monkeypatch):
+    # sim_cutoff = мин балл зачисленного в симуляции; cap = G-й сверху балл
+    import scraper.abitur.lists as LM
+    monkeypatch.setattr(LM, "_quota_for", lambda m: None)
+    pages = {"G1": VIEW_SIM}                       # баллы 290,250,240; согласны 111,333
+    meta = {"G1": {"direction": "44.03.01 История", "form": "очная", "kind": "бюджет"}}
+    md, _ = build_index(pages, meta, updated_at="t", places_fn=lambda m: 2)
+    lm = md["lists"]["G1"]
+    assert lm["general_seats"] == 2               # квот нет → все места общие
+    assert lm["cap"] == 250                        # 2-й сверху балл из [290,250,240]
+    # зачислены (согласившиеся) 111(290) и 333(240) на 2 места → нижний = 240
+    assert lm["sim_cutoff"] == 240
+
+
+def test_build_index_prediction_seats_subtract_quota(monkeypatch):
+    import scraper.abitur.lists as LM
+    monkeypatch.setattr(LM, "_quota_for", lambda m: 1)   # 1 квотное место
+    pages = {"G1": VIEW_SIM}
+    meta = {"G1": {"direction": "44.03.01 История", "form": "очная", "kind": "бюджет"}}
+    md, _ = build_index(pages, meta, updated_at="t", places_fn=lambda m: 3)
+    lm = md["lists"]["G1"]
+    assert lm["general_seats"] == 2               # 3 КЦП − 1 квота
+    assert lm["cap"] == 250                        # 2-й сверху балл
+
+
 def test_build_index_code_alias_marks_general(monkeypatch):
     # кампус-дубль (филиал): список меньше московского, но с привязкой по коду
     # — это свой отдельный общий конкурс, а не квотный список

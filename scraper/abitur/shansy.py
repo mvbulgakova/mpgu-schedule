@@ -10,6 +10,8 @@ import urllib.request
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
+from scraper.abitur import prediction
+
 _PROGRAMS_PATH = Path(__file__).with_name("programs_2026.json")
 
 DATA_BASE = os.environ.get(
@@ -134,23 +136,6 @@ def _words(s: str) -> set:
     return {w for w in re.findall(r"[а-яё]{4,}", (s or "").lower()) if w not in _STOP}
 
 
-def _history_line(h: Optional[dict]) -> Optional[str]:
-    """Строка проходных для показа. Приоритет — годам 2021+ (списочная эпоха,
-    те же правила приёма, что сейчас). Допандемийные (до 2021) показываем только
-    если свежих нет, и явно помечаем «устаревшие»: 121 балл 2015-го вводит в
-    заблуждение при нынешнем конкурсе."""
-    if not h or not h.get("history"):
-        return None
-    hist = h["history"]
-    recent = sorted((y for y in hist if int(y) >= 2021), key=int)
-    if recent:
-        s = ", ".join(f"{y}: {hist[y]}" for y in recent)
-        return f"Проходной на бюджет (общий конкурс): {s}"
-    old = sorted(hist, key=int)[-2:]
-    s = ", ".join(f"{y}: {hist[y]}" for y in old)
-    return (f"Проходной (устар., до 2021, сейчас конкурс выше): {s}")
-
-
 def _find_history(p: dict, history: Optional[dict]) -> Optional[dict]:
     if not history:
         return None
@@ -163,14 +148,14 @@ def _find_history(p: dict, history: Optional[dict]) -> Optional[dict]:
     return None
 
 
-def _find_live(p: dict, lists_meta: Optional[dict], total: int) -> Optional[str]:
-    """Строка о живом (бюджетном) списке epk25 для программы.
+def _find_general_list(p: dict, lists_meta: Optional[dict]) -> Optional[dict]:
+    """Мета общего бюджетного списка epk25 для программы, либо None.
 
     Одна программа обычно имеет несколько списков (общий конкурс + квоты) с почти
     одинаковым названием направления. Матч считаем надёжным, только если ВСЕ значимые
     слова программы присутствуют в названии направления (подмножество) — это исключает
     подмену другой программой. Среди совпавших берём общий конкурс — самый многочисленный
-    список (квоты всегда малочисленны). Оценка позиции — ориентир, не гарантия.
+    список (квоты всегда малочисленны).
     """
     if not lists_meta:
         return None
@@ -191,8 +176,13 @@ def _find_live(p: dict, lists_meta: Optional[dict], total: int) -> Optional[str]
             cands.append(m)
     if not cands:
         return None
-    m = max(cands, key=lambda x: x.get("count") or 0)  # общий конкурс — самый большой
-    totals = m.get("totals") or []
+    return max(cands, key=lambda x: x.get("count") or 0)  # общий конкурс — самый большой
+
+
+def _find_live(p: dict, lists_meta: Optional[dict], total: int) -> Optional[str]:
+    """Строка о живом (бюджетном) списке epk25 для программы. Ориентир, не гарантия."""
+    m = _find_general_list(p, lists_meta)
+    totals = (m or {}).get("totals") or []
     if not totals:
         return None
     pos = 1 + sum(1 for t in totals if t > total)
@@ -221,9 +211,13 @@ def format_answer(matches: List[dict], history: Optional[dict],
         if live:
             lines.append(f"   Живые списки: {live}")
         h = _find_history(p, history)
-        hist_line = _history_line(h)
-        if hist_line:
-            lines.append("   " + hist_line)
+        gl = _find_general_list(p, lists_meta)
+        pred = prediction.format_prediction(
+            (h or {}).get("history"),
+            (gl or {}).get("sim_cutoff"), (gl or {}).get("cap"),
+            (gl or {}).get("general_seats"))
+        if pred:
+            lines.append("   " + pred.replace("\n", "\n   "))
         lines.append("")
     rest = matches[limit:]
     if rest:

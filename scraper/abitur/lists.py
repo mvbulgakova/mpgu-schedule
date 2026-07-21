@@ -54,6 +54,21 @@ def fetch_meta(force: bool = False) -> Optional[dict]:
     return _META_CACHE["data"]
 
 
+_HIST_CACHE = {"ts": 0.0, "data": None}
+_HIST_TTL = 3600
+
+
+def fetch_history(force: bool = False) -> Optional[dict]:
+    now = time.time()
+    if not force and _HIST_CACHE["data"] is not None and now - _HIST_CACHE["ts"] < _HIST_TTL:
+        return _HIST_CACHE["data"]
+    data = _get_json("admissions/history.json")
+    if data is not None:
+        _HIST_CACHE["data"], _HIST_CACHE["ts"] = data, now
+        return data
+    return _HIST_CACHE["data"]
+
+
 # обратная совместимость по имени (использовалась ботом)
 def fetch_index(force: bool = False) -> Optional[dict]:
     return fetch_meta(force)
@@ -224,6 +239,34 @@ def _general_seats(m: dict, places: int):
     return max(places - quota, 0), quota
 
 
+def _history_for(m: dict) -> Optional[dict]:
+    """История проходных программы этого списка ({год: балл}) или None.
+
+    Матчим направление списка на каталог (тот же надёжный матчинг, что и места),
+    затем ищем запись истории по имени каталога (build_admissions пишет туда
+    именно каталожные имена)."""
+    try:
+        progs = _match_programs(m.get("direction") or "", m.get("form") or "",
+                                paid=False, list_code=_list_code_of(m))
+        if len(progs) != 1:
+            return None
+        target = _norm_text(progs[0]["name"])
+        doc = fetch_history()
+        for v in (doc or {}).get("programs", {}).values():
+            if _norm_text(v.get("name", "")) == target:
+                return v.get("history")
+    except Exception:
+        return None
+    return None
+
+
+def _prediction_line(m: dict) -> Optional[str]:
+    """Однострочный (многострочный) блок прогноза проходного для списка."""
+    from scraper.abitur import prediction
+    return prediction.format_prediction(
+        _history_for(m), m.get("sim_cutoff"), m.get("cap"), m.get("general_seats"))
+
+
 def _consent_caveat(entries: List[Dict], lists_meta_all: dict) -> str:
     """Честная оговорка: оценка основана на подавших согласие СЕЙЧАС, а их пока мало."""
     share = ""
@@ -366,7 +409,8 @@ def format_positions(meta: Optional[dict], shard: Optional[dict], code: str) -> 
                                  f"{'✅' if ok else '⏳'}")
                     if ok:
                         passing.append((e.get("priority_pz") or 99,
-                                        m.get("direction") or name, sim_place, seats))
+                                        m.get("direction") or name, sim_place, seats,
+                                        e["list"]))
                 elif places:
                     any_places = True
                     seats, quota = _general_seats(m, places)
@@ -374,7 +418,8 @@ def format_positions(meta: Optional[dict], shard: Optional[dict], code: str) -> 
                     parts.append(f"мест: {seats} {'✅' if ok else '⏳'}")
                     if ok:
                         passing.append((e.get("priority_pz") or 99,
-                                        m.get("direction") or name, None, seats))
+                                        m.get("direction") or name, None, seats,
+                                        e["list"]))
             else:
                 parts.append("квотный список")
         elif m.get("kind") == "платное":
@@ -397,11 +442,14 @@ def format_positions(meta: Optional[dict], shard: Optional[dict], code: str) -> 
     lines.append("")
     if passing:
         passing.sort(key=lambda t: t[0])
-        pri, nm, sim_place, seats = passing[0]
+        pri, nm, sim_place, seats, plist = passing[0]
         detail = f", ~{sim_place}-е из {seats}" if sim_place else ""
         lines.append(f"📊 <b>Если бы приём закончился ПРЯМО СЕЙЧАС, вы бы прошли на: "
                      f"{nm}</b> (приоритет {pri}{detail}).")
         lines.append(_consent_caveat(entries, lists_meta_all))
+        pred = _prediction_line(lists_meta_all.get(plist, {}))
+        if pred:
+            lines.append(pred)
     elif any_places:
         lines.append("⏳ Пока вы ниже черты во всех бюджетных списках. Но согласий подано "
                      "мало — расклад ещё сильно поменяется; и после приоритетного этапа "

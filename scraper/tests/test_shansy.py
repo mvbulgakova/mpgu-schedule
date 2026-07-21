@@ -117,19 +117,18 @@ def test_small_program_not_hidden_by_top5():
     assert "напишите её название" in out
 
 
-def test_history_line_prefers_recent_years():
-    line = shansy._history_line({"history": {"2015": 121, "2019": 209,
-                                             "2024": 231, "2025": 247}})
-    assert "2024: 231" in line and "2025: 247" in line
-    assert "2015" not in line and "121" not in line  # старое не показываем
-    assert "общий конкурс" in line
-
-
-def test_history_line_old_only_is_flagged():
-    line = shansy._history_line({"history": {"2015": 121, "2019": 209}})
-    assert "устар" in line and "2019: 209" in line
-
-
-def test_history_line_empty():
-    assert shansy._history_line(None) is None
-    assert shansy._history_line({"history": {}}) is None
+def test_prediction_range_shown_with_live_signals():
+    # свежая история + живой список с сигналами → диапазон-ориентир и живые строки
+    scores = {"русский язык": 70, "обществознание": 80, "история": 90}
+    prog = dict(PROGRAMS[0])
+    history = {"programs": {"k": {"code": prog["code"], "form": prog["form"],
+               "name": prog["name"], "history": {"2024": 242, "2025": 244}}}}
+    lists_meta = {"lists": {"L": {
+        "direction": f"{prog['code']} {prog['name'].split('направленность')[-1].strip()}",
+        "form": prog["form"], "kind": "бюджет", "count": 100,
+        "totals": [290] * 100, "sim_cutoff": 230, "cap": 270, "general_seats": 18}}}
+    matches = shansy.match_programs(scores, [prog])
+    text = shansy.format_answer(matches, history, lists_meta, scores)
+    assert "Примерный проходной-2026: ориентир ~242–244" in text
+    assert "по согласиям проходят от ~230" in text
+    assert "топ-18" in text and "~270" in text
