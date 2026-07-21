@@ -64,8 +64,13 @@ def format_prediction(hist: Optional[dict], sim: Optional[int] = None,
     else:
         return None
     if sim:
-        lines.append(f"   • сейчас по согласиям проходят от ~{sim} "
-                     "(↑ вырастет к 5 августа)")
+        floor = (rng[0] if rng else 150) - 30
+        if sim >= floor:                          # балл правдоподобен — показываем
+            lines.append(f"   • сейчас по согласиям проходят от ~{sim} "
+                         "(↑ вырастет к 5 августа)")
+        else:                                     # рано: согласий мало, балл-шум
+            lines.append("   • согласий пока подано мало — проходят почти все "
+                         "подавшие; к 5 августа конкурс ужесточится")
     if cap and seats:
         lines.append(f"   • топ-{seats} баллов среди подавших — от ~{cap} "
                      "(если сильнейшие останутся; часть уйдёт в другие вузы)")

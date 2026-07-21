@@ -35,12 +35,20 @@ def test_recent_caps_at_three_years():
 
 
 def test_format_full_block_has_all_signals():
-    out = P.format_prediction({"2024": 242, "2025": 244}, sim=210, cap=270, seats=18)
+    out = P.format_prediction({"2024": 242, "2025": 244}, sim=230, cap=270, seats=18)
     assert "Примерный проходной-2026: ориентир ~242–244" in out
     assert "2024: 242, 2025: 244" in out
-    assert "от ~210" in out and "5 августа" in out
+    assert "от ~230" in out and "5 августа" in out
     assert "топ-18" in out and "~270" in out
     assert "не гарантия" in out
+
+
+def test_format_low_sim_shows_qualitative_note_not_absurd_number():
+    # много мест, мало согласий → sim≈4; не показываем «от ~4» рядом с историей 240+
+    out = P.format_prediction({"2024": 242, "2025": 244}, sim=4, cap=250, seats=80)
+    assert "от ~4" not in out
+    assert "согласий пока подано мало" in out
+    assert "ориентир ~242–244" in out          # диапазон по-прежнему из истории
 
 
 def test_format_no_history_shows_live_only():
