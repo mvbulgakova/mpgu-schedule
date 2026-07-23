@@ -108,7 +108,7 @@ def match_plan(code: str, form: str, name: str) -> Optional[dict]:
 
 def _plan_url(plan: dict) -> str:
     """Ссылка на учебный план (самый свежий год приёма)."""
-    return plan.get("plan") or plan.get("disc") or ""
+    return (plan.get("plan") or plan.get("disc") or "").strip()
 
 
 def _share_id(url: str) -> str:
@@ -169,7 +169,7 @@ def fetch_plan_pdf(plan: dict, timeout: int = 60) -> Optional[Tuple[bytes, str]]
 
     Только stdlib (urllib): в окружении бота нет requests."""
     import urllib.request
-    url = _plan_url(plan).rstrip("/") + "/download"
+    url = _plan_url(plan).rstrip("/") + "/download"   # _plan_url уже .strip()
     try:
         req = urllib.request.Request(url, headers={"User-Agent": "MPGU-Abitur-Bot"})
         with urllib.request.urlopen(req, timeout=timeout) as r:

@@ -27,7 +27,7 @@ _DEFAULT_LEVELS = ("базовое высшее", "бакалавриат", "с�
 
 def _download_pdf(url: str, retries: int = 4) -> bytes:
     # oc.mpgu.su сбрасывает соединение при частых запросах — вежливо ретраим.
-    req = urllib.request.Request(url.rstrip("/") + "/download",
+    req = urllib.request.Request(url.strip().rstrip("/") + "/download",
                                  headers={"User-Agent": "MPGU-Abitur-Bot"})
     content = None
     for attempt in range(retries):
