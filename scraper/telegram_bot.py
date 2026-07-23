@@ -145,9 +145,30 @@ def _plan_search(query: str) -> Reply:
                      "<b>лингвистика</b>). Полный список: "
                      "https://mpgu.su/sveden/education/", [])
     if len(cands) == 1:
-        return _plan_send(study_plans.share_id(cands[0]))
+        return _plan_menu(study_plans.share_id(cands[0]))
     kb = [[(_plan_label(p), f"plan:{study_plans.share_id(p)}")] for p in cands]
     return Reply("Нашлось несколько — выберите программу:", kb)
+
+
+def _plan_menu(sid: str) -> Reply:
+    """Выбор программы → что показать: файл плана или разбивку по семестрам."""
+    p = study_plans.by_share_id(sid)
+    if not p:
+        return Reply("Не удалось найти этот план. Откройте меню и попробуйте снова.", [])
+    kb = [[("📄 Скачать план (PDF)", f"dl:{sid}")]]
+    if study_plans.semesters_for(sid):
+        kb.append([("📅 Что по семестрам", f"sem:{sid}")])
+    return Reply(f"📄 <b>{p['code']} {p.get('profile', '')}</b> ({p.get('form', '')}, "
+                 f"год приёма {p.get('year', '')}). Что показать?", kb)
+
+
+def _plan_semesters(sid: str) -> Reply:
+    txt = study_plans.format_semesters(sid)
+    if not txt:
+        return Reply("По этой программе разбивка по семестрам пока недоступна — "
+                     "но сам файл плана можно скачать (📄).",
+                     [[("📄 Скачать план (PDF)", f"dl:{sid}")]])
+    return Reply(txt, [[("📄 Скачать план (PDF)", f"dl:{sid}")]])
 
 
 def _plan_send(sid: str) -> Reply:
@@ -342,7 +363,11 @@ def _handle_callback(chat_id: int, data: str) -> Reply:
         AWAITING_PLAN[chat_id] = True
         return Reply(_PLAN_PROMPT, [])
     if data.startswith("plan:"):
-        return _plan_send(data[5:])
+        return _plan_menu(data[5:])
+    if data.startswith("dl:"):
+        return _plan_send(data[3:])
+    if data.startswith("sem:"):
+        return _plan_semesters(data[4:])
     if data.startswith("d:"):
         text_d, kb = faq.dates_step(data[2:])
         return Reply(text_d, kb)

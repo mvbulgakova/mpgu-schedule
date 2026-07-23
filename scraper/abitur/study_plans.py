@@ -19,7 +19,9 @@ from pathlib import Path
 from typing import List, Optional, Tuple
 
 _PATH = Path(__file__).with_name("study_plans_2026.json")
+_SEM_PATH = Path(__file__).with_name("study_plan_semesters_2026.json")
 _PLANS: Optional[List[dict]] = None
+_SEMS: Optional[dict] = None
 _STOP = {"направленность", "образование", "профиль", "выбору", "программа"}
 
 
@@ -35,6 +37,36 @@ def load_plans() -> List[dict]:
         except Exception:
             _PLANS = []
     return _PLANS
+
+
+def semesters_for(sid: str) -> List[dict]:
+    """Предпарсенная разбивка [{index,name,semesters}] для плана по share_id."""
+    global _SEMS
+    if _SEMS is None:
+        try:
+            _SEMS = json.loads(_SEM_PATH.read_text(encoding="utf-8")).get("plans", {})
+        except Exception:
+            _SEMS = {}
+    return _SEMS.get(sid, [])
+
+
+def format_semesters(sid: str) -> Optional[str]:
+    """Текст «дисциплины по семестрам» для плана или None, если данных нет."""
+    rows = semesters_for(sid)
+    if not rows:
+        return None
+    from collections import defaultdict
+    bs: dict = defaultdict(list)
+    for r in rows:
+        for s in r["semesters"]:
+            bs[s].append(r["name"])
+    lines = ["📅 <b>Дисциплины по семестрам</b>", ""]
+    for s in sorted(bs):
+        lines.append(f"<b>Семестр {s}:</b>")
+        lines += [f"  • {n}" for n in bs[s]]
+        lines.append("")
+    lines.append("Форма контроля и часы — в самом файле плана (📄).")
+    return "\n".join(lines)
 
 
 def _level_rank(level: str) -> int:
@@ -133,14 +165,16 @@ def find_by_text(query: str, limit: int = 6) -> List[dict]:
 
 
 def fetch_plan_pdf(plan: dict, timeout: int = 60) -> Optional[Tuple[bytes, str]]:
-    """(байты PDF, имя файла) самого свежего года приёма или None."""
-    import requests
-    from scraper.fetchers.history_fetcher import _UA
+    """(байты PDF, имя файла) самого свежего года приёма или None.
+
+    Только stdlib (urllib): в окружении бота нет requests."""
+    import urllib.request
     url = _plan_url(plan).rstrip("/") + "/download"
     try:
-        r = requests.get(url, headers=_UA, timeout=timeout)
-        r.raise_for_status()
-        z = zipfile.ZipFile(io.BytesIO(r.content))
+        req = urllib.request.Request(url, headers={"User-Agent": "MPGU-Abitur-Bot"})
+        with urllib.request.urlopen(req, timeout=timeout) as r:
+            content = r.read()
+        z = zipfile.ZipFile(io.BytesIO(content))
     except Exception:
         return None
     pdfs = [n for n in z.namelist() if n.lower().endswith(".pdf")]

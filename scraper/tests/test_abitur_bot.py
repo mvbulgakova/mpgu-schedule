@@ -216,3 +216,35 @@ def test_plan_send_missing_share_id_is_graceful():
 def test_content_type_by_extension():
     assert bot._content_type("plan.pdf") == "application/pdf"
     assert bot._content_type("feedback.csv") == "text/csv"
+
+
+def test_plan_pick_shows_chooser_menu(monkeypatch):
+    from scraper.abitur import study_plans as SP
+    monkeypatch.setattr(SP, "_PLANS", [
+        {"code": "44.03.01", "form": "очная", "profile": "История",
+         "level": "базовое высшее образование", "year": "2026",
+         "plan": "https://oc.mpgu.su/s/SID1"}])
+    monkeypatch.setattr(SP, "_SEMS", {"SID1": [
+        {"index": "Б1.О.01.01", "name": "История России", "semesters": [1, 2]}]})
+    r = bot._handle_callback(600, "plan:SID1")
+    labels = [b[0][0] for b in r.keyboard]
+    assert any("Скачать план" in x for x in labels)
+    assert any("семестрам" in x for x in labels)      # есть данные → есть кнопка
+
+
+def test_plan_semesters_output(monkeypatch):
+    from scraper.abitur import study_plans as SP
+    monkeypatch.setattr(SP, "_SEMS", {"SID2": [
+        {"index": "Б1.О.01.01", "name": "История России", "semesters": [1, 2]},
+        {"index": "Б1.О.02.01", "name": "Зоология", "semesters": [2]}]})
+    r = bot._handle_callback(601, "sem:SID2")
+    assert "Семестр 1" in r.text and "История России" in r.text
+    assert "Семестр 2" in r.text and "Зоология" in r.text
+
+
+def test_plan_semesters_absent_offers_file(monkeypatch):
+    from scraper.abitur import study_plans as SP
+    monkeypatch.setattr(SP, "_SEMS", {})
+    r = bot._handle_callback(602, "sem:NOPE")
+    assert "недоступна" in r.text.lower()
+    assert any("Скачать план" in b[0][0] for b in r.keyboard)
