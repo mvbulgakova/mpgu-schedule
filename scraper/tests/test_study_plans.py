@@ -10,7 +10,7 @@ from scraper.abitur import study_plans as SP
 def test_plans_loaded_and_have_links():
     plans = SP.load_plans()
     assert len(plans) > 100
-    assert all(p.get("disc", "").startswith("https://oc.mpgu.su/s/") for p in plans)
+    assert all(SP.share_url(p).startswith("https://oc.mpgu.su/s/") for p in plans)
 
 
 def test_share_id_roundtrip():
@@ -39,13 +39,13 @@ def test_find_by_text_unknown_returns_empty():
 def test_match_plan_prefers_specific_and_base_higher(monkeypatch):
     fake = [
         {"code": "44.03.01", "form": "очная", "profile": "История",
-         "level": "высшее образование - бакалавриат", "disc": "https://oc.mpgu.su/s/A"},
+         "level": "высшее образование - бакалавриат", "plan": "https://oc.mpgu.su/s/A"},
         {"code": "44.03.01", "form": "очная", "profile": "История",
-         "level": "базовое высшее образование", "disc": "https://oc.mpgu.su/s/B"},
+         "level": "базовое высшее образование", "plan": "https://oc.mpgu.su/s/B"},
         {"code": "44.03.01", "form": "очная", "profile": "История и Обществознание",
-         "level": "базовое высшее образование", "disc": "https://oc.mpgu.su/s/C"},
+         "level": "базовое высшее образование", "plan": "https://oc.mpgu.su/s/C"},
     ]
     monkeypatch.setattr(SP, "_PLANS", fake)
     got = SP.match_plan("44.03.01", "очная",
                         "Педагогическое образование, направленность История")
-    assert got["disc"].endswith("/B")            # точный профиль + базовое высшее
+    assert SP.share_url(got).endswith("/B")       # точный профиль + базовое высшее

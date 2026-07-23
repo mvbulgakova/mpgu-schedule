@@ -74,6 +74,11 @@ def match_plan(code: str, form: str, name: str) -> Optional[dict]:
     return scored[0][3]
 
 
+def _plan_url(plan: dict) -> str:
+    """Ссылка на учебный план (самый свежий год приёма)."""
+    return plan.get("plan") or plan.get("disc") or ""
+
+
 def _share_id(url: str) -> str:
     m = re.search(r"/s/([A-Za-z0-9]+)", url or "")
     return m.group(1) if m else ""
@@ -81,13 +86,17 @@ def _share_id(url: str) -> str:
 
 def by_share_id(sid: str) -> Optional[dict]:
     for p in load_plans():
-        if _share_id(p.get("disc", "")) == sid:
+        if _share_id(_plan_url(p)) == sid:
             return p
     return None
 
 
 def share_id(plan: dict) -> str:
-    return _share_id(plan.get("disc", ""))
+    return _share_id(_plan_url(plan))
+
+
+def share_url(plan: dict) -> str:
+    return _plan_url(plan)
 
 
 def find_by_text(query: str, limit: int = 6) -> List[dict]:
@@ -127,7 +136,7 @@ def fetch_plan_pdf(plan: dict, timeout: int = 60) -> Optional[Tuple[bytes, str]]
     """(байты PDF, имя файла) самого свежего года приёма или None."""
     import requests
     from scraper.fetchers.history_fetcher import _UA
-    url = plan.get("disc", "").rstrip("/") + "/download"
+    url = _plan_url(plan).rstrip("/") + "/download"
     try:
         r = requests.get(url, headers=_UA, timeout=timeout)
         r.raise_for_status()

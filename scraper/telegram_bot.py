@@ -155,13 +155,14 @@ def _plan_send(sid: str) -> Reply:
     if not p:
         return Reply("Не удалось найти этот план. Откройте меню и попробуйте снова.", [])
     got = study_plans.fetch_plan_pdf(p)
-    link = p.get("disc", "")
+    link = study_plans.share_url(p)
     if not got:
         return Reply(f"📄 <b>{p['code']} {p.get('profile', '')}</b> ({p.get('form', '')})\n"
                      f"Файл сейчас не скачался. Открыть на сайте МПГУ: {link}", [])
     data, filename = got
     caption = (f"📄 <b>{p['code']} {p.get('profile', '')}</b> ({p.get('form', '')})\n"
-               f"Перечень дисциплин. Практики и полная страница: {link}")
+               f"Официальный учебный план (год приёма {p.get('year', '')}). "
+               f"Источник: {link}")
     return Reply(caption, [], document=(data, filename))
 
 
