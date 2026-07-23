@@ -13,6 +13,7 @@ import scraper.telegram_bot as bot
 def setup_function(_):
     bot.SESSIONS.clear()
     bot.AWAITING_SCORES.clear()
+    bot.AWAITING_PLAN.clear()
 
 
 def test_start_returns_greeting_with_menu():
@@ -184,3 +185,34 @@ def test_long_shansy_answer_sends_multiple_chunks(monkeypatch):
     # клавиатура только на последней части
     assert "reply_markup" in sent[-1]
     assert not any("reply_markup" in p for p in sent[:-1])
+
+
+def test_plan_command_prompts_and_awaits():
+    bot.AWAITING_PLAN.clear()
+    r = bot._handle_message(500, "/plan")
+    assert "направление" in r.text.lower()
+    assert bot.AWAITING_PLAN.get(500)
+
+
+def test_plan_search_returns_candidate_buttons():
+    r = bot._handle_message(501, "/plan начальное образование")
+    assert r.document is None
+    assert len(r.keyboard) >= 2
+    assert all(cb.startswith("plan:") for row in r.keyboard for _, cb in row)
+
+
+def test_plan_unknown_query_graceful():
+    r = bot._handle_message(502, "/plan абырвалг несуществующее")
+    assert "не нашёл" in r.text.lower()
+    assert r.document is None
+
+
+def test_plan_send_missing_share_id_is_graceful():
+    r = bot._handle_callback(503, "plan:ZZZnotreal")
+    assert r.document is None
+    assert "не удалось" in r.text.lower() or "меню" in r.text.lower()
+
+
+def test_content_type_by_extension():
+    assert bot._content_type("plan.pdf") == "application/pdf"
+    assert bot._content_type("feedback.csv") == "text/csv"

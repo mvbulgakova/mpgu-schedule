@@ -18,7 +18,8 @@ import urllib.request
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Tuple
 
-from scraper.abitur import campaign, dialog, faq, feedback, follow, llm, lists, shansy
+from scraper.abitur import (campaign, dialog, faq, feedback, follow, llm, lists,
+                            shansy, study_plans)
 
 RUN_SECONDS = int(os.environ.get("RUN_SECONDS", "3300"))
 MAX_MSG_LEN = 1000
@@ -43,6 +44,8 @@ _HISTORY_MAX = 8  # последних реплик (4 обмена)
 # Обратная связь: накопленные записи и режим «жду отзыв».
 FEEDBACK: List[dict] = []
 AWAITING_FEEDBACK: Dict[int, bool] = {}
+# Ожидание названия направления после /plan (учебные планы).
+AWAITING_PLAN: Dict[int, bool] = {}
 
 
 @dataclass
@@ -77,6 +80,7 @@ def _menu_keyboard() -> List[List[Tuple[str, str]]]:
     rows.append([("🧭 Помочь выбрать направление", "open:vybor")])
     rows.append([("➕ Калькулятор баллов", "open:calc")])
     rows.append([("🧮 Подбор по ЕГЭ", "open:shansy"), ("🔎 Мои списки", "open:spisok")])
+    rows.append([("📄 Учебный план", "open:plan")])
     return rows
 
 
@@ -120,6 +124,45 @@ _SHANSY_PROMPT = ("Пришлите ваши предметы ЕГЭ и балл
 def _shansy_answer(text: str) -> str:
     return shansy.answer(text, lists_meta=lists.fetch_meta(),
                          history=shansy.fetch_history())
+
+
+_PLAN_PROMPT = ("Напишите <b>направление или профиль</b> (можно с кодом), например:\n"
+                "<b>начальное образование</b> · <b>44.03.05 история и обществознание</b> · "
+                "<b>лингвистика перевод</b>\n"
+                "Пришлю официальный перечень дисциплин по программе (файлом).")
+
+
+def _plan_label(p: dict) -> str:
+    prof = (p.get("profile") or p.get("napr") or "")[:48]
+    return f"📄 {p['code']} {prof} ({p.get('form', '')})"
+
+
+def _plan_search(query: str) -> Reply:
+    cands = study_plans.find_by_text(query)
+    if not cands:
+        return Reply("Не нашёл такого направления. Попробуйте иначе — по коду "
+                     "(<b>44.03.01</b>) или короче (<b>биология</b>, "
+                     "<b>лингвистика</b>). Полный список: "
+                     "https://mpgu.su/sveden/education/", [])
+    if len(cands) == 1:
+        return _plan_send(study_plans.share_id(cands[0]))
+    kb = [[(_plan_label(p), f"plan:{study_plans.share_id(p)}")] for p in cands]
+    return Reply("Нашлось несколько — выберите программу:", kb)
+
+
+def _plan_send(sid: str) -> Reply:
+    p = study_plans.by_share_id(sid)
+    if not p:
+        return Reply("Не удалось найти этот план. Откройте меню и попробуйте снова.", [])
+    got = study_plans.fetch_plan_pdf(p)
+    link = p.get("disc", "")
+    if not got:
+        return Reply(f"📄 <b>{p['code']} {p.get('profile', '')}</b> ({p.get('form', '')})\n"
+                     f"Файл сейчас не скачался. Открыть на сайте МПГУ: {link}", [])
+    data, filename = got
+    caption = (f"📄 <b>{p['code']} {p.get('profile', '')}</b> ({p.get('form', '')})\n"
+               f"Перечень дисциплин. Практики и полная страница: {link}")
+    return Reply(caption, [], document=(data, filename))
 
 
 def _lookup_code(code: str, detailed: bool = False) -> Reply:
@@ -217,6 +260,11 @@ def _handle_message(chat_id: int, text: str) -> Reply:
         _save_feedback(chat_id, "otzyv", text)
         return Reply(_OTZYV_THANKS, [])
 
+    # 5) ожидаем название направления после /plan
+    if AWAITING_PLAN.get(chat_id) and text and not text.startswith("/"):
+        AWAITING_PLAN.pop(chat_id, None)
+        return _plan_search(text)
+
     intent, payload = faq.route(text)
     if intent in ("start", "help"):
         return Reply(_GREETING, _menu_keyboard(), is_menu=True)
@@ -250,6 +298,11 @@ def _handle_message(chat_id: int, text: str) -> Reply:
     if intent == "vybor":
         HISTORY[chat_id] = [{"role": "assistant", "content": _VYBOR_START}]
         return Reply(_VYBOR_START, [])
+    if intent == "plan":
+        if payload:
+            return _plan_search(payload)
+        AWAITING_PLAN[chat_id] = True
+        return Reply(_PLAN_PROMPT, [])
     if intent == "otzyv":
         return _otzyv(chat_id, payload)
     if intent == "myid":
@@ -282,7 +335,13 @@ def _handle_callback(chat_id: int, data: str) -> Reply:
         # выход из любых режимов ожидания — «спасательная» кнопка
         AWAITING_CODE.pop(chat_id, None)
         AWAITING_SCORES.pop(chat_id, None)
+        AWAITING_PLAN.pop(chat_id, None)
         return Reply("Выберите тему:", _menu_keyboard(), is_menu=True)
+    if data == "open:plan":
+        AWAITING_PLAN[chat_id] = True
+        return Reply(_PLAN_PROMPT, [])
+    if data.startswith("plan:"):
+        return _plan_send(data[5:])
     if data.startswith("d:"):
         text_d, kb = faq.dates_step(data[2:])
         return Reply(text_d, kb)
@@ -361,6 +420,7 @@ _BOT_COMMANDS = [
     {"command": "unfollow", "description": "отключить слежение"},
     {"command": "shansy", "description": "подбор программ по баллам ЕГЭ"},
     {"command": "vybor", "description": "консультация по выбору направления"},
+    {"command": "plan", "description": "учебный план (дисциплины) по направлению"},
     {"command": "bally", "description": "калькулятор доп. баллов"},
     {"command": "sroki", "description": "сроки и ближайшие дедлайны"},
     {"command": "help", "description": "помощь"},
@@ -408,17 +468,27 @@ def _markup(keyboard: List[List[Tuple[str, str]]]) -> Optional[str]:
         [{"text": t, "callback_data": cb} for (t, cb) in row] for row in keyboard]})
 
 
+def _content_type(filename: str) -> str:
+    fn = filename.lower()
+    if fn.endswith(".pdf"):
+        return "application/pdf"
+    if fn.endswith((".xlsx", ".xls")):
+        return "application/vnd.ms-excel"
+    return "text/csv"
+
+
 def _send_document(token: str, chat_id: int, data: bytes, filename: str,
                    caption: str = ""):
     """sendDocument через multipart/form-data (стандартной библиотекой)."""
     boundary = "----mpguBotBoundary7351"
     parts = []
-    for k, v in (("chat_id", str(chat_id)), ("caption", caption)):
+    for k, v in (("chat_id", str(chat_id)),
+                 ("caption", caption), ("parse_mode", "HTML")):
         parts.append(f"--{boundary}\r\nContent-Disposition: form-data; "
                      f"name=\"{k}\"\r\n\r\n{v}\r\n".encode())
     parts.append((f"--{boundary}\r\nContent-Disposition: form-data; "
                   f"name=\"document\"; filename=\"{filename}\"\r\n"
-                  f"Content-Type: text/csv\r\n\r\n").encode())
+                  f"Content-Type: {_content_type(filename)}\r\n\r\n").encode())
     parts.append(data)
     parts.append(f"\r\n--{boundary}--\r\n".encode())
     body = b"".join(parts)
