@@ -209,8 +209,11 @@ def test_build_index_reports_coverage():
     assert md2["coverage"]["match_rate"] == 0.0
 
 
-def test_build_index_uses_epk_kcp_as_seats():
+def test_build_index_uses_epk_kcp_as_seats(monkeypatch):
     # КЦП со страницы epk25 («Контрольные цифры приёма: 62») важнее каталога (85)
+    # и НЕ вычитает квоты (в т.ч. целевую) — epk уже даёт общий конкурс.
+    import scraper.abitur.lists as LM
+    monkeypatch.setattr(LM, "_quota_for", lambda m: 18)   # была бы 62−18=44 — не должно
     view = VIEW_SIM.replace("<TABLE>",
         "Вид мест: основные места в рамках КЦП Контрольные цифры приёма: 62 "
         "Мест для зачисления: 62 <TABLE>")
