@@ -232,7 +232,12 @@ def _quota_for(m: dict) -> Optional[int]:
 
 
 def _general_seats(m: dict, places: int):
-    """(мест в общем конкурсе сейчас, квотных). Общий = КЦП − квоты (если известны)."""
+    """(мест в общем конкурсе сейчас, квотных). Общий = КЦП − квоты (если известны).
+
+    Если места взяты прямо со страницы epk25 (kcp_from_epk) — это уже общий
+    конкурс (квоты там отдельными списками), вычитать ничего не нужно."""
+    if m.get("kcp_from_epk"):
+        return places, None
     quota = _quota_for(m)
     if quota is None:
         return places, None

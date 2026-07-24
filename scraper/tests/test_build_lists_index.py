@@ -207,3 +207,23 @@ def test_build_index_reports_coverage():
     # места неизвестны → покрытие 0.0 (сигнал сломанного матчинга)
     md2, _ = build_index(pages, meta, updated_at="t", places_fn=lambda m: None)
     assert md2["coverage"]["match_rate"] == 0.0
+
+
+def test_build_index_uses_epk_kcp_as_seats():
+    # КЦП со страницы epk25 («Контрольные цифры приёма: 62») важнее каталога (85)
+    view = VIEW_SIM.replace("<TABLE>",
+        "Вид мест: основные места в рамках КЦП Контрольные цифры приёма: 62 "
+        "Мест для зачисления: 62 <TABLE>")
+    meta = {"G1": {"direction": "44.03.01 Информатика", "form": "очная", "kind": "бюджет"}}
+    md, _ = build_index({"G1": view}, meta, updated_at="t", places_fn=lambda m: 85)
+    lm = md["lists"]["G1"]
+    assert lm["kcp_epk"] == 62
+    assert lm["places"] == 62 and lm.get("kcp_from_epk") is True
+    assert lm["general_seats"] == 62          # без вычета квот — epk уже общий конкурс
+
+
+def test_build_index_falls_back_to_catalog_without_epk_kcp():
+    meta = {"G1": {"direction": "44.03.01 X", "form": "очная", "kind": "бюджет"}}
+    md, _ = build_index({"G1": VIEW_SIM}, meta, updated_at="t", places_fn=lambda m: 30)
+    lm = md["lists"]["G1"]
+    assert lm["places"] == 30 and "kcp_from_epk" not in lm

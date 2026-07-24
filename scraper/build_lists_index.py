@@ -10,7 +10,19 @@ import datetime as dt
 import os
 from typing import Dict, List, Tuple
 
+import re
+
 from scraper.parsers.competitive_list_parser import parse_view
+
+# epk25 публикует КЦП конкретного списка прямо на странице — это самое надёжное
+# число мест (у списка «основные места в рамках КЦП» оно уже за вычетом квот,
+# т.к. квоты — отдельные списки). Совпадает с тем, что видит абитуриент.
+_KCP_RE = re.compile(r"Контрольные цифры при[её]ма:\s*(\d+)")
+
+
+def _parse_kcp(html: str):
+    m = _KCP_RE.search(re.sub(r"<[^>]+>", " ", html or ""))
+    return int(m.group(1)) if m else None
 
 
 def _shard_key(unique_code: str) -> str:
@@ -73,6 +85,9 @@ def build_index(pages: Dict[str, str], meta: Dict[str, dict],
                               if r.get("score_total")), reverse=True)
         m.setdefault("url",
                      f"https://epk25.mpgu.su/competitive-list/view?code={code_list}")
+        kcp = _parse_kcp(html)
+        if kcp is not None:
+            m["kcp_epk"] = kcp
         lists[code_list] = m
 
     # Общий конкурс = крупнейший бюджетный список направления+формы; ему ищем
@@ -92,7 +107,13 @@ def build_index(pages: Dict[str, str], meta: Dict[str, dict],
         m["general"] = (lc in aliased
                         or (m["count"] or 0) >= max((x.get("count") or 0) for x in same))
         if m["general"]:
-            m["places"] = places_fn(m)
+            # КЦП со страницы epk25 — авторитетнее каталога (у списка «основные
+            # места» это уже общий конкурс). Каталог — фолбэк, если epk25 молчит.
+            if m.get("kcp_epk") is not None:
+                m["places"] = m["kcp_epk"]
+                m["kcp_from_epk"] = True
+            else:
+                m["places"] = places_fn(m)
 
     # Покрытие сопоставления: сколько общих бюджетных списков получили места из
     # каталога. Резкое падение = нечёткий матчинг сломался на новых данных
