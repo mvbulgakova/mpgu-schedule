@@ -149,13 +149,29 @@ def _git(cwd: Path, args: list[str], check=True) -> subprocess.CompletedProcess:
 
 
 def _retry_push(cwd: Path):
+    """Публикация в data с переносом на актуальную вершину ветки.
+
+    В горячую фазу обходы идут каждые 15 минут, а сам обход ~25 минут, поэтому
+    соседний прогон успевает запушить раньше. Слепой повтор push при этом
+    бесполезен (non-fast-forward) — обход выбрасывался целиком, и данные молча
+    устаревали. Перед повтором подтягиваем ветку с --rebase: наши файлы всё
+    равно перезаписываются целиком, конфликты решаем в пользу свежего обхода.
+    """
     import time
     delays = [2, 4, 8, 16]
     for i, delay in enumerate(delays):
         result = _git(cwd, ["push", "-u", "origin", "data"], check=False)
         if result.returncode == 0:
             return
+        err = (result.stderr or "").strip().splitlines()[-1:] or [""]
+        print(f"Push не удался ({err[0][:80]}), синхронизирую ветку...")
+        pull = _git(cwd, ["pull", "--rebase", "-X", "ours", "origin", "data"],
+                    check=False)
+        if pull.returncode != 0:
+            _git(cwd, ["rebase", "--abort"], check=False)
+            print("Rebase не удался — пробую слить с приоритетом наших файлов")
+            _git(cwd, ["pull", "--no-rebase", "-X", "ours", "--no-edit",
+                       "origin", "data"], check=False)
         if i < len(delays) - 1:
-            print(f"Push не удался, повтор через {delay}с...")
             time.sleep(delay)
     raise RuntimeError("git push провалился после 4 попыток")
