@@ -165,9 +165,42 @@ def test_quota_list_not_compared_with_full_places(monkeypatch):
         {"list": "Q", "position": 5, "score_total": 210, "consent": True,
          "priority_pz": 1, "bvi": False, "status": "Участвует в конкурсе"}]}}
     out = L.format_positions(meta, shard, "888")
-    # позиция в малом (квотном) списке не сравнивается с полным КЦП
+    # позиция в неосновном списке не сравнивается с полным КЦП
     assert "мест: 30" not in out
-    assert "квотн" in out.lower()
+    assert "особый вид мест" in out.lower()
+
+
+def test_vid_mest_from_page_used_as_label(monkeypatch):
+    _fake_places(monkeypatch)
+    meta = {"updated_at": "t", "lists": {
+        "Q": {"direction": "44.03.01 История", "form": "очная", "kind": "бюджет",
+              "count": 18, "vid_mest": "места в пределах особой квоты"}}}
+    shard = {"updated_at": "t", "codes": {"888": [
+        {"list": "Q", "position": 5, "score_total": 210, "consent": True,
+         "priority_pz": 1, "bvi": False, "status": "Участвует"}]}}
+    out = L.format_positions(meta, shard, "888")
+    assert "особой квоты" in out          # берём формулировку с epk25
+
+
+def test_branch_shown_in_labels(monkeypatch):
+    # у филиала то же название направления, но свой КЦП — филиал обязан быть виден
+    import scraper.abitur.lists as LM
+    LM._PLACES_CACHE.clear(); LM._QUOTA_CACHE.clear()
+    monkeypatch.setattr(LM, "_quota_for", lambda m: None)
+    meta = {"updated_at": "t", "lists": {
+        "F": {"direction": "44.03.01 Педагогическое образование. Физическая культура",
+              "form": "очная", "kind": "бюджет", "count": 56, "general": True,
+              "places": 16, "kcp_from_epk": True, "consented": 10,
+              "unit": "Покровский филиал"}}}
+    shard = {"updated_at": "t", "codes": {"777": [
+        {"list": "F", "position": 9, "score_total": 230, "consent": True,
+         "priority_pz": 1, "bvi": False, "status": "Участвует",
+         "cons_above": 3, "sim_above": 4}]}}
+    full = L.format_positions(meta, shard, "777")
+    short = L.format_positions_short(meta, shard, "777")
+    assert "Покровский филиал" in full
+    assert "Покровский ф-л" in short
+    assert "~5-е из 16" in full and "~5-е из 16" in short   # свой КЦП филиала
 
 
 def test_no_places_known_degrades_gracefully(monkeypatch):

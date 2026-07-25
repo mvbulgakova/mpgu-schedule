@@ -94,9 +94,19 @@ def lookup(shard: Optional[dict], code: str) -> List[Dict]:
     return (shard.get("codes") or {}).get(_norm(code), [])
 
 
+def _branch(m: dict) -> Optional[str]:
+    """Филиал (если список не головного кампуса) — у филиала свой КЦП и конкурс,
+    а название направления совпадает с московским, поэтому это важно показать."""
+    unit = m.get("unit") or ""
+    return unit if "филиал" in unit.lower() else None
+
+
 def _list_label(meta: Optional[dict], list_code: str) -> str:
     m = ((meta or {}).get("lists") or {}).get(list_code, {})
     name = m.get("direction") or list_code
+    br = _branch(m)
+    if br:
+        name = f"{name} — {br}"
     extras = [x for x in (m.get("form"), m.get("kind")) if x]
     return f"{name} ({', '.join(extras)})" if extras else name
 
@@ -289,11 +299,16 @@ def _consent_caveat(entries: List[Dict], lists_meta_all: dict) -> str:
 
 
 def _is_general_budget(lists_meta: dict, list_code: str) -> bool:
-    """Список — общий конкурс (не квотный)? Общий = крупнейший бюджетный список
-    своего направления+формы; квотные списки того же направления всегда меньше."""
+    """Список — общий конкурс? Приоритет — факту со страницы epk25 («Вид мест:
+    основные места в рамках КЦП»); он же различает филиалы (у каждого свой КЦП).
+    Если факта нет — прежняя эвристика «крупнейший список направления+формы»."""
     m = lists_meta.get(list_code, {})
     if m.get("kind") != "бюджет":
         return False
+    if "main_kcp" in m:
+        return bool(m["main_kcp"])
+    if m.get("vid_mest"):
+        return "основные места" in m["vid_mest"].lower()
     same = [x for x in lists_meta.values()
             if x.get("kind") == "бюджет" and x.get("direction") == m.get("direction")
             and x.get("form") == m.get("form")]
@@ -339,8 +354,11 @@ def format_positions_short(meta: Optional[dict], shard: Optional[dict],
     entries_sorted = sorted(entries, key=lambda e: (e.get("priority_pz") or 99,))
     for e in entries_sorted:
         m = lists_meta_all.get(e["list"], {})
-        name = _short_name(m.get("direction") or e["list"]) + \
-            _FORM_SHORT.get(m.get("form") or "", "")
+        br = _branch(m)
+        name = _short_name(m.get("direction") or e["list"],
+                           maxlen=30 if br else 42) + \
+            _FORM_SHORT.get(m.get("form") or "", "") + \
+            (f" · {br.replace(' филиал', ' ф-л')}" if br else "")
         pri = f"П{e['priority_pz']}" if e.get("priority_pz") is not None else "—"
         places = m.get("places")
         sim_above = e.get("sim_above")
@@ -426,7 +444,8 @@ def format_positions(meta: Optional[dict], shard: Optional[dict], code: str) -> 
                                         m.get("direction") or name, None, seats,
                                         e["list"]))
             else:
-                parts.append("квотный список")
+                # «Вид мест» со страницы (если есть) точнее наших догадок
+                parts.append(m.get("vid_mest") or "особый вид мест")
         elif m.get("kind") == "платное":
             pp = _places_for(m)
             if pp:

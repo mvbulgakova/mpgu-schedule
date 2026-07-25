@@ -8,7 +8,7 @@ build_index — чистая (given HTML → (meta_doc, shards)).
 """
 import datetime as dt
 import os
-from typing import Dict, List, Tuple
+from typing import Dict, List, Optional, Tuple
 
 import re
 
@@ -18,11 +18,30 @@ from scraper.parsers.competitive_list_parser import parse_view
 # число мест (у списка «основные места в рамках КЦП» оно уже за вычетом квот,
 # т.к. квоты — отдельные списки). Совпадает с тем, что видит абитуриент.
 _KCP_RE = re.compile(r"Контрольные цифры при[её]ма:\s*(\d+)")
+# «Вид мест» отличает общий конкурс от квотных списков, а «Учебное структурное
+# подразделение» — головной кампус от филиалов (у филиала свой КЦП и свой
+# конкурс, но одинаковое с кампусом название направления).
+_VID_RE = re.compile(r"Вид мест:\s*([^\r\n]{0,80})")
+_UNIT_RE = re.compile(r"Учебное структурное подразделение:\s*([^\r\n]{0,80})")
+
+
+def _flat(html: str) -> str:
+    return re.sub(r"<[^>]+>", " ", html or "")
 
 
 def _parse_kcp(html: str):
-    m = _KCP_RE.search(re.sub(r"<[^>]+>", " ", html or ""))
+    m = _KCP_RE.search(_flat(html))
     return int(m.group(1)) if m else None
+
+
+def _parse_field(html: str, rx) -> Optional[str]:
+    m = rx.search(_flat(html))
+    return re.sub(r"\s+", " ", m.group(1)).strip() if m else None
+
+
+def _is_main_kcp(vid: Optional[str]) -> bool:
+    """«основные места в рамках КЦП» = общий конкурс (квоты — отдельные виды)."""
+    return bool(vid) and "основные места" in vid.lower()
 
 
 def _shard_key(unique_code: str) -> str:
@@ -88,11 +107,21 @@ def build_index(pages: Dict[str, str], meta: Dict[str, dict],
         kcp = _parse_kcp(html)
         if kcp is not None:
             m["kcp_epk"] = kcp
+        vid = _parse_field(html, _VID_RE)
+        if vid:
+            m["vid_mest"] = vid
+            m["main_kcp"] = _is_main_kcp(vid)
+        unit = _parse_field(html, _UNIT_RE)
+        if unit:
+            m["unit"] = unit
         lists[code_list] = m
 
-    # Общий конкурс = крупнейший бюджетный список направления+формы; ему ищем
-    # места. Исключение — ручная привязка по коду списка (кампус-дубли вроде
-    # Покровского филиала): такой список — свой отдельный общий конкурс.
+    # Общий конкурс определяем ФАКТОМ со страницы: «Вид мест: основные места в
+    # рамках КЦП». Прежняя эвристика «крупнейший список направления+формы»
+    # ошибалась на филиалах: у Покровского/Дербентского/Ставропольского то же
+    # название направления, но свой КЦП и свой конкурс — и они помечались
+    # «квотными», из-за чего их абитуриенты не видели ни места, ни позиции.
+    # Фолбэк (если epk25 не отдал «Вид мест») — прежняя эвристика + привязки.
     try:
         from scraper.abitur.lists import alias_list_codes
         aliased = alias_list_codes()
@@ -101,11 +130,16 @@ def build_index(pages: Dict[str, str], meta: Dict[str, dict],
     for lc, m in lists.items():
         if m.get("kind") != "бюджет":
             continue
-        same = [x for x in lists.values()
-                if x.get("kind") == "бюджет" and x.get("direction") == m.get("direction")
-                and x.get("form") == m.get("form")]
-        m["general"] = (lc in aliased
-                        or (m["count"] or 0) >= max((x.get("count") or 0) for x in same))
+        if "main_kcp" in m:
+            m["general"] = bool(m["main_kcp"])
+        else:
+            same = [x for x in lists.values()
+                    if x.get("kind") == "бюджет"
+                    and x.get("direction") == m.get("direction")
+                    and x.get("form") == m.get("form")]
+            m["general"] = (lc in aliased
+                            or (m["count"] or 0) >= max((x.get("count") or 0)
+                                                        for x in same))
         if m["general"]:
             # КЦП со страницы epk25 — авторитетнее каталога (у списка «основные
             # места» это уже общий конкурс). Каталог — фолбэк, если epk25 молчит.
