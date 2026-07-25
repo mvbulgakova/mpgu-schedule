@@ -379,3 +379,11 @@ def test_spisok_detail_shows_prediction_block(monkeypatch):
     assert "Примерный проходной-2026: ориентир ~242–244" in out
     assert "по согласиям проходят от ~230" in out
     assert "топ-20" in out and "~270" in out
+
+
+def test_branch_gets_no_moscow_history():
+    # у филиала своё КЦП и свой конкурс — московскую историю подставлять нельзя
+    branch = {"direction": "44.03.01 Педагогическое образование. Физическая культура",
+              "form": "очная", "kind": "бюджет", "unit": "Дербентский филиал"}
+    assert L._history_for(branch) is None
+    assert L._prediction_line(branch) is None or "ориентир" not in L._prediction_line(branch)
