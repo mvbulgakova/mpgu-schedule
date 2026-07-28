@@ -230,3 +230,17 @@ def test_build_index_falls_back_to_catalog_without_epk_kcp():
     md, _ = build_index({"G1": VIEW_SIM}, meta, updated_at="t", places_fn=lambda m: 30)
     lm = md["lists"]["G1"]
     assert lm["places"] == 30 and "kcp_from_epk" not in lm
+
+
+def test_no_seats_invented_when_epk_kcp_empty():
+    # страница разобрана («Вид мест» есть), но КЦП вуз не заполнил → мест не знаем.
+    # Каталожное число тут завышало бы шансы (оно без целевой квоты) — молчим.
+    view = VIEW_SIM.replace("<TABLE>",
+        "Вид мест: основные места в рамках КЦП Контрольные цифры приёма: "
+        "Зачислено: Мест для зачисления: <TABLE>")
+    meta = {"G1": {"direction": "44.03.01 X", "form": "очная", "kind": "бюджет"}}
+    md, _ = build_index({"G1": view}, meta, updated_at="t", places_fn=lambda m: 15)
+    lm = md["lists"]["G1"]
+    assert lm["general"] is True          # это общий конкурс
+    assert lm["places"] is None           # но мест не выдумываем
+    assert "kcp_from_epk" not in lm

@@ -433,6 +433,12 @@ def _check_subs(token: str):
                 _send(token, int(chat), Reply(txt, []))
             except Exception as e:
                 print(f"notify error {chat}: {e}")
+                # 403 = человек заблокировал бота или удалил чат. Подписка иначе
+                # висит вечно и на каждой проверке тратит запрос — снимаем её.
+                if "403" in str(e):
+                    SUBS.pop(str(chat), None)
+                    changed = True
+                    print(f"подписка {chat} снята (бот заблокирован)")
     if changed:
         _save_subs()
 
