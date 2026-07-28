@@ -387,3 +387,20 @@ def test_branch_gets_no_moscow_history():
               "form": "очная", "kind": "бюджет", "unit": "Дербентский филиал"}
     assert L._history_for(branch) is None
     assert L._prediction_line(branch) is None or "ориентир" not in L._prediction_line(branch)
+
+
+def test_quota_list_shows_own_seats_and_position(monkeypatch):
+    # льготник должен видеть позицию в СВОЁМ квотном конкурсе, а не «платное»
+    import scraper.abitur.lists as LM
+    LM._PLACES_CACHE.clear(); LM._QUOTA_CACHE.clear()
+    meta = {"updated_at": "t", "lists": {"Q": {
+        "direction": "44.03.01 Информатика", "form": "очная", "kind": "бюджет",
+        "count": 40, "vid_mest": "особая квота", "quota": True,
+        "main_kcp": False, "general": False, "kcp_epk": 9}}}
+    shard = {"updated_at": "t", "codes": {"321": [
+        {"list": "Q", "position": 3, "score_total": 210, "consent": True,
+         "priority_pz": 1, "bvi": False, "status": "Участвует"}]}}
+    out = L.format_positions(meta, shard, "321")
+    assert "особая квота: место 3 из 9" in out
+    assert "✅" in out
+    assert "платное" not in out

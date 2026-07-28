@@ -450,8 +450,16 @@ def format_positions(meta: Optional[dict], shard: Optional[dict], code: str) -> 
                                         m.get("direction") or name, None, seats,
                                         e["list"]))
             else:
-                # «Вид мест» со страницы (если есть) точнее наших догадок
-                parts.append(m.get("vid_mest") or "особый вид мест")
+                # Квотный список — тоже бюджет и тоже конкурс, просто свой:
+                # у него собственные места, и человеку важно видеть позицию.
+                label = m.get("vid_mest") or "особый вид мест"
+                qp = m.get("kcp_epk")
+                if qp:
+                    ok = e["position"] <= qp
+                    parts.append(f"{label}: место {e['position']} из {qp} "
+                                 f"{'✅' if ok else '⏳'}")
+                else:
+                    parts.append(label)
         elif m.get("kind") == "платное":
             pp = _places_for(m)
             if pp:

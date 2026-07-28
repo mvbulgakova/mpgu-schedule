@@ -232,15 +232,34 @@ def test_build_index_falls_back_to_catalog_without_epk_kcp():
     assert lm["places"] == 30 and "kcp_from_epk" not in lm
 
 
-def test_no_seats_invented_when_epk_kcp_empty():
-    # страница разобрана («Вид мест» есть), но КЦП вуз не заполнил → мест не знаем.
-    # Каталожное число тут завышало бы шансы (оно без целевой квоты) — молчим.
-    view = VIEW_SIM.replace("<TABLE>",
-        "Вид мест: основные места в рамках КЦП Контрольные цифры приёма: "
-        "Зачислено: Мест для зачисления: <TABLE>")
-    meta = {"G1": {"direction": "44.03.01 X", "form": "очная", "kind": "бюджет"}}
-    md, _ = build_index({"G1": view}, meta, updated_at="t", places_fn=lambda m: 15)
-    lm = md["lists"]["G1"]
-    assert lm["general"] is True          # это общий конкурс
-    assert lm["places"] is None           # но мест не выдумываем
-    assert "kcp_from_epk" not in lm
+def _view_with(vid, kcp=""):
+    return VIEW_SIM.replace("<TABLE>",
+        f"Вид мест: {vid} Контрольные цифры приёма: {kcp} <TABLE>")
+
+
+def test_catalog_fallback_subtracts_all_quotas_incl_target():
+    # Реальный кейс: КЦП каталога 85, квоты особая 9 + отдельная 9 + целевая 5
+    # = 23 → общий конкурс 62 (как на epk25). Раньше целевую не вычитали (67).
+    pages = {"G": _view_with("основные места в рамках КЦП"),          # КЦП пуст
+             "Q1": _view_with("особая квота", "9"),
+             "Q2": _view_with("отдельная квота", "9"),
+             "Q3": _view_with("целевая детализированная квота", "5")}
+    base = {"direction": "44.03.01 Информатика", "form": "очная", "kind": "платное"}
+    meta = {k: dict(base) for k in pages}
+    md, _ = build_index(pages, meta, updated_at="t", places_fn=lambda m: 85)
+    g = md["lists"]["G"]
+    assert g["quota_seats"] == 23
+    assert g["places"] == 62                    # 85 − 23, а не 85 − 18
+    assert g["general_seats"] == 62
+
+
+def test_quota_lists_are_budget_not_paid():
+    # квотные списки приезжают с карточки как «платное» — «Вид мест» это чинит,
+    # иначе льготник видит свою квотную позицию помеченной платной
+    pages = {"Q": _view_with("особая квота", "9")}
+    meta = {"Q": {"direction": "44.03.01 X", "form": "очная", "kind": "платное"}}
+    md, _ = build_index(pages, meta, updated_at="t", places_fn=lambda m: 85)
+    q = md["lists"]["Q"]
+    assert q["kind"] == "бюджет" and q["quota"] is True
+    assert q["general"] is False               # но не общий конкурс
+    assert q["kcp_epk"] == 9

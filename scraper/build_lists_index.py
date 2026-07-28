@@ -44,6 +44,28 @@ def _is_main_kcp(vid: Optional[str]) -> bool:
     return bool(vid) and "основные места" in vid.lower()
 
 
+def _is_quota(vid: Optional[str]) -> bool:
+    """Особая / отдельная / целевая квота — это тоже БЮДЖЕТНЫЕ места."""
+    return bool(vid) and "квота" in vid.lower()
+
+
+def _kind_from_vid(vid: Optional[str]) -> Optional[str]:
+    """Вид мест со страницы → бюджет/платное.
+
+    Ссылки на карточке направления не различают квотные списки, и они
+    приезжали как «платное»: льготник видел свою квотную позицию помеченной
+    платной. «Вид мест» снимает эту неоднозначность.
+    """
+    if not vid:
+        return None
+    v = vid.lower()
+    if "платн" in v or "договор" in v:
+        return "платное"
+    if _is_quota(v) or "основные места" in v or "бюджет" in v:
+        return "бюджет"
+    return None
+
+
 def _shard_key(unique_code: str) -> str:
     c = "".join(ch for ch in unique_code if ch.isdigit()) or "0"
     return (c[:2] if len(c) >= 2 else c.zfill(2))
@@ -111,6 +133,10 @@ def build_index(pages: Dict[str, str], meta: Dict[str, dict],
         if vid:
             m["vid_mest"] = vid
             m["main_kcp"] = _is_main_kcp(vid)
+            m["quota"] = _is_quota(vid)
+            kind = _kind_from_vid(vid)
+            if kind:
+                m["kind"] = kind          # вид мест точнее ссылки на карточке
         unit = _parse_field(html, _UNIT_RE)
         if unit:
             m["unit"] = unit
@@ -127,9 +153,21 @@ def build_index(pages: Dict[str, str], meta: Dict[str, dict],
         aliased = alias_list_codes()
     except Exception:
         aliased = set()
+    # Сумма квотных мест программы (особая + отдельная + целевая) по соседним
+    # спискам epk25 — того же направления, формы и подразделения.
+    quota_by_key: Dict[tuple, int] = {}
+    for m in lists.values():
+        if not m.get("quota") or m.get("kcp_epk") is None:
+            continue
+        key = (m.get("direction"), m.get("form"), m.get("unit"))
+        quota_by_key[key] = quota_by_key.get(key, 0) + m["kcp_epk"]
+
     for lc, m in lists.items():
         if m.get("kind") != "бюджет":
             continue
+        qs = quota_by_key.get((m.get("direction"), m.get("form"), m.get("unit")))
+        if qs is not None:
+            m["quota_seats"] = qs
         if "main_kcp" in m:
             m["general"] = bool(m["main_kcp"])
         else:
@@ -146,13 +184,18 @@ def build_index(pages: Dict[str, str], meta: Dict[str, dict],
             if m.get("kcp_epk") is not None:
                 m["places"] = m["kcp_epk"]
                 m["kcp_from_epk"] = True
-            elif "main_kcp" in m:
-                # Страница разобрана, но вуз не заполнил КЦП — мест не знаем.
-                # Каталожное число здесь опасно: оно за вычетом НЕПОЛНОГО списка
-                # квот (без целевой) и завышает шансы. Лучше промолчать.
-                m["places"] = None
             else:
-                m["places"] = places_fn(m)   # страница не разобрана — фолбэк
+                # Вуз не заполнил КЦП на странице — считаем по каталогу:
+                # общий конкурс = КЦП − ВСЕ квоты (особая + отдельная + целевая).
+                # Квоты берём из соседних квотных списков epk25: в каталоге
+                # целевой нет, и без неё общий конкурс завышался (85−18=67
+                # вместо 85−23=62).
+                full = places_fn(m)
+                if full and m.get("quota_seats") is not None:
+                    m["places"] = max(full - m["quota_seats"], 0)
+                    m["places_from_catalog"] = True
+                else:
+                    m["places"] = full
 
     # Покрытие сопоставления: сколько общих бюджетных списков получили места из
     # каталога. Резкое падение = нечёткий матчинг сломался на новых данных
