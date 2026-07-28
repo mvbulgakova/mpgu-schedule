@@ -248,3 +248,41 @@ def test_plan_semesters_absent_offers_file(monkeypatch):
     r = bot._handle_callback(602, "sem:NOPE")
     assert "недоступна" in r.text.lower()
     assert any("Скачать план" in b[0][0] for b in r.keyboard)
+
+
+def test_bare_code_triggers_lookup(monkeypatch):
+    # треть сообщений в выгрузке — просто код; раньше он уходил в ИИ,
+    # тот отвечал «воспользуйтесь /spisok», и человек слал код снова
+    called = {}
+
+    def fake_lookup(code, detailed=False):
+        called["code"] = code
+        return bot.Reply("позиции", [])
+
+    monkeypatch.setattr(bot, "_lookup_code", fake_lookup)
+    bot.handle_message(910, "1199043")
+    assert called["code"] == "1199043"
+    called.clear()
+    bot.handle_message(910, " 954894 ")          # с пробелами
+    assert called["code"] == "954894"
+
+
+def test_long_number_hints_not_a_code(monkeypatch):
+    monkeypatch.setattr(bot, "_answer_free", lambda cid, q: "ИИ")
+    r = bot.handle_message(911, "7561783051")     # это Telegram ID, не код
+    assert "уникальный код" in r.text and "ИИ" not in r.text
+
+
+def test_short_number_still_goes_to_llm(monkeypatch):
+    monkeypatch.setattr(bot, "_answer_free", lambda cid, q: "ИИ-ответ")
+    assert "ИИ-ответ" in bot.handle_message(912, "169").text
+
+
+def test_bare_code_does_not_break_calc_session():
+    # во время калькулятора цифры — это часы волонтёрства, не код
+    bot.handle_message(913, "/bally")
+    bot.handle_callback(913, "c:level:base")
+    bot.handle_callback(913, "c:pedagogical:1")
+    bot.handle_callback(913, "c:target:0")
+    bot.handle_message(913, "200")
+    assert bot.SESSIONS[913].volunteer_hours == 200

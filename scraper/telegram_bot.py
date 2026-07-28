@@ -342,6 +342,19 @@ def _handle_message(chat_id: int, text: str) -> Reply:
         if chat_id != ADMIN_CHAT_ID:
             return Reply("", [])   # молча
         return Reply(feedback.stats_text(FEEDBACK), [])
+    # Голый уникальный код без команды — самый частый ввод (треть сообщений).
+    # Раньше он уходил в ИИ, тот отвечал «воспользуйтесь /spisok», и человек
+    # слал код снова и снова. Ищем позицию сразу.
+    digits = re.sub(r"[\s\-]", "", text)
+    if digits.isdigit() and not text.startswith("/"):
+        if 5 <= len(digits) <= 8:
+            return _lookup_code(digits)
+        if len(digits) >= 9:
+            return Reply("Это похоже на ID Telegram или телефон, а нужен "
+                         "<b>уникальный код</b> заявления (6–7 цифр). Он есть в "
+                         "личном кабинете на Госуслугах и в конкурсных списках "
+                         f"{lists._OFFICIAL}", [])
+
     # свободный вопрос — сохраняем для аналитики (хеш вместо личности) и в логи
     _save_feedback(chat_id, "question", payload)
     print(f"Q: {re.sub(r'[0-9]{5,}', '<код>', payload)[:120]}", flush=True)
