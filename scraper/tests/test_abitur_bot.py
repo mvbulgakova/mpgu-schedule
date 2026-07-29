@@ -286,3 +286,39 @@ def test_bare_code_does_not_break_calc_session():
     bot.handle_callback(913, "c:target:0")
     bot.handle_message(913, "200")
     assert bot.SESSIONS[913].volunteer_hours == 200
+
+
+def test_broadcast_silent_for_non_admin():
+    r = bot.handle_message(chat_id=999999, text="/broadcast привет всем")
+    assert r.text == "" and r.keyboard == []
+
+
+def test_broadcast_shows_usage_without_text(monkeypatch):
+    monkeypatch.setattr(bot, "ADMIN_CHAT_ID", 42)
+    monkeypatch.setattr(bot, "SUBS", {"1": {}, "2": {}})
+    r = bot.handle_message(chat_id=42, text="/broadcast")
+    assert "Использование" in r.text and "2" in r.text
+
+
+def test_broadcast_sends_to_all_subscribers(monkeypatch):
+    monkeypatch.setattr(bot, "ADMIN_CHAT_ID", 42)
+    monkeypatch.setattr(bot, "SUBS", {"111": {}, "222": {}, "333": {}})
+    monkeypatch.setattr(bot.os.environ, "get", lambda k, d=None: "tok" if k == "BOT_TOKEN" else d)
+    sent = []
+    monkeypatch.setattr(bot, "_send", lambda token, chat, reply: sent.append((chat, reply.text)))
+    r = bot.handle_message(chat_id=42, text="/broadcast баг починили, всё ок")
+    assert sorted(c for c, _ in sent) == [111, 222, 333]
+    assert all(t == "баг починили, всё ок" for _, t in sent)
+    assert "3 успешно" in r.text
+
+
+def test_broadcast_counts_failures_and_continues(monkeypatch):
+    monkeypatch.setattr(bot, "ADMIN_CHAT_ID", 42)
+    monkeypatch.setattr(bot, "SUBS", {"111": {}, "222": {}})
+    monkeypatch.setattr(bot.os.environ, "get", lambda k, d=None: "tok" if k == "BOT_TOKEN" else d)
+    def fake_send(token, chat, reply):
+        if chat == 111:
+            raise RuntimeError("boom")
+    monkeypatch.setattr(bot, "_send", fake_send)
+    r = bot.handle_message(chat_id=42, text="/broadcast текст")
+    assert "1 успешно, 1 с ошибкой" in r.text

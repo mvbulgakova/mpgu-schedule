@@ -342,6 +342,10 @@ def _handle_message(chat_id: int, text: str) -> Reply:
         if chat_id != ADMIN_CHAT_ID:
             return Reply("", [])   # молча
         return Reply(feedback.stats_text(FEEDBACK), [])
+    if intent == "broadcast":
+        if chat_id != ADMIN_CHAT_ID:
+            return Reply("", [])   # молча
+        return _broadcast(payload)
     # Голый уникальный код без команды — самый частый ввод (треть сообщений).
     # Раньше он уходил в ИИ, тот отвечал «воспользуйтесь /spisok», и человек
     # слал код снова и снова. Ищем позицию сразу.
@@ -419,6 +423,34 @@ def _handle_callback(chat_id: int, data: str) -> Reply:
         v = dialog.render(s)
         return Reply(v.text, v.keyboard)
     return Reply("Неизвестная команда.", [])
+
+
+def _broadcast(text: str) -> Reply:
+    """Рассылка админа всем подписчикам /follow (одноразово, вручную).
+
+    Появилась после инцидента 29.07: epk25 под нагрузкой отдал урезанные
+    страницы, и подписчики получили ложное «вас больше нет в списке» (см.
+    build_lists_index._guard_incomplete). У нас нет лога, КОМУ конкретно ушло
+    ложное уведомление (sub["last"] перезаписывается на каждой сверке), поэтому
+    рассылка идёт всем текущим подписчикам — это надёжный надмножество
+    затронутых, а не точный список.
+    """
+    if not text:
+        return Reply(f"Использование: <b>/broadcast текст</b>\n"
+                     f"Уйдёт всем подписчикам /follow (сейчас: {len(SUBS)}).", [])
+    token = os.environ.get("BOT_TOKEN")
+    if not token:
+        return Reply("BOT_TOKEN не задан — не могу отправить.", [])
+    ok, fail = 0, 0
+    for chat in list(SUBS):
+        try:
+            _send(token, int(chat), Reply(text, []))
+            ok += 1
+        except Exception as e:
+            fail += 1
+            print(f"broadcast error {chat}: {e}")
+        time.sleep(0.1)   # вежливый интервал — не упереться в лимиты Telegram
+    return Reply(f"Разослано: {ok} успешно, {fail} с ошибкой (из {len(SUBS)}).", [])
 
 
 def _check_subs(token: str):

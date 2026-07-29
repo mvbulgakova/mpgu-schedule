@@ -304,4 +304,7 @@ def route(text: str) -> Tuple[str, str]:
         return ("export", "")
     if cmd in ("/fb_stats", "/feedback_stats"):
         return ("fb_stats", "")
+    if cmd == "/broadcast":
+        arg = t[len(t.split()[0]):].strip() if t else ""
+        return ("broadcast", arg)
     return ("free", t)
