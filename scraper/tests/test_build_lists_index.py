@@ -56,8 +56,10 @@ _OK_STATS = {"levels_failed": [], "directions_total": 100, "directions_failed": 
              "views_total": 300, "views_failed": 0}
 
 
-def _md(n):  # meta_doc с n списками
-    return {"lists": {str(i): {} for i in range(n)}}
+def _md(n, codes=10000):  # meta_doc с n списками; codes_total фиксирован,
+    # если явно не задан — не завязан на n, иначе старые тесты про число
+    # списков нечаянно попадали бы под новую проверку кодов.
+    return {"lists": {str(i): {} for i in range(n)}, "codes_total": codes}
 
 
 def test_guard_blocks_failed_level():
@@ -89,6 +91,34 @@ def test_guard_allows_normal_update():
 
 def test_guard_allows_when_no_previous():
     assert _guard_incomplete(_md(600), _OK_STATS, None) is None
+
+
+def test_guard_blocks_codes_collapse_even_without_network_errors():
+    # Живой инцидент 29.07: epk25 под нагрузкой отдал HTTP 200 с валидной, но
+    # УРЕЗАННОЙ таблицей на почти каждый список. Число списков не изменилось
+    # (667), сетевых ошибок не было (_OK_STATS) — но codes_total рухнул
+    # 27470→2097, и абитуриенты реально пропали из индекса, хотя оставались
+    # в списках на epk25/Госуслугах. Это блокируется НЕЗАВИСИМО от stats.
+    prev = _md(667, codes=27470)
+    corrupted = _md(667, codes=2097)
+    reason = _guard_incomplete(corrupted, _OK_STATS, prev)
+    assert reason is not None
+    assert "2097" in reason and "27470" in reason
+
+
+def test_guard_allows_recovery_after_incident():
+    # как только сайт отдал полные страницы снова — публикуем без вмешательства
+    prev = _md(667, codes=27470)
+    recovered = _md(667, codes=27490)
+    assert _guard_incomplete(recovered, _OK_STATS, prev) is None
+
+
+def test_guard_allows_stable_codes_despite_fewer_lists():
+    # честное закрытие квотных списков: списков стало меньше, но затронутые
+    # абитуриенты остаются в других своих списках — codes_total не рушится
+    prev = _md(667, codes=27000)
+    shrunk = _md(600, codes=26800)
+    assert _guard_incomplete(shrunk, _OK_STATS, prev) is None
 
 
 # ── Симуляция «реального конкурса» (согласия + высшие приоритеты) ────────────
