@@ -154,13 +154,23 @@ def build_index(pages: Dict[str, str], meta: Dict[str, dict],
     except Exception:
         aliased = set()
     # Сумма квотных мест программы (особая + отдельная + целевая) по соседним
-    # спискам epk25 — того же направления, формы и подразделения.
+    # спискам epk25 — того же направления, формы и подразделения. Если вуз не
+    # заполнил КЦП хотя бы у ОДНОГО квотного списка группы, сумма ненадёжна
+    # (может занизить реальные квоты) — не считаем её вовсе для всей группы,
+    # а не молча используем частичную (иначе «85 − известные 23» может выйти
+    # 0 или отрицательным числом мест, хотя реальных данных просто не хватает).
     quota_by_key: Dict[tuple, int] = {}
+    incomplete_keys = set()
     for m in lists.values():
-        if not m.get("quota") or m.get("kcp_epk") is None:
+        if not m.get("quota"):
             continue
         key = (m.get("direction"), m.get("form"), m.get("unit"))
+        if m.get("kcp_epk") is None:
+            incomplete_keys.add(key)
+            continue
         quota_by_key[key] = quota_by_key.get(key, 0) + m["kcp_epk"]
+    for key in incomplete_keys:
+        quota_by_key.pop(key, None)
 
     for lc, m in lists.items():
         if m.get("kind") != "бюджет":

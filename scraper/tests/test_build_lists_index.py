@@ -283,6 +283,24 @@ def test_catalog_fallback_subtracts_all_quotas_incl_target():
     assert g["general_seats"] == 62
 
 
+def test_partial_quota_data_does_not_produce_false_zero():
+    # Реальный кейс (Анапский филиал): каталог даёт полный КЦП 15, известна
+    # только отдельная квота 15 (особая квота на странице не заполнена вузом,
+    # kcp_epk=None) — 15−15=0 выглядело бы как «мест нет», хотя на самом деле
+    # мы просто не знаем размер особой квоты. При НЕПОЛНЫХ квотных данных
+    # группы вычитание не делаем вовсе — берём полный каталожный КЦП.
+    pages = {"G": _view_with("основные места в рамках КЦП"),           # КЦП пуст
+             "Q1": _view_with("отдельная квота", "15"),
+             "Q2": _view_with("особая квота", "")}                     # не заполнено
+    base = {"direction": "44.03.01 Физическая культура", "form": "очно-заочная",
+            "kind": "платное"}
+    meta = {k: dict(base) for k in pages}
+    md, _ = build_index(pages, meta, updated_at="t", places_fn=lambda m: 15)
+    g = md["lists"]["G"]
+    assert "quota_seats" not in g               # неполные данные — не считаем
+    assert g["places"] == 15                    # полный каталожный КЦП, не 0
+
+
 def test_quota_lists_are_budget_not_paid():
     # квотные списки приезжают с карточки как «платное» — «Вид мест» это чинит,
     # иначе льготник видит свою квотную позицию помеченной платной
