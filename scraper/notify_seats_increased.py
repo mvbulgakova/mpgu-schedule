@@ -55,15 +55,15 @@ def main(argv=None) -> int:
 
     subs = follow.load(args.subs_path)
 
-    total_sent, total_no_position, total_failed = 0, 0, 0
+    total_sent, total_failed = 0, 0
     breakdown = []
     for code, info in grown.items():
-        list_sent = 0
+        list_sent, list_no_position = 0, 0
         for chat, sub in subs.items():
             try:
                 pos = (sub.get("last") or {}).get(code)
                 if pos is None:
-                    total_no_position += 1
+                    list_no_position += 1
                     continue
                 text = quota_vacancy.format_seats_increased(
                     old=info["old"], new=info["new"],
@@ -76,14 +76,19 @@ def main(argv=None) -> int:
                 print(f"notify error {chat} ({code}): {e}")
                 total_failed += 1
             time.sleep(0.1)
-        breakdown.append((code, info, list_sent))
+        breakdown.append((code, info, list_sent, list_no_position))
 
-    print(f"Отправлено всего: {total_sent}, без позиции: {total_no_position}, "
-         f"с ошибкой: {total_failed} (всего подписчиков: {len(subs)}), "
-         f"списков с ростом КЦП: {len(grown)}")
-    for code, info, list_sent in breakdown:
+    # total_no_position across all lists is a meaningless cross-product count
+    # at multi-list scale (N grown lists × M subscribers who don't track that
+    # particular list) — omitted from the aggregate summary on purpose. The
+    # per-list "не следят" figure below is the interpretable version.
+    print(f"Отправлено всего: {total_sent}, с ошибкой: {total_failed} "
+         f"(всего подписчиков: {len(subs)}), списков с ростом КЦП: {len(grown)}")
+    for code, info, list_sent, list_no_position in sorted(
+            breakdown, key=lambda b: b[2], reverse=True):
         print(f"  {code}: {info['direction']} | {info['form']} | "
-             f"{info['old']}→{info['new']} — отправлено: {list_sent}")
+             f"{info['old']}→{info['new']} — отправлено: {list_sent}, "
+             f"не следят: {list_no_position}")
     return 0
 
 

@@ -90,10 +90,6 @@ def test_two_grown_lists_send_distinct_messages_to_their_own_subscribers(tmp_pat
     assert by_chat[111] == expected_g1
     assert by_chat[222] == expected_g2
 
-    out = None
-    # Убедимся, что summary в выводе печатается (перехват отдельным тестом ниже
-    # для четкости), здесь достаточно проверить отправку.
-
 
 def test_two_grown_lists_summary_mentions_both(tmp_path, monkeypatch, capsys):
     baseline = {"lists": {
@@ -124,6 +120,55 @@ def test_two_grown_lists_summary_mentions_both(tmp_path, monkeypatch, capsys):
     out = capsys.readouterr().out
     assert "G1" in out
     assert "G2" in out
+
+
+def test_summary_omits_no_position_aggregate_and_sorts_breakdown_by_sent(
+        tmp_path, monkeypatch, capsys):
+    """Aggregate "без позиции" across lists is a meaningless cross-product at
+
+    multi-list scale, so it must not appear on the summary line. The
+    per-list breakdown, however, must still show a per-list "не следят"
+    count, and must be sorted with the most-sent list first.
+    """
+    baseline = {"lists": {
+        "G1": {"main_kcp": True, "direction": "A", "form": "очная", "kcp_epk": 10},
+        "G2": {"main_kcp": True, "direction": "B", "form": "заочная", "kcp_epk": 20},
+    }}
+    current = {"lists": {
+        "G1": {"main_kcp": True, "direction": "A", "form": "очная", "kcp_epk": 12},
+        "G2": {"main_kcp": True, "direction": "B", "form": "заочная", "kcp_epk": 25},
+    }}
+    baseline_path = _write(tmp_path, "baseline_meta.json", baseline)
+    meta_path = _write(tmp_path, "lists_meta.json", current)
+    # G2 gets two subscribers, G1 gets only one — G2's breakdown line
+    # should print before G1's.
+    subs = {
+        "111": {"code": "1111111", "last": {"G1": 5}},
+        "222": {"code": "2222222", "last": {"G2": 15}},
+        "333": {"code": "3333333", "last": {"G2": 8}},
+    }
+    subs_path = _write(tmp_path, "subs.json", subs)
+
+    monkeypatch.setattr(NI, "_send", lambda token, chat_id, reply: None)
+    monkeypatch.setattr(NI.time, "sleep", lambda s: None)
+    monkeypatch.setenv("BOT_TOKEN", "test-token")
+
+    rc = NI.main(["--baseline-path", str(baseline_path),
+                 "--meta-path", str(meta_path),
+                 "--subs-path", str(subs_path)])
+
+    assert rc == 0
+    out = capsys.readouterr().out
+    summary_line = out.splitlines()[0]
+    assert "без позиции" not in summary_line
+    assert "Отправлено всего: 3" in summary_line
+    assert "с ошибкой: 0" in summary_line
+
+    g1_idx = out.index("G1")
+    g2_idx = out.index("G2")
+    assert g2_idx < g1_idx  # G2 (2 sent) printed before G1 (1 sent)
+    assert "не следят: 2" in out  # G1 line: 2 of 3 subs don't track G1
+    assert "не следят: 1" in out  # G2 line: 1 of 3 subs don't track G2
 
 
 def test_no_growth_sends_nothing(tmp_path, monkeypatch, capsys):
