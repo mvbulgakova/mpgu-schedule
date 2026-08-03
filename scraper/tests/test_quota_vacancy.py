@@ -8,7 +8,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 from scraper.abitur.quota_vacancy import (compute_group_vacancies,
-                                           format_report,
+                                           format_notification, format_report,
                                            general_list_for_key,
                                            vacancy_for_list)
 
@@ -88,3 +88,20 @@ def test_format_report_lists_only_groups_with_vacancy():
 
 def test_format_report_empty_when_no_vacancies():
     assert format_report({}) == "Незанятых квотных мест не найдено."
+
+
+def test_format_notification_exact_text():
+    expected = (
+        "Предварительно: сейчас вы примерно 45-е из 33 (бюджет, "
+        "«44.03.01 Тест», очная). По квотам этого направления пока есть "
+        "незанятые места (~2) — по правилам они должны перейти в общий "
+        "конкурс, но ещё не добавлены. Если добавят, ориентировочно вы "
+        "будете ~45-е из ~35.\n\n"
+        "Это предварительная прикидка по открытым данным, а не "
+        "официальная информация — точная позиция обновится в живом "
+        "списке. Следите: /spisok 1234567"
+    )
+    text = format_notification(pos=45, kcp=33, vacant=2,
+                               direction="44.03.01 Тест", form="очная",
+                               code="1234567")
+    assert text == expected

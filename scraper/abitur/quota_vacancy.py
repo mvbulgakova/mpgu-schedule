@@ -81,3 +81,22 @@ def format_report(lists: Dict[str, dict]) -> str:
         for vid, kcp_q, enrolled in info["breakdown"]:
             lines.append(f"    {vid}: {enrolled}/{kcp_q}")
     return "\n".join(lines)
+
+
+def format_notification(pos: int, kcp: int, vacant: int, direction: str,
+                        form: str, code: str) -> str:
+    """Текст разового предупреждения подписчику общего списка.
+
+    Явно помечен как прикидка (не гарантия) — те же формулировки, что и в
+    prediction.format_prediction, чтобы не создавать ложной точности.
+    """
+    return (
+        f"Предварительно: сейчас вы примерно {pos}-е из {kcp} (бюджет, "
+        f"«{direction}», {form}). По квотам этого направления пока есть "
+        f"незанятые места (~{vacant}) — по правилам они должны перейти в "
+        f"общий конкурс, но ещё не добавлены. Если добавят, ориентировочно "
+        f"вы будете ~{pos}-е из ~{kcp + vacant}.\n\n"
+        f"Это предварительная прикидка по открытым данным, а не "
+        f"официальная информация — точная позиция обновится в живом "
+        f"списке. Следите: /spisok {code}"
+    )
