@@ -1,0 +1,59 @@
+name: Quota Notify
+
+# Ручной запуск (Actions → Quota Notify → Run workflow, ввести код общего
+# списка). Разовая рассылка подписчикам этого списка предварительной оценки
+# позиции с учётом вакантных квотных мест — см. docs/superpowers/specs/
+# 2026-08-03-quota-vacancy-notify-design.md. НЕ автоматизировано намеренно:
+# решение слать или нет — за пользователем, после просмотра
+# scraper/report_quota_vacancies.py.
+# Секреты репозитория: BOT_TOKEN (Settings → Secrets → Actions).
+
+on:
+  workflow_dispatch:
+    inputs:
+      list_code:
+        description: "Код общего списка (например 000000700)"
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install deps
+        run: pip install "anthropic>=0.30"
+
+      # Тот же кэш, что использует bot-poll.yml, — восстанавливаем ТЕКУЩИЙ
+      # снимок подписок (актуальность до часа, этого достаточно для прикидки).
+      - name: Restore subscriptions
+        uses: actions/cache/restore@v4
+        with:
+          path: subs.json
+          key: bot-state-notify-${{ github.run_id }}
+          restore-keys: |
+            bot-state-
+            bot-subs-
+
+      - name: Fetch fresh lists_meta.json from data branch
+        run: |
+          git fetch --depth=1 origin data
+          git show origin/data:admissions/lists_meta.json > lists_meta.json
+
+      - name: Send notification
+        env:
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+          SUBS_PATH: subs.json
+          LISTS_META_PATH: lists_meta.json
+          LIST_CODE: ${{ github.event.inputs.list_code }}
+        run: python -m scraper.notify_quota_seats --code "$LIST_CODE"
