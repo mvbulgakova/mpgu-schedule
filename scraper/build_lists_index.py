@@ -23,6 +23,16 @@ _KCP_RE = re.compile(r"Контрольные цифры при[её]ма:\s*(\d
 # конкурс, но одинаковое с кампусом название направления).
 _VID_RE = re.compile(r"Вид мест:\s*([^\r\n]{0,80})")
 _UNIT_RE = re.compile(r"Учебное структурное подразделение:\s*([^\r\n]{0,80})")
+# Появляются на странице epk25 после того, как вуз обработал приказ о
+# зачислении по этому списку. «Мест для зачисления» = КЦП минус уже
+# зачисленные (открытые места), «Зачислено» — сколько уже зачислено именно
+# по этому списку. «Дата и время обновления» — момент, когда САМА страница
+# в последний раз пересчитывалась (не момент обхода нашим краулером) —
+# нужно, чтобы понять, догнал ли epk25 конкретный подписанный приказ.
+_SEATS_OPEN_RE = re.compile(r"Мест для зачисления:\s*(\d+)")
+_ENROLLED_RE = re.compile(r"Зачислено:\s*(\d+)")
+_UPDATED_RE = re.compile(
+    r"Дата и время обновления:\s*(\d{2})\.(\d{2})\.(\d{4})\.\s*(\d{2}):(\d{2})")
 
 
 def _flat(html: str) -> str:
@@ -37,6 +47,21 @@ def _parse_kcp(html: str):
 def _parse_field(html: str, rx) -> Optional[str]:
     m = rx.search(_flat(html))
     return re.sub(r"\s+", " ", m.group(1)).strip() if m else None
+
+
+def _parse_int_field(html: str, rx) -> Optional[int]:
+    m = rx.search(_flat(html))
+    return int(m.group(1)) if m else None
+
+
+def _parse_updated_at(html: str) -> Optional[str]:
+    m = _UPDATED_RE.search(_flat(html))
+    if not m:
+        return None
+    day, month, year, hour, minute = (int(x) for x in m.groups())
+    return dt.datetime(year, month, day, hour, minute,
+                       tzinfo=dt.timezone(dt.timedelta(hours=3))
+                       ).isoformat(timespec="seconds")
 
 
 def _is_main_kcp(vid: Optional[str]) -> bool:
@@ -140,6 +165,15 @@ def build_index(pages: Dict[str, str], meta: Dict[str, dict],
         unit = _parse_field(html, _UNIT_RE)
         if unit:
             m["unit"] = unit
+        seats_open = _parse_int_field(html, _SEATS_OPEN_RE)
+        if seats_open is not None:
+            m["seats_open"] = seats_open
+        enrolled = _parse_int_field(html, _ENROLLED_RE)
+        if enrolled is not None:
+            m["enrolled"] = enrolled
+        page_updated_at = _parse_updated_at(html)
+        if page_updated_at is not None:
+            m["page_updated_at"] = page_updated_at
         lists[code_list] = m
 
     # Общий конкурс определяем ФАКТОМ со страницы: «Вид мест: основные места в

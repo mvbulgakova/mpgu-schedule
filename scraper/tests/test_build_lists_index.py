@@ -311,3 +311,28 @@ def test_quota_lists_are_budget_not_paid():
     assert q["kind"] == "бюджет" and q["quota"] is True
     assert q["general"] is False               # но не общий конкурс
     assert q["kcp_epk"] == 9
+
+
+def test_build_index_parses_seats_open_enrolled_and_updated_at():
+    # Реальный формат страницы epk25 (проверено вручную 03.08.26):
+    # "Контрольные цифры приёма: 33 Зачислено: 3 Мест для зачисления: 30
+    #  &nbsp; Дата и время обновления: 03.08.2026. 18:00 &nbsp; ..."
+    view = VIEW_SIM.replace("<TABLE>",
+        "Вид мест: основные места в рамках КЦП Контрольные цифры приёма: 33 "
+        "Зачислено: 3 Мест для зачисления: 30 &nbsp; "
+        "Дата и время обновления: 03.08.2026. 18:00 &nbsp; <TABLE>")
+    meta = {"G": {"direction": "44.03.01 Тест", "form": "очная", "kind": "бюджет"}}
+    md, _ = build_index({"G": view}, meta, updated_at="t", places_fn=lambda m: 33)
+    g = md["lists"]["G"]
+    assert g["seats_open"] == 30
+    assert g["enrolled"] == 3
+    assert g["page_updated_at"] == "2026-08-03T18:00:00+03:00"
+
+
+def test_build_index_missing_new_fields_are_absent():
+    meta = {"G": {"direction": "44.03.01 Тест", "form": "очная", "kind": "бюджет"}}
+    md, _ = build_index({"G": VIEW_SIM}, meta, updated_at="t", places_fn=lambda m: 10)
+    g = md["lists"]["G"]
+    assert "seats_open" not in g
+    assert "enrolled" not in g
+    assert "page_updated_at" not in g
