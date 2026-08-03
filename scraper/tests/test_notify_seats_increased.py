@@ -159,13 +159,16 @@ def test_summary_omits_no_position_aggregate_and_sorts_breakdown_by_sent(
 
     assert rc == 0
     out = capsys.readouterr().out
-    summary_line = out.splitlines()[0]
+    summary_line = next(l for l in out.splitlines()
+                        if l.startswith("Отправлено всего:"))
     assert "без позиции" not in summary_line
     assert "Отправлено всего: 3" in summary_line
     assert "с ошибкой: 0" in summary_line
 
-    g1_idx = out.index("G1")
-    g2_idx = out.index("G2")
+    # locate the per-list BREAKDOWN lines specifically (indented "  <code>:"),
+    # not the interleaved per-send progress lines that also mention G1/G2
+    g1_idx = out.index("  G1:")
+    g2_idx = out.index("  G2:")
     assert g2_idx < g1_idx  # G2 (2 sent) printed before G1 (1 sent)
     assert "не следят: 2" in out  # G1 line: 2 of 3 subs don't track G1
     assert "не следят: 1" in out  # G2 line: 1 of 3 subs don't track G2
@@ -315,3 +318,55 @@ def test_continues_past_record_missing_code(tmp_path, monkeypatch, capsys):
     # сообщение (отсутствующий code заменяется на "?" внутри текста)
     assert sorted(c for c, _ in sent) == [111, 222]
     assert "Отправлено всего: 2" in capsys.readouterr().out
+
+
+def test_sleep_calls_bounded_by_real_sends_not_lists_times_subscribers(
+        tmp_path, monkeypatch, capsys):
+    """Regression guard for the O(grown × subs) cross-product timeout risk.
+
+    20 grown lists, 40 subscribers, but only every 5th subscriber tracks a
+    (single) grown list — realistic shape: most subscribers don't track any
+    of today's grown lists. A lists-outer/subscribers-inner loop that visits
+    every subscriber once per grown list would run 20 × 40 = 800 iterations;
+    the fix must bound the number of send attempts (and therefore sleeps) by
+    the actual number of tracked matches, here exactly 8 (40 // 5).
+    """
+    baseline = {"lists": {}}
+    current = {"lists": {}}
+    for i in range(20):
+        code = f"G{i}"
+        baseline["lists"][code] = {"main_kcp": True, "direction": f"D{i}",
+                                   "form": "очная", "kcp_epk": 10}
+        current["lists"][code] = {"main_kcp": True, "direction": f"D{i}",
+                                  "form": "очная", "kcp_epk": 12}
+    baseline_path = _write(tmp_path, "baseline_meta.json", baseline)
+    meta_path = _write(tmp_path, "lists_meta.json", current)
+
+    subs = {}
+    for i in range(40):
+        if i % 5 == 0:
+            subs[str(i)] = {"code": str(i), "last": {"G0": 5}}
+        else:
+            subs[str(i)] = {"code": str(i), "last": {}}
+    subs_path = _write(tmp_path, "subs.json", subs)
+
+    sent = []
+    sleep_calls = []
+    monkeypatch.setattr(NI, "_send",
+                        lambda token, chat_id, reply: sent.append(chat_id))
+    monkeypatch.setattr(NI.time, "sleep", lambda s: sleep_calls.append(s))
+    monkeypatch.setenv("BOT_TOKEN", "test-token")
+
+    rc = NI.main(["--baseline-path", str(baseline_path),
+                 "--meta-path", str(meta_path),
+                 "--subs-path", str(subs_path)])
+
+    assert rc == 0
+    assert len(sent) == 8          # 40 // 5, only the G0-tracking subs
+    assert len(sleep_calls) == 8   # sleep only paced with actual sends,
+                                    # NOT with the 20 × 40 = 800 cross product
+
+    out = capsys.readouterr().out
+    # progress checkpoint should appear (every 50 subs or at the end — here
+    # only the final checkpoint since 40 < 50)
+    assert "обработано подписчиков: 40/40" in out

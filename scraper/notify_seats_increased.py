@@ -54,36 +54,61 @@ def main(argv=None) -> int:
         return 0
 
     subs = follow.load(args.subs_path)
+    n_subs = len(subs)
 
+    # Iterate SUBSCRIBERS once, not the (grown list × subscriber) cross
+    # product — with ~50 grown lists in production and hundreds of
+    # subscribers, looping lists-outer/subscribers-inner means every
+    # subscriber is visited once per grown list regardless of whether they
+    # track it, which does not scale. Here each subscriber is visited once,
+    # and only the grown lists THEY actually track are processed (and
+    # sleep-paced) for them.
     total_sent, total_failed = 0, 0
-    breakdown = []
-    for code, info in grown.items():
-        list_sent, list_no_position = 0, 0
-        for chat, sub in subs.items():
+    per_list_sent = {code: 0 for code in grown}
+    per_list_no_position = {code: 0 for code in grown}
+    processed = 0
+    for chat, sub in subs.items():
+        processed += 1
+        try:
+            last = sub.get("last") or {}
+            tracked = [code for code in grown if last.get(code) is not None]
+        except Exception as e:
+            print(f"notify error {chat}: {e}")
+            total_failed += 1
+            tracked = []
+        for code in grown:
+            if code not in tracked:
+                per_list_no_position[code] += 1
+        for code in tracked:
             try:
-                pos = (sub.get("last") or {}).get(code)
-                if pos is None:
-                    list_no_position += 1
-                    continue
+                info = grown[code]
                 text = quota_vacancy.format_seats_increased(
                     old=info["old"], new=info["new"],
                     direction=info["direction"], form=info["form"],
                     code=sub.get("code", "?"))
                 _send(token, int(chat), Reply(text, []))
                 total_sent += 1
-                list_sent += 1
+                per_list_sent[code] += 1
+                print(f"-> отправлено: chat={chat}, список={code} "
+                     f"(отправлено всего: {total_sent})")
             except Exception as e:
                 print(f"notify error {chat} ({code}): {e}")
                 total_failed += 1
             time.sleep(0.1)
-        breakdown.append((code, info, list_sent, list_no_position))
+        # Progress checkpoint so a killed/timed-out job still leaves a log
+        # trail of what was done so far, instead of nothing until the end.
+        if processed % 50 == 0 or processed == n_subs:
+            print(f"... обработано подписчиков: {processed}/{n_subs}, "
+                 f"отправлено: {total_sent}, с ошибкой: {total_failed}")
 
     # total_no_position across all lists is a meaningless cross-product count
     # at multi-list scale (N grown lists × M subscribers who don't track that
     # particular list) — omitted from the aggregate summary on purpose. The
     # per-list "не следят" figure below is the interpretable version.
     print(f"Отправлено всего: {total_sent}, с ошибкой: {total_failed} "
-         f"(всего подписчиков: {len(subs)}), списков с ростом КЦП: {len(grown)}")
+         f"(всего подписчиков: {n_subs}), списков с ростом КЦП: {len(grown)}")
+    breakdown = [(code, info, per_list_sent[code], per_list_no_position[code])
+                for code, info in grown.items()]
     for code, info, list_sent, list_no_position in sorted(
             breakdown, key=lambda b: b[2], reverse=True):
         print(f"  {code}: {info['direction']} | {info['form']} | "
