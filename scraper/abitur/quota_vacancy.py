@@ -49,3 +49,35 @@ def general_list_for_key(lists: Dict[str, dict], key: Key) -> Optional[str]:
         if m.get("main_kcp") and _key(m) == key:
             return lc
     return None
+
+
+def vacancy_for_list(lists: Dict[str, dict], list_code: str) -> Optional[dict]:
+    """Вакансии группы, к которой принадлежит ОБЩИЙ список list_code.
+
+    Пересчитывает группировку заново (не кэш) — вызывающий (notify-скрипт)
+    должен видеть самые свежие данные на момент отправки, а не отчётный снимок.
+    """
+    m = lists.get(list_code)
+    if not m:
+        return None
+    return compute_group_vacancies(lists).get(_key(m))
+
+
+def format_report(lists: Dict[str, dict]) -> str:
+    """Текстовая таблица направлений с незанятыми квотными местами."""
+    groups = compute_group_vacancies(lists)
+    if not groups:
+        return "Незанятых квотных мест не найдено."
+    lines = []
+    for key, info in sorted(groups.items(), key=lambda kv: -kv[1]["vacant"]):
+        direction, form, unit = key
+        general_code = general_list_for_key(lists, key)
+        gm = lists.get(general_code, {}) if general_code else {}
+        kcp = gm.get("kcp_epk")
+        kcp_str = kcp if kcp is not None else "?"
+        lines.append(f"{direction} | {form} | {unit or '-'} | "
+                     f"список {general_code or '?'} | КЦП {kcp_str} | "
+                     f"вакантно квот: {info['vacant']}")
+        for vid, kcp_q, enrolled in info["breakdown"]:
+            lines.append(f"    {vid}: {enrolled}/{kcp_q}")
+    return "\n".join(lines)

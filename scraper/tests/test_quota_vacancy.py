@@ -8,7 +8,9 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 from scraper.abitur.quota_vacancy import (compute_group_vacancies,
-                                           general_list_for_key)
+                                           format_report,
+                                           general_list_for_key,
+                                           vacancy_for_list)
 
 KEY = ("44.03.01 Русский язык и Литература", "очная", "Институт филологии")
 
@@ -57,3 +59,32 @@ def test_general_list_for_key_finds_main_kcp_match():
     }
     assert general_list_for_key(lists, KEY) == "G"
     assert general_list_for_key(lists, ("другое", "очная", "X")) is None
+
+
+def test_vacancy_for_list_looks_up_by_general_code():
+    lists = {
+        "G": {"main_kcp": True, "direction": KEY[0], "form": KEY[1],
+              "unit": KEY[2], "kcp_epk": 33},
+        "Q1": _quota_list("отдельная квота", 9, 7),
+    }
+    info = vacancy_for_list(lists, "G")
+    assert info["vacant"] == 2
+    assert vacancy_for_list(lists, "НЕТ_ТАКОГО") is None
+
+
+def test_format_report_lists_only_groups_with_vacancy():
+    lists = {
+        "G": {"main_kcp": True, "direction": KEY[0], "form": KEY[1],
+              "unit": KEY[2], "kcp_epk": 33},
+        "Q1": _quota_list("особая квота", 1, 1),
+        "Q2": _quota_list("целевая детализированная квота", 1, 1),
+        "Q3": _quota_list("отдельная квота", 9, 7),
+    }
+    report = format_report(lists)
+    assert KEY[0] in report
+    assert "вакантно квот: 2" in report
+    assert "отдельная квота: 7/9" in report
+
+
+def test_format_report_empty_when_no_vacancies():
+    assert format_report({}) == "Незанятых квотных мест не найдено."
