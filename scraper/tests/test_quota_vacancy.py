@@ -9,7 +9,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 from scraper.abitur.quota_vacancy import (compute_group_vacancies,
                                            format_notification, format_report,
+                                           format_seats_increased,
                                            general_list_for_key,
+                                           seats_increased,
                                            vacancy_for_list)
 
 KEY = ("44.03.01 Русский язык и Литература", "очная", "Институт филологии")
@@ -104,4 +106,59 @@ def test_format_notification_exact_text():
     text = format_notification(pos=45, kcp=33, vacant=2,
                                direction="44.03.01 Тест", form="очная",
                                code="1234567")
+    assert text == expected
+
+
+def test_seats_increased_detects_growth_in_general_lists():
+    baseline = {
+        "G": {"main_kcp": True, "direction": "44.03.01 Тест", "form": "очная",
+              "kcp_epk": 33},
+        "Q1": {"quota": True, "direction": "44.03.01 Тест", "form": "очная",
+               "kcp_epk": 9},
+    }
+    current = {
+        "G": {"main_kcp": True, "direction": "44.03.01 Тест", "form": "очная",
+              "kcp_epk": 35},
+        "Q1": {"quota": True, "direction": "44.03.01 Тест", "form": "очная",
+               "kcp_epk": 7},
+    }
+    result = seats_increased(baseline, current)
+    assert result == {"G": {"direction": "44.03.01 Тест", "form": "очная",
+                            "old": 33, "new": 35}}
+
+
+def test_seats_increased_ignores_unchanged_and_decreased_and_non_general():
+    baseline = {
+        "G1": {"main_kcp": True, "direction": "A", "form": "очная", "kcp_epk": 10},
+        "G2": {"main_kcp": True, "direction": "B", "form": "очная", "kcp_epk": 10},
+        "Q1": {"quota": True, "direction": "C", "form": "очная", "kcp_epk": 10},
+    }
+    current = {
+        "G1": {"main_kcp": True, "direction": "A", "form": "очная", "kcp_epk": 10},
+        "G2": {"main_kcp": True, "direction": "B", "form": "очная", "kcp_epk": 8},
+        "Q1": {"quota": True, "direction": "C", "form": "очная", "kcp_epk": 20},
+    }
+    assert seats_increased(baseline, current) == {}
+
+
+def test_seats_increased_skips_missing_baseline_or_unknown_kcp():
+    baseline = {
+        "G1": {"main_kcp": True, "direction": "A", "form": "очная", "kcp_epk": None},
+    }
+    current = {
+        "G1": {"main_kcp": True, "direction": "A", "form": "очная", "kcp_epk": 15},
+        "G2": {"main_kcp": True, "direction": "B", "form": "очная", "kcp_epk": 15},
+    }
+    assert seats_increased(baseline, current) == {}
+
+
+def test_format_seats_increased_exact_text():
+    expected = (
+        "📈 На вашем направлении стало больше бюджетных мест: было 33, "
+        "теперь 35 (+2) — вернулись невостребованные места по квотам/БВИ. "
+        "«44.03.01 Тест», очная.\n\n"
+        "Актуальную позицию смотрите: /spisok 1234567"
+    )
+    text = format_seats_increased(old=33, new=35, direction="44.03.01 Тест",
+                                  form="очная", code="1234567")
     assert text == expected

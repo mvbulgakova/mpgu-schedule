@@ -100,3 +100,50 @@ def format_notification(pos: int, kcp: int, vacant: int, direction: str,
         f"официальная информация — точная позиция обновится в живом "
         f"списке. Следите: /spisok {code}"
     )
+
+
+def seats_increased(baseline: Dict[str, dict],
+                    current: Dict[str, dict]) -> Dict[str, dict]:
+    """Общие списки, у которых КЦП вырос по сравнению с baseline.
+
+    {list_code: {"direction":..., "form":..., "old": int, "new": int}} —
+    только для списков с main_kcp=True, где kcp_epk известен в ОБОИХ
+    снимках и вырос. Рост КЦП общего списка после начала обработки приказа
+    о зачислении почти всегда означает возврат невостребованных
+    квотных/БВИ мест — но мы не гадаем о причине, просто честно фиксируем
+    факт: было/стало.
+    """
+    result: Dict[str, dict] = {}
+    for code, cur in current.items():
+        if not cur.get("main_kcp"):
+            continue
+        base = baseline.get(code)
+        if not base:
+            continue
+        old = base.get("kcp_epk")
+        new = cur.get("kcp_epk")
+        if old is None or new is None or new <= old:
+            continue
+        result[code] = {
+            "direction": cur.get("direction"),
+            "form": cur.get("form"),
+            "old": old,
+            "new": new,
+        }
+    return result
+
+
+def format_seats_increased(old: int, new: int, direction: str, form: str,
+                           code: str) -> str:
+    """Текст факта: на направлении стало больше бюджетных мест.
+
+    В отличие от format_notification, это НЕ прикидка — сообщение
+    отправляется только после того, как рост kcp_epk уже подтверждён
+    в живых данных epk25 (см. seats_increased).
+    """
+    return (
+        f"📈 На вашем направлении стало больше бюджетных мест: было {old}, "
+        f"теперь {new} (+{new - old}) — вернулись невостребованные места "
+        f"по квотам/БВИ. «{direction}», {form}.\n\n"
+        f"Актуальную позицию смотрите: /spisok {code}"
+    )
