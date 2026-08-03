@@ -1,0 +1,62 @@
+name: Seats Increased Notify
+
+# Ручной запуск (Actions → Seats Increased Notify → Run workflow, ввести
+# SHA/ref снимка на ветке data ДО нужного приказа). Разовая рассылка
+# подписчикам каждого общего списка, у которого КЦП подтверждённо вырос —
+# места вернулись из квот/БВИ (см.
+# scraper/abitur/quota_vacancy.py::seats_increased). Baseline подбирается
+# вручную под конкретный приказ — НЕ автоматизировано намеренно.
+# Секреты репозитория: BOT_TOKEN (Settings → Secrets → Actions).
+
+on:
+  workflow_dispatch:
+    inputs:
+      baseline_ref:
+        description: "SHA/ref на ветке data ДО приказа (baseline для сравнения)"
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install deps
+        run: pip install "anthropic>=0.30"
+
+      - name: Restore subscriptions
+        uses: actions/cache/restore@v4
+        with:
+          path: subs.json
+          key: bot-state-seats-notify-${{ github.run_id }}
+          restore-keys: |
+            bot-state-
+            bot-subs-
+
+      - name: Fetch data branch history
+        run: git fetch origin data
+
+      - name: Extract baseline and current lists_meta.json
+        env:
+          BASELINE_REF: ${{ github.event.inputs.baseline_ref }}
+        run: |
+          git show "$BASELINE_REF:admissions/lists_meta.json" > baseline_meta.json
+          git show origin/data:admissions/lists_meta.json > lists_meta.json
+
+      - name: Send notifications
+        env:
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+          SUBS_PATH: subs.json
+          BASELINE_META_PATH: baseline_meta.json
+          LISTS_META_PATH: lists_meta.json
+        run: python -m scraper.notify_seats_increased
