@@ -104,7 +104,7 @@ def test_continues_after_one_send_failure(tmp_path, monkeypatch):
     assert sorted(c for c, _ in sent) == [111, 333]
 
 
-def test_continues_past_malformed_subscriber_record(tmp_path, monkeypatch, capsys):
+def test_continues_past_record_missing_code(tmp_path, monkeypatch, capsys):
     meta = {"lists": {
         "G": {"main_kcp": True, "direction": "44.03.01 Тест", "form": "очная",
               "unit": "ИФ", "kcp_epk": 33},
@@ -133,6 +133,44 @@ def test_continues_past_malformed_subscriber_record(tmp_path, monkeypatch, capsy
     # сообщение (отсутствующий code заменяется на "?" внутри текста)
     assert sorted(c for c, _ in sent) == [111, 222]
     assert "Отправлено: 2" in capsys.readouterr().out
+
+
+def test_continues_past_genuinely_malformed_record(tmp_path, monkeypatch, capsys):
+    """sub["last"] будучи списком роняет .get(...) до нашего фикса
+
+    (AttributeError: 'list' object has no attribute 'get') — эта запись стоит
+    ПЕРВОЙ, чтобы проверить, что сбой на ней не прерывает обработку записей,
+    идущих следом в порядке итерации.
+    """
+    meta = {"lists": {
+        "G": {"main_kcp": True, "direction": "44.03.01 Тест", "form": "очная",
+              "unit": "ИФ", "kcp_epk": 33},
+        "Q1": {"quota": True, "direction": "44.03.01 Тест", "form": "очная",
+               "unit": "ИФ", "vid_mest": "отдельная квота",
+               "kcp_epk": 9, "enrolled": 7},
+    }}
+    meta_path = _write(tmp_path, "lists_meta.json", meta)
+    subs = {
+        "111": {"code": "1111111", "last": ["oops", "not", "a", "dict"]},
+        "222": {"code": "2222222", "last": {"G": 20}},
+        "333": {"code": "3333333", "last": {"G": 30}},
+    }
+    subs_path = _write(tmp_path, "subs.json", subs)
+
+    sent = []
+    monkeypatch.setattr(NQ, "_send",
+                        lambda token, chat_id, reply: sent.append((chat_id, reply.text)))
+    monkeypatch.setattr(NQ.time, "sleep", lambda s: None)
+    monkeypatch.setenv("BOT_TOKEN", "test-token")
+
+    rc = NQ.main(["--code", "G", "--subs-path", str(subs_path),
+                 "--meta-path", str(meta_path)])
+
+    assert rc == 0
+    assert sorted(c for c, _ in sent) == [222, 333]
+    out = capsys.readouterr().out
+    assert "Отправлено: 2" in out
+    assert "с ошибкой: 1" in out
 
 
 def test_no_send_for_non_general_list(tmp_path, monkeypatch, capsys):

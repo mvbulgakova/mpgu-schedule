@@ -60,11 +60,11 @@ def main(argv=None) -> int:
     subs = follow.load(args.subs_path)
     sent, no_position, failed = 0, 0, 0
     for chat, sub in subs.items():
-        pos = (sub.get("last") or {}).get(args.code)
-        if pos is None:
-            no_position += 1
-            continue
         try:
+            pos = (sub.get("last") or {}).get(args.code)
+            if pos is None:
+                no_position += 1
+                continue
             text = quota_vacancy.format_notification(
                 pos=pos, kcp=kcp, vacant=info["vacant"],
                 direction=m.get("direction", "?"), form=m.get("form", "?"),
