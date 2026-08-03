@@ -42,8 +42,15 @@ jobs:
           path: subs.json
           key: bot-state-seats-notify-${{ github.run_id }}
           restore-keys: |
+            bot-state-30818914445
             bot-state-
             bot-subs-
+
+      - name: Debug cache restore result
+        run: |
+          echo "subs.json present: $(test -f subs.json && echo yes || echo no)"
+          ls -la subs.json 2>&1 || true
+          wc -c subs.json 2>&1 || true
 
       # Blobless partial fetch: pulls full commit/tree history (small) so
       # git show can reach ANY historical commit on data, but defers blob
