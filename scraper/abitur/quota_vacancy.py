@@ -2,10 +2,11 @@
 
 Считаем только по данным, которые epk25 уже отдал явно (`kcp_epk`,
 `enrolled` на квотных списках) — при неполных данных группы честно
-пропускаем, а не занижаем/завышаем (тот же принцип, что и в
-build_lists_index.quota_by_key — см. спек 2026-08-03).
+пропускаем, а не занижаем/завышаем (тот же принцип, что и при расчёте
+квот в build_lists_index.build_index() (переменная quota_by_key) —
+см. спек 2026-08-03).
 """
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, Optional, Tuple
 
 Key = Tuple[Optional[str], Optional[str], Optional[str]]
 
