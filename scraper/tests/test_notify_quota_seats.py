@@ -69,6 +69,94 @@ def test_no_send_without_vacancy(tmp_path, monkeypatch, capsys):
     assert "не найдено" in capsys.readouterr().out
 
 
+def test_continues_after_one_send_failure(tmp_path, monkeypatch):
+    meta = {"lists": {
+        "G": {"main_kcp": True, "direction": "44.03.01 Тест", "form": "очная",
+              "unit": "ИФ", "kcp_epk": 33},
+        "Q1": {"quota": True, "direction": "44.03.01 Тест", "form": "очная",
+               "unit": "ИФ", "vid_mest": "отдельная квота",
+               "kcp_epk": 9, "enrolled": 7},
+    }}
+    meta_path = _write(tmp_path, "lists_meta.json", meta)
+    subs = {
+        "111": {"code": "1111111", "last": {"G": 10}},
+        "222": {"code": "2222222", "last": {"G": 20}},
+        "333": {"code": "3333333", "last": {"G": 30}},
+    }
+    subs_path = _write(tmp_path, "subs.json", subs)
+
+    sent = []
+
+    def fake_send(token, chat_id, reply):
+        if chat_id == 222:
+            raise RuntimeError("boom")
+        sent.append((chat_id, reply.text))
+
+    monkeypatch.setattr(NQ, "_send", fake_send)
+    monkeypatch.setattr(NQ.time, "sleep", lambda s: None)
+    monkeypatch.setenv("BOT_TOKEN", "test-token")
+
+    rc = NQ.main(["--code", "G", "--subs-path", str(subs_path),
+                 "--meta-path", str(meta_path)])
+
+    assert rc == 0
+    # обе исправные отправки должны пройти, несмотря на сбой на chat 222
+    assert sorted(c for c, _ in sent) == [111, 333]
+
+
+def test_continues_past_malformed_subscriber_record(tmp_path, monkeypatch, capsys):
+    meta = {"lists": {
+        "G": {"main_kcp": True, "direction": "44.03.01 Тест", "form": "очная",
+              "unit": "ИФ", "kcp_epk": 33},
+        "Q1": {"quota": True, "direction": "44.03.01 Тест", "form": "очная",
+               "unit": "ИФ", "vid_mest": "отдельная квота",
+               "kcp_epk": 9, "enrolled": 7},
+    }}
+    meta_path = _write(tmp_path, "lists_meta.json", meta)
+    subs = {
+        "111": {"last": {"G": 10}},                      # нет ключа "code"
+        "222": {"code": "2222222", "last": {"G": 20}},    # валидная запись
+    }
+    subs_path = _write(tmp_path, "subs.json", subs)
+
+    sent = []
+    monkeypatch.setattr(NQ, "_send",
+                        lambda token, chat_id, reply: sent.append((chat_id, reply.text)))
+    monkeypatch.setattr(NQ.time, "sleep", lambda s: None)
+    monkeypatch.setenv("BOT_TOKEN", "test-token")
+
+    rc = NQ.main(["--code", "G", "--subs-path", str(subs_path),
+                 "--meta-path", str(meta_path)])
+
+    assert rc == 0
+    # запись без "code" не должна ронять весь прогон — оба чата получают
+    # сообщение (отсутствующий code заменяется на "?" внутри текста)
+    assert sorted(c for c, _ in sent) == [111, 222]
+    assert "Отправлено: 2" in capsys.readouterr().out
+
+
+def test_no_send_for_non_general_list(tmp_path, monkeypatch, capsys):
+    meta = {"lists": {
+        "Q1": {"quota": True, "direction": "D", "form": "очная",
+               "unit": "U", "vid_mest": "отдельная квота",
+               "kcp_epk": 9, "enrolled": 7},
+    }}
+    meta_path = _write(tmp_path, "lists_meta.json", meta)
+    subs_path = _write(tmp_path, "subs.json", {"111": {"code": "1", "last": {"Q1": 5}}})
+
+    sent = []
+    monkeypatch.setattr(NQ, "_send",
+                        lambda token, chat_id, reply: sent.append((chat_id, reply.text)))
+    monkeypatch.setenv("BOT_TOKEN", "test-token")
+
+    rc = NQ.main(["--code", "Q1", "--subs-path", str(subs_path),
+                 "--meta-path", str(meta_path)])
+
+    assert rc == 0
+    assert sent == []
+    assert "не общий список" in capsys.readouterr().out
+
+
 def test_missing_bot_token_aborts(tmp_path, monkeypatch):
     meta_path = _write(tmp_path, "lists_meta.json", {"lists": {}})
     subs_path = _write(tmp_path, "subs.json", {})

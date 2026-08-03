@@ -31,11 +31,19 @@ def main(argv=None) -> int:
         print("BOT_TOKEN не задан — выход.")
         return 1
 
-    with open(args.meta_path, encoding="utf-8") as f:
-        lists = json.load(f)["lists"]
+    try:
+        with open(args.meta_path, encoding="utf-8") as f:
+            lists = json.load(f)["lists"]
+    except Exception as e:
+        print(f"Не удалось прочитать {args.meta_path}: {e}")
+        return 0
     m = lists.get(args.code)
     if not m:
         print(f"Список {args.code} не найден в {args.meta_path}.")
+        return 0
+    if not m.get("main_kcp"):
+        print(f"Список {args.code} — не общий список (main_kcp не установлен), "
+             "рассылка не выполнена.")
         return 0
 
     info = quota_vacancy.vacancy_for_list(lists, args.code)
@@ -50,24 +58,24 @@ def main(argv=None) -> int:
         return 0
 
     subs = follow.load(args.subs_path)
-    sent, skipped = 0, 0
+    sent, no_position, failed = 0, 0, 0
     for chat, sub in subs.items():
         pos = (sub.get("last") or {}).get(args.code)
         if pos is None:
-            skipped += 1
+            no_position += 1
             continue
-        text = quota_vacancy.format_notification(
-            pos=pos, kcp=kcp, vacant=info["vacant"],
-            direction=m.get("direction", "?"), form=m.get("form", "?"),
-            code=sub["code"])
         try:
+            text = quota_vacancy.format_notification(
+                pos=pos, kcp=kcp, vacant=info["vacant"],
+                direction=m.get("direction", "?"), form=m.get("form", "?"),
+                code=sub.get("code", "?"))
             _send(token, int(chat), Reply(text, []))
             sent += 1
         except Exception as e:
             print(f"notify error {chat}: {e}")
-            skipped += 1
+            failed += 1
         time.sleep(0.1)
-    print(f"Отправлено: {sent}, пропущено: {skipped} "
+    print(f"Отправлено: {sent}, без позиции: {no_position}, с ошибкой: {failed} "
          f"(всего подписчиков: {len(subs)}), вакантно квот: {info['vacant']}, "
          f"КЦП: {kcp}")
     return 0
