@@ -336,3 +336,16 @@ def test_build_index_missing_new_fields_are_absent():
     assert "seats_open" not in g
     assert "enrolled" not in g
     assert "page_updated_at" not in g
+
+
+def test_build_index_ignores_invalid_placeholder_date():
+    # epk25 иногда отдаёт незаполненную дату-плейсхолдер (00.00.0000. 00:00)
+    # до того, как список реально обновился — это должно деградировать в
+    # отсутствие page_updated_at, а не ронять build_index на всей выгрузке.
+    view = VIEW_SIM.replace("<TABLE>",
+        "Вид мест: основные места в рамках КЦП "
+        "Дата и время обновления: 00.00.0000. 00:00 <TABLE>")
+    meta = {"G": {"direction": "44.03.01 Тест", "form": "очная", "kind": "бюджет"}}
+    md, _ = build_index({"G": view}, meta, updated_at="t", places_fn=lambda m: 10)
+    g = md["lists"]["G"]
+    assert "page_updated_at" not in g

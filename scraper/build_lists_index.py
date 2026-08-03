@@ -59,9 +59,15 @@ def _parse_updated_at(html: str) -> Optional[str]:
     if not m:
         return None
     day, month, year, hour, minute = (int(x) for x in m.groups())
-    return dt.datetime(year, month, day, hour, minute,
-                       tzinfo=dt.timezone(dt.timedelta(hours=3))
-                       ).isoformat(timespec="seconds")
+    try:
+        return dt.datetime(year, month, day, hour, minute,
+                           tzinfo=dt.timezone(dt.timedelta(hours=3))
+                           ).isoformat(timespec="seconds")
+    except ValueError:
+        # epk25 иногда отдаёт незаполненную дату-плейсхолдер (00.00.0000. 00:00) —
+        # деградируем в «неизвестно», как и для любого другого опционального поля,
+        # а не роняем build_index на всей выгрузке из-за одной плохой страницы.
+        return None
 
 
 def _is_main_kcp(vid: Optional[str]) -> bool:
