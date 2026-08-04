@@ -95,20 +95,28 @@ def _get(url: str, retries: int = 3) -> str:
     raise RuntimeError(f"GET failed {url}: {last}")
 
 
-def crawl(levels: List[str] = None, pause: float = 0.3):
+def crawl(levels: List[str] = None, pause: float = 0.3, max_workers: int = None):
     """Возвращает (pages, meta, stats).
 
     pages: {code -> html}; meta: {code -> {direction, level, form, kind}};
     stats: сведения о полноте обхода для защиты от публикации неполного индекса
     (пропущенный из-за сетевого сбоя уровень/направление = молчаливая потеря данных).
 
-    Сеть; в тестах не вызывается.
+    Два прохода: сначала уровни/направления — их немного, собираем последовательно
+    с вежливой паузой, чтобы получить полный список кодов списков. Затем сами
+    списки (view?code=...) — их сотни, и время между первым и последним снятым
+    списком напрямую портит консистентность снимка (согласия успевают сдвинуться),
+    поэтому их бьём все разом через пул потоков, а не по одному.
+
+    Сеть; в тестах не вызывается напрямую (см. monkeypatch _get в тестах).
     """
     levels = levels or LEVELS
     pages: Dict[str, str] = {}
     meta: Dict[str, dict] = {}
     stats = {"levels_failed": [], "directions_total": 0, "directions_failed": 0,
              "views_total": 0, "views_failed": 0}
+
+    entries: Dict[str, dict] = {}  # code -> {direction, level, form, kind}
     for lvl in levels:
         try:
             struct = _get(structural_url(lvl))
@@ -125,15 +133,29 @@ def crawl(levels: List[str] = None, pause: float = 0.3):
                 continue
             for entry in extract_view_entries(dhtml):
                 code = entry["code"]
-                if code in pages:
+                if code in entries:
                     continue
-                stats["views_total"] += 1
-                time.sleep(pause)
-                try:
-                    pages[code] = _get(f"{BASE}/competitive-list/view?code={code}")
-                    meta[code] = {"direction": entry["direction"], "level": lvl,
+                entries[code] = {"direction": entry["direction"], "level": lvl,
                                   "form": entry["form"], "kind": entry["kind"]}
-                except Exception:
-                    stats["views_failed"] += 1
-                    continue
+
+    stats["views_total"] = len(entries)
+    if not entries:
+        return pages, meta, stats
+
+    import concurrent.futures
+    workers = max_workers or len(entries)
+
+    def fetch_view(code: str) -> str:
+        return _get(f"{BASE}/competitive-list/view?code={code}")
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as pool:
+        futures = {pool.submit(fetch_view, code): code for code in entries}
+        for fut in concurrent.futures.as_completed(futures):
+            code = futures[fut]
+            try:
+                pages[code] = fut.result()
+                meta[code] = entries[code]
+            except Exception:
+                stats["views_failed"] += 1
+
     return pages, meta, stats
