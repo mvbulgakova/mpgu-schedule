@@ -181,6 +181,40 @@ def test_build_index_sim_fields():
     # 333 (согласие, поз.3): 111 занял единственное место → выше один зачисленный
     e333 = shards["33"]["codes"]["333"][0]
     assert e333["sim_above"] == 1
+    # без отметок ВПП на странице — vpp у всех False, vpp_above всех 0
+    assert e111["vpp"] is False and e111["vpp_above"] == 0
+    assert e222["vpp_above"] == 0
+
+
+VIEW_VPP = """
+<TABLE>
+<TR><TD>№</TD><TD>Уникальный код</TD><TD>Наличие согласия на зачисление</TD><TD>ПЗ</TD><TD>ОВП</TD><TD>ВПП</TD>
+<TD>Основание приема БВИ</TD><TD>Сумма конкурсных баллов</TD><TD>Сумма баллов за ВИ</TD>
+<TD COLSPAN=3>Количество баллов за каждое ВИ</TD><TD>ИД</TD><TD>ПП</TD>
+<TD>Информация о рассмотрении заявления</TD><TD>Причина отказа</TD></TR>
+<TR><TD>1</TD><TD>111</TD><TD>+</TD><TD>1</TD><TD></TD><TD>&#10003;</TD><TD></TD><TD>290</TD><TD>290</TD>
+<TD>96</TD><TD>94</TD><TD>100</TD><TD>0</TD><TD></TD><TD>Участвует</TD><TD></TD></TR>
+<TR><TD>2</TD><TD>222</TD><TD>+</TD><TD>2</TD><TD></TD><TD></TD><TD></TD><TD>250</TD><TD>250</TD>
+<TD>80</TD><TD>80</TD><TD>90</TD><TD>0</TD><TD></TD><TD>Участвует</TD><TD></TD></TR>
+<TR><TD>3</TD><TD>333</TD><TD>+</TD><TD>1</TD><TD></TD><TD>&#10003;</TD><TD></TD><TD>240</TD><TD>240</TD>
+<TD>80</TD><TD>80</TD><TD>80</TD><TD>0</TD><TD></TD><TD>Участвует</TD><TD></TD></TR>
+</TABLE>
+"""
+
+
+def test_build_index_vpp_above_counts_official_marks_ahead():
+    # Регрессия 2026-08-04: vpp_above — официальная альтернатива sim_above,
+    # накопительный счётчик реальных отметок ВПП epk25 выше по позиции.
+    pages = {"G1": VIEW_VPP}
+    meta = {"G1": {"direction": "44.03.01 История", "form": "очная", "kind": "бюджет"}}
+    meta_doc, shards = build_index(pages, meta, updated_at="t",
+                                   places_fn=lambda m: 1)
+    e111 = shards["11"]["codes"]["111"][0]
+    assert e111["vpp"] is True and e111["vpp_above"] == 0    # первый с ВПП
+    e222 = shards["22"]["codes"]["222"][0]
+    assert e222["vpp"] is False and e222["vpp_above"] == 1   # 111 уже был выше
+    e333 = shards["33"]["codes"]["333"][0]
+    assert e333["vpp"] is True and e333["vpp_above"] == 1    # 111 выше, 222 без ВПП не считается
 
 
 def test_build_index_prediction_signals(monkeypatch):

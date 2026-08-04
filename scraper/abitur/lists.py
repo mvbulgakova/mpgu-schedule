@@ -375,10 +375,20 @@ def format_positions_short(meta: Optional[dict], shard: Optional[dict],
         elif m.get("general") and places and sim_above is not None:
             sim_place = sim_above + 1
             seats, _q = _general_seats(m, places)
-            ok = sim_place <= seats
-            lines.append(f"{'✅' if ok else '⏳'} {pri} · ~{sim_place}-е из {seats} · {name}")
+            # ВПП — официальная отметка epk25 (кто реально проходит сейчас,
+            # с учётом чужих приоритетов), точнее нашей внутренней симуляции
+            # (см. 2026-08-04: sim_place может быть заметно пессимистичнее
+            # даже на свежих данных). Если она стоит у самого человека —
+            # его настоящее место среди подтверждённых — vpp_above+1, а не
+            # sim_place; иначе используем sim_place как раньше.
+            vpp = e.get("vpp")
+            vpp_above = e.get("vpp_above")
+            shown_place = vpp_above + 1 if vpp and vpp_above is not None else sim_place
+            ok = bool(vpp) or sim_place <= seats
+            vpp_tag = " ✓ВПП" if vpp else ""
+            lines.append(f"{'✅' if ok else '⏳'} {pri} · ~{shown_place}-е из {seats}{vpp_tag} · {name}")
             if ok:
-                passing.append((e.get("priority_pz") or 99, name, sim_place, seats))
+                passing.append((e.get("priority_pz") or 99, name, shown_place, seats))
         elif not m.get("general") and m.get("kind") == "бюджет" and "general" in m:
             lines.append(f"▫️ {pri} · квота · {e['position']}/{m.get('count', '?')} · {name}")
         else:
@@ -431,14 +441,18 @@ def format_positions(meta: Optional[dict], shard: Optional[dict], code: str) -> 
                     any_places = any_sim = True
                     sim_place = sim_above + 1
                     seats, quota = _general_seats(m, places)
-                    ok = sim_place <= seats
+                    vpp = e.get("vpp")
+                    vpp_above = e.get("vpp_above")
+                    shown_place = vpp_above + 1 if vpp and vpp_above is not None else sim_place
+                    ok = bool(vpp) or sim_place <= seats
                     seats_s = (f"{seats} (общий конкурс; +{quota} квотных к КЦП {places})"
                                if quota else f"{seats}")
-                    parts.append(f"с согласием: ~{sim_place}-е из {seats_s} "
+                    vpp_s = " ✓ВПП" if vpp else ""
+                    parts.append(f"с согласием: ~{shown_place}-е из {seats_s}{vpp_s} "
                                  f"{'✅' if ok else '⏳'}")
                     if ok:
                         passing.append((e.get("priority_pz") or 99,
-                                        m.get("direction") or name, sim_place, seats,
+                                        m.get("direction") or name, shown_place, seats,
                                         e["list"]))
                 elif places:
                     any_places = True

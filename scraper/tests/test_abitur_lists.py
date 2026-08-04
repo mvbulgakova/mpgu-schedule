@@ -266,6 +266,51 @@ def test_short_not_found_same_as_full():
     assert "не найден" in out.lower()
 
 
+# Регрессия 2026-08-04: наша симуляция (sim_place/seats) заметно
+# пессимистичнее официальной отметки epk25 «ВПП», даже на свежих данных
+# (см. код 1401028: sim говорил ~80 из 80, живой ВПП — 68 из 80). Раз ВПП
+# есть — доверяем ей, а не только пересечению нашей симуляции с местами.
+def test_vpp_flips_verdict_to_passing_even_when_sim_says_no(monkeypatch):
+    import scraper.abitur.lists as LM
+    LM._QUOTA_CACHE.clear()
+    monkeypatch.setattr(LM, "_quota_for", lambda m: None)
+    meta = {"updated_at": "t", "lists": {
+        "G": {"direction": "44.03.02 Психология", "form": "очная",
+              "kind": "бюджет", "count": 2000, "general": True, "places": 80}}}
+    shard = {"updated_at": "t", "codes": {"1401028": [
+        {"list": "G", "position": 551, "score_total": 237, "consent": True,
+         "priority_pz": 1, "bvi": False, "status": "", "vpp": True,
+         "vpp_above": 67, "cons_above": 221, "sim_above": 79}]}}
+    out = L.format_positions_short(meta, shard, "1401028")
+    assert "✅" in out and "⏳" not in out.split("Будь приём")[0]
+    assert "✓ВПП" in out
+    assert "прошли бы на" in out    # попал в passing, несмотря на sim ~80 из 80
+    # реальное место (vpp_above+1=68), а не пессимистичное sim_place (80)
+    assert "~68-е из 80" in out
+    assert "~80-е из 80" not in out
+
+    full = L.format_positions(meta, shard, "1401028")
+    assert "✅" in full and "✓ВПП" in full
+    assert "~68-е из 80" in full
+
+
+def test_no_vpp_keeps_old_sim_based_verdict(monkeypatch):
+    import scraper.abitur.lists as LM
+    LM._QUOTA_CACHE.clear()
+    monkeypatch.setattr(LM, "_quota_for", lambda m: None)
+    meta = {"updated_at": "t", "lists": {
+        "G": {"direction": "44.03.02 Психология", "form": "очная",
+              "kind": "бюджет", "count": 2000, "general": True, "places": 80}}}
+    shard = {"updated_at": "t", "codes": {"1401028": [
+        {"list": "G", "position": 900, "score_total": 200, "consent": True,
+         "priority_pz": 1, "bvi": False, "status": "",
+         "cons_above": 300, "sim_above": 85}]}}   # 86-е из 80, без vpp
+    out = L.format_positions_short(meta, shard, "1401028")
+    assert "✓ВПП" not in out
+    assert "⏳" in out
+    assert "прошли бы на" not in out   # никуда не проходит без vpp и без места
+
+
 # ── Матчинг списка → программа: специфичность и ручные привязки ──────────────
 
 def _progs(monkeypatch, progs):

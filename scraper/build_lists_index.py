@@ -298,6 +298,7 @@ def build_index(pages: Dict[str, str], meta: Dict[str, dict],
         adm_positions = (sorted(r["position"] for r in rows
                                 if r["unique_code"] in adm) if adm is not None else None)
         cons_cum = 0
+        vpp_cum = 0
         for r in rows:
             entry = {
                 "list": code_list,
@@ -307,14 +308,24 @@ def build_index(pages: Dict[str, str], meta: Dict[str, dict],
                 "priority_pz": r["priority_pz"],
                 "bvi": r["bvi"],
                 "status": r["status"],
+                "vpp": r.get("vpp", False),
             }
             if code_list in places:
                 entry["cons_above"] = cons_cum
+                # vpp_above — сколько людей ВЫШЕ уже официально подтверждены
+                # epk25 как проходящие (ВПП). В отличие от sim_above (наша
+                # собственная симуляция каскада приоритетов) это авторитетная
+                # цифра вуза — используем её как более точную, когда есть
+                # (см. 2026-08-04: sim_above бывает заметно пессимистичнее
+                # даже на свежих данных).
+                entry["vpp_above"] = vpp_cum
                 if adm_positions is not None:
                     import bisect
                     entry["sim_above"] = bisect.bisect_left(adm_positions, r["position"])
             if r.get("consent"):
                 cons_cum += 1
+            if r.get("vpp"):
+                vpp_cum += 1
             codes.setdefault(r["unique_code"], []).append(entry)
 
     meta_doc = {"updated_at": updated_at, "campaign": "2026",
