@@ -12,6 +12,7 @@ from scraper.abitur.quota_vacancy import (compute_group_vacancies,
                                            format_seats_increased,
                                            general_list_for_key,
                                            seats_increased,
+                                           seats_increased_from_order,
                                            vacancy_for_list)
 
 KEY = ("44.03.01 Русский язык и Литература", "очная", "Институт филологии")
@@ -188,3 +189,109 @@ def test_format_seats_increased_shows_occupancy_when_enrolled_known():
     text = format_seats_increased(old=33, new=35, direction="44.03.01 Тест",
                                   form="очная", code="1234567", enrolled=3)
     assert text == expected
+
+
+def test_seats_increased_from_order_full_realistic_scenario():
+    # Реальный кейс, уже проверенный вручную: особая 1/1, целевая 1/1,
+    # отдельная 7/9 -> vacant = (1+1+9) - (1+1+7) = 11-9 = 2, new = 33+2 = 35.
+    # БВИ = 3 -> enrolled в результате.
+    baseline = {
+        "G": {"main_kcp": True, "direction": "D", "form": "очная",
+              "unit": "U", "kcp_epk": 33},
+        "Q1": {"quota": True, "direction": "D", "form": "очная",
+               "unit": "U", "kcp_epk": 1},
+        "Q2": {"quota": True, "direction": "D", "form": "очная",
+               "unit": "U", "kcp_epk": 1},
+        "Q3": {"quota": True, "direction": "D", "form": "очная",
+               "unit": "U", "kcp_epk": 9},
+    }
+    order_records = [
+        {"unit": "U", "direction": "D", "form": "очная",
+         "quota_kind": "особая", "count": 1},
+        {"unit": "U", "direction": "D", "form": "очная",
+         "quota_kind": "целевая", "count": 1},
+        {"unit": "U", "direction": "D", "form": "очная",
+         "quota_kind": "отдельная", "count": 7},
+        {"unit": "U", "direction": "D", "form": "очная",
+         "quota_kind": "бви", "count": 3},
+    ]
+    result = seats_increased_from_order(baseline, order_records)
+    assert result == {"G": {"direction": "D", "form": "очная",
+                            "old": 33, "new": 35, "enrolled": 3}}
+
+
+def test_seats_increased_from_order_skips_key_not_in_order_records():
+    baseline = {
+        "G": {"main_kcp": True, "direction": "D", "form": "очная",
+              "unit": "U", "kcp_epk": 33},
+        "Q1": {"quota": True, "direction": "D", "form": "очная",
+               "unit": "U", "kcp_epk": 9},
+    }
+    # order_records пуст (или только для другого ключа)
+    order_records = [
+        {"unit": "ДРУГОЕ", "direction": "ДРУГОЕ", "form": "очная",
+         "quota_kind": "особая", "count": 5},
+    ]
+    assert seats_increased_from_order(baseline, []) == {}
+    assert seats_increased_from_order(baseline, order_records) == {}
+
+
+def test_seats_increased_from_order_no_quota_lists_legitimate_zero():
+    baseline = {
+        "G": {"main_kcp": True, "direction": "D2", "form": "очная",
+              "unit": "U2", "kcp_epk": 20},
+        # нет квотных списков вообще для этого ключа
+    }
+    order_records = [
+        {"unit": "U2", "direction": "D2", "form": "очная",
+         "quota_kind": "бви", "count": 5},
+    ]
+    # quota_kcp_sum=0, quota_enrolled=0 (никаких особая/целевая/отдельная
+    # записей нет), vacant=0 -> пропуск, а не false positive.
+    assert seats_increased_from_order(baseline, order_records) == {}
+
+
+def test_seats_increased_from_order_partial_quota_data_skips_group():
+    baseline = {
+        "G": {"main_kcp": True, "direction": "D", "form": "очная",
+              "unit": "U", "kcp_epk": 33},
+        "Q1": {"quota": True, "direction": "D", "form": "очная",
+               "unit": "U", "kcp_epk": None},  # не распарсился
+        "Q2": {"quota": True, "direction": "D", "form": "очная",
+               "unit": "U", "kcp_epk": 9},
+    }
+    order_records = [
+        {"unit": "U", "direction": "D", "form": "очная",
+         "quota_kind": "особая", "count": 1},
+        {"unit": "U", "direction": "D", "form": "очная",
+         "quota_kind": "целевая", "count": 1},
+        {"unit": "U", "direction": "D", "form": "очная",
+         "quota_kind": "отдельная", "count": 7},
+        {"unit": "U", "direction": "D", "form": "очная",
+         "quota_kind": "бви", "count": 3},
+    ]
+    assert seats_increased_from_order(baseline, order_records) == {}
+
+
+def test_seats_increased_from_order_skips_when_general_kcp_unknown():
+    baseline = {
+        "G": {"main_kcp": True, "direction": "D", "form": "очная",
+              "unit": "U", "kcp_epk": None},
+        "Q1": {"quota": True, "direction": "D", "form": "очная",
+               "unit": "U", "kcp_epk": 1},
+        "Q2": {"quota": True, "direction": "D", "form": "очная",
+               "unit": "U", "kcp_epk": 1},
+        "Q3": {"quota": True, "direction": "D", "form": "очная",
+               "unit": "U", "kcp_epk": 9},
+    }
+    order_records = [
+        {"unit": "U", "direction": "D", "form": "очная",
+         "quota_kind": "особая", "count": 1},
+        {"unit": "U", "direction": "D", "form": "очная",
+         "quota_kind": "целевая", "count": 1},
+        {"unit": "U", "direction": "D", "form": "очная",
+         "quota_kind": "отдельная", "count": 7},
+        {"unit": "U", "direction": "D", "form": "очная",
+         "quota_kind": "бви", "count": 3},
+    ]
+    assert seats_increased_from_order(baseline, order_records) == {}

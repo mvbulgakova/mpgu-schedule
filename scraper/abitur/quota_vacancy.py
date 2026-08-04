@@ -6,7 +6,7 @@
 квот в build_lists_index.build_index() (переменная quota_by_key) —
 см. спек 2026-08-03).
 """
-from typing import Dict, Optional, Tuple
+from typing import Dict, List, Optional, Tuple
 
 Key = Tuple[Optional[str], Optional[str], Optional[str]]
 
@@ -132,6 +132,67 @@ def seats_increased(baseline: Dict[str, dict],
             "old": old,
             "new": new,
             "enrolled": cur.get("enrolled"),
+        }
+    return result
+
+
+_QUOTA_KINDS = ("особая", "целевая", "отдельная")
+
+
+def seats_increased_from_order(baseline: Dict[str, dict],
+                               order_records: List[dict]) -> Dict[str, dict]:
+    """То же, что seats_increased(), но источник — официальный приказ
+    (order_records из enrollment_order.parse_order_pdf_text, объединённые
+    из файлов особая/целевая/отдельная квота + БВИ), а не поле enrolled у
+    epk25. Доступно для ЛЮБОГО направления, упомянутого в приказе — не
+    только тех, что epk25 уже пересчитал.
+    """
+    # Группируем order_records по ключу (direction, form, unit).
+    by_key: Dict[Key, Dict[str, int]] = {}
+    for rec in order_records:
+        key = _key(rec)
+        counts = by_key.setdefault(key, {})
+        kind = rec.get("quota_kind")
+        counts[kind] = counts.get(kind, 0) + rec.get("count", 0)
+
+    # Группируем квотные списки baseline по тому же ключу.
+    quota_groups: Dict[Key, list] = {}
+    for m in baseline.values():
+        if not m.get("quota"):
+            continue
+        quota_groups.setdefault(_key(m), []).append(m)
+
+    result: Dict[str, dict] = {}
+    for code, m in baseline.items():
+        if not m.get("main_kcp"):
+            continue
+        old = m.get("kcp_epk")
+        if old is None:
+            continue
+        key = _key(m)
+        if key not in by_key:
+            continue
+
+        quota_members = quota_groups.get(key, [])
+        if any(qm.get("kcp_epk") is None for qm in quota_members):
+            continue
+        quota_kcp_sum = sum(qm["kcp_epk"] for qm in quota_members)
+
+        counts = by_key[key]
+        quota_enrolled = sum(counts.get(kind, 0) for kind in _QUOTA_KINDS)
+
+        vacant = quota_kcp_sum - quota_enrolled
+        if vacant <= 0:
+            continue
+        new = old + vacant
+        enrolled = counts.get("бви", 0)
+
+        result[code] = {
+            "direction": m.get("direction"),
+            "form": m.get("form"),
+            "old": old,
+            "new": new,
+            "enrolled": enrolled,
         }
     return result
 
