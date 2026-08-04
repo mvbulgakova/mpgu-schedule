@@ -53,6 +53,8 @@ def test_budget_layout():
     assert r["score_total"] == 290
     assert r["id_points"] == 0
     assert r["status"] == "На рассмотрении"
+    assert r["ovp"] is False
+    assert r["vpp"] is False
     assert rows[1]["consent"] is False
     assert rows[1]["score_total"] == 310
 
@@ -69,6 +71,10 @@ def test_paid_layout_column_shift():
     assert r["id_points"] == 0
     assert r["status"] == "Участвует в конкурсе"
     assert r["consent"] is False         # в платном нет колонки согласия
+    # Регрессия: ОВП/ВПП — отметка «✓», не число. _int("✓") молча даёт None
+    # вместо True — раньше это никак не проверялось.
+    assert r["ovp"] is True
+    assert r["vpp"] is False
 
 
 def test_empty_table():

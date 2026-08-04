@@ -90,8 +90,11 @@ def parse_view(html: str) -> List[Dict]:
             "unique_code": code,
             "consent": bool(cell(cells, "consent")),
             "priority_pz": _int(cell(cells, "pz")),
-            "priority_ovp": _int(cell(cells, "ovp")),
-            "priority_vpp": _int(cell(cells, "vpp")),
+            # ОВП/ВПП — отметка «✓» или пусто (см. epk_602.html: ни разу число на
+            # реальной странице), не число — раньше это шло через _int() и
+            # галочка молча превращалась в None, а не в True.
+            "ovp": bool(cell(cells, "ovp")),
+            "vpp": bool(cell(cells, "vpp")),
             "bvi": bool(cell(cells, "bvi")),
             "score_total": _int(cell(cells, "total")),
             "score_vi": _int(cell(cells, "vi_sum")),
