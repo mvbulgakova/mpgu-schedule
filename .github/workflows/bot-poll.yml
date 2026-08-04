@@ -30,14 +30,17 @@ on:
   workflow_dispatch:
     inputs:
       mode:
-        description: "poll (обычный запуск бота) | seats_increased | seats_increased_from_order | quota"
+        description: "poll (обычный запуск бота) | seats_increased | seats_increased_from_order | quota | correction"
         required: false
         default: "poll"
       baseline_ref:
         description: "SHA/ref на ветке data ДО приказа — для mode=seats_increased и mode=seats_increased_from_order"
         required: false
       list_code:
-        description: "код общего списка — только для mode=quota"
+        description: "код списка — для mode=quota и mode=correction"
+        required: false
+      message:
+        description: "текст рассылки — только для mode=correction"
         required: false
 
 # НЕ отменяем работающий ран: новый ждёт в очереди и подхватывает сразу после.
@@ -153,6 +156,20 @@ jobs:
           git fetch --depth=1 origin data
           git show origin/data:admissions/lists_meta.json > lists_meta.json
           python -m scraper.notify_quota_seats --code "$LIST_CODE"
+
+      - name: Correction notify
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.mode == 'correction'
+        env:
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+          SUBS_PATH: subs.json
+          LIST_CODE: ${{ github.event.inputs.list_code }}
+          CORRECTION_MESSAGE: ${{ github.event.inputs.message }}
+        run: |
+          if [ -z "$LIST_CODE" ] || [ -z "$CORRECTION_MESSAGE" ]; then
+            echo "::error::list_code и message обязательны для mode=correction"
+            exit 1
+          fi
+          python -m scraper.notify_correction --list-code "$LIST_CODE"
 
       - name: Save state (subscriptions + feedback)
         if: always()
