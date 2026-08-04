@@ -118,13 +118,26 @@ def test_seats_increased_detects_growth_in_general_lists():
     }
     current = {
         "G": {"main_kcp": True, "direction": "44.03.01 Тест", "form": "очная",
-              "kcp_epk": 35},
+              "kcp_epk": 35, "enrolled": 3},
         "Q1": {"quota": True, "direction": "44.03.01 Тест", "form": "очная",
                "kcp_epk": 7},
     }
     result = seats_increased(baseline, current)
     assert result == {"G": {"direction": "44.03.01 Тест", "form": "очная",
-                            "old": 33, "new": 35}}
+                            "old": 33, "new": 35, "enrolled": 3}}
+
+
+def test_seats_increased_enrolled_is_none_when_unknown():
+    baseline = {
+        "G": {"main_kcp": True, "direction": "44.03.01 Тест", "form": "очная",
+              "kcp_epk": 33},
+    }
+    current = {
+        "G": {"main_kcp": True, "direction": "44.03.01 Тест", "form": "очная",
+              "kcp_epk": 35},
+    }
+    result = seats_increased(baseline, current)
+    assert result["G"]["enrolled"] is None
 
 
 def test_seats_increased_ignores_unchanged_and_decreased_and_non_general():
@@ -155,10 +168,23 @@ def test_seats_increased_skips_missing_baseline_or_unknown_kcp():
 def test_format_seats_increased_exact_text():
     expected = (
         "📈 На вашем направлении стало больше бюджетных мест: было 33, "
-        "теперь 35 (+2) — вернулись невостребованные места по квотам/БВИ. "
+        "теперь 35 (+2) — вернулись невостребованные места по квотам. "
         "«44.03.01 Тест», очная.\n\n"
         "Актуальную позицию смотрите: /spisok 1234567"
     )
     text = format_seats_increased(old=33, new=35, direction="44.03.01 Тест",
                                   form="очная", code="1234567")
+    assert text == expected
+
+
+def test_format_seats_increased_shows_occupancy_when_enrolled_known():
+    expected = (
+        "📈 На вашем направлении стало больше бюджетных мест: было 33, "
+        "теперь 35 (+2) — вернулись невостребованные места по квотам. "
+        "«44.03.01 Тест», очная.\n\n"
+        "Уже зачислено: 3 из 35, свободно: 32.\n\n"
+        "Актуальную позицию смотрите: /spisok 1234567"
+    )
+    text = format_seats_increased(old=33, new=35, direction="44.03.01 Тест",
+                                  form="очная", code="1234567", enrolled=3)
     assert text == expected

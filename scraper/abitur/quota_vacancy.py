@@ -106,12 +106,14 @@ def seats_increased(baseline: Dict[str, dict],
                     current: Dict[str, dict]) -> Dict[str, dict]:
     """Общие списки, у которых КЦП вырос по сравнению с baseline.
 
-    {list_code: {"direction":..., "form":..., "old": int, "new": int}} —
-    только для списков с main_kcp=True, где kcp_epk известен в ОБОИХ
-    снимках и вырос. Рост КЦП общего списка после начала обработки приказа
-    о зачислении почти всегда означает возврат невостребованных
-    квотных/БВИ мест — но мы не гадаем о причине, просто честно фиксируем
-    факт: было/стало.
+    {list_code: {"direction":..., "form":..., "old": int, "new": int,
+    "enrolled": int | None}} — только для списков с main_kcp=True, где
+    kcp_epk известен в ОБОИХ снимках и вырос. Рост КЦП общего списка после
+    начала обработки приказа о зачислении означает возврат невостребованных
+    квотных мест (БВИ поступают напрямую в тот же КЦП, а не в отдельную
+    квоту, и на рост не влияют) — но мы не гадаем о причине, просто честно
+    фиксируем факт: было/стало. enrolled (Зачислено, текущий снимок) — уже
+    занятые из НОВОГО кцп, если поле известно, иначе None.
     """
     result: Dict[str, dict] = {}
     for code, cur in current.items():
@@ -129,21 +131,28 @@ def seats_increased(baseline: Dict[str, dict],
             "form": cur.get("form"),
             "old": old,
             "new": new,
+            "enrolled": cur.get("enrolled"),
         }
     return result
 
 
 def format_seats_increased(old: int, new: int, direction: str, form: str,
-                           code: str) -> str:
+                           code: str, enrolled: Optional[int] = None) -> str:
     """Текст факта: на направлении стало больше бюджетных мест.
 
     В отличие от format_notification, это НЕ прикидка — сообщение
     отправляется только после того, как рост kcp_epk уже подтверждён
-    в живых данных epk25 (см. seats_increased).
+    в живых данных epk25 (см. seats_increased). enrolled (Зачислено) —
+    добавляется строкой про занятость, только если значение известно;
+    при None ничего не выдумываем и строку не показываем.
     """
+    occupancy = ""
+    if enrolled is not None:
+        occupancy = f"Уже зачислено: {enrolled} из {new}, свободно: {new - enrolled}.\n\n"
     return (
         f"📈 На вашем направлении стало больше бюджетных мест: было {old}, "
         f"теперь {new} (+{new - old}) — вернулись невостребованные места "
-        f"по квотам/БВИ. «{direction}», {form}.\n\n"
+        f"по квотам. «{direction}», {form}.\n\n"
+        f"{occupancy}"
         f"Актуальную позицию смотрите: /spisok {code}"
     )

@@ -85,7 +85,7 @@ def main(argv=None) -> int:
                 text = quota_vacancy.format_seats_increased(
                     old=info["old"], new=info["new"],
                     direction=info["direction"], form=info["form"],
-                    code=sub.get("code", "?"))
+                    code=sub.get("code", "?"), enrolled=info.get("enrolled"))
                 _send(token, int(chat), Reply(text, []))
                 total_sent += 1
                 per_list_sent[code] += 1

@@ -53,6 +53,34 @@ def test_sends_only_to_subscribers_of_the_grown_list(tmp_path, monkeypatch):
     assert sent[0][1] == expected_text
 
 
+def test_passes_enrolled_through_to_message_when_known(tmp_path, monkeypatch):
+    baseline = {"lists": {
+        "G": {"main_kcp": True, "direction": "44.03.01 Тест", "form": "очная",
+              "kcp_epk": 33},
+    }}
+    current = {"lists": {
+        "G": {"main_kcp": True, "direction": "44.03.01 Тест", "form": "очная",
+              "kcp_epk": 35, "enrolled": 3},
+    }}
+    baseline_path = _write(tmp_path, "baseline_meta.json", baseline)
+    meta_path = _write(tmp_path, "lists_meta.json", current)
+    subs_path = _write(tmp_path, "subs.json",
+                       {"111": {"code": "1234567", "last": {"G": 45}}})
+
+    sent = []
+    monkeypatch.setattr(NI, "_send",
+                        lambda token, chat_id, reply: sent.append((chat_id, reply.text)))
+    monkeypatch.setattr(NI.time, "sleep", lambda s: None)
+    monkeypatch.setenv("BOT_TOKEN", "test-token")
+
+    rc = NI.main(["--baseline-path", str(baseline_path),
+                 "--meta-path", str(meta_path),
+                 "--subs-path", str(subs_path)])
+
+    assert rc == 0
+    assert "Уже зачислено: 3 из 35, свободно: 32." in sent[0][1]
+
+
 def test_two_grown_lists_send_distinct_messages_to_their_own_subscribers(tmp_path, monkeypatch):
     baseline = {"lists": {
         "G1": {"main_kcp": True, "direction": "A", "form": "очная", "kcp_epk": 10},
