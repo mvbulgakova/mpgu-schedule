@@ -221,6 +221,40 @@ def test_seats_increased_from_order_full_realistic_scenario():
                             "old": 33, "new": 35, "enrolled": 3}}
 
 
+# Регрессия 2026-08-04: реальный кейс (000000320, Институт биологии и
+# химии) — PDF переносит направленность по-разному в разных блоках ОДНОГО
+# направления ("...Безопасность \nжизнедеятельности/Биология..." в одном
+# блоке, "...Безопасность жизнедеятельности/ \nБиология..." в другом),
+# из-за чего после склейки строк получаются РАЗНЫЕ строки: с пробелом
+# после "/" и без. Особая/целевая блоки улетали под другой ключ и не
+# попадали в сумму (13 мест квоты вместо 9 учтённых). epk25 сам пишет
+# направленности так же непоследовательно (пробел то есть, то нет), так
+# что сопоставление ключей должно быть нечувствительно к этому пробелу.
+def test_seats_increased_from_order_matches_despite_slash_spacing_drift():
+    baseline = {
+        "G": {"main_kcp": True, "direction": "A/B", "form": "очная",
+              "unit": "U", "kcp_epk": 47},
+        "Q_otdelnaya": {"quota": True, "direction": "A/B", "form": "очная",
+                        "unit": "U", "kcp_epk": 9},
+        # тот же реальный список направления, но с пробелом после "/" —
+        # ровно как приходит из PDF в блоке "Особая"/"Целевая".
+        "Q_osobaya": {"quota": True, "direction": "A/ B", "form": "очная",
+                      "unit": "U", "kcp_epk": 3},
+    }
+    order_records = [
+        {"unit": "U", "direction": "A/B", "form": "очная",
+         "quota_kind": "отдельная", "count": 4},
+        # тот же порядок записи, что и у "особой" квоты выше — с пробелом.
+        {"unit": "U", "direction": "A/ B", "form": "очная",
+         "quota_kind": "особая", "count": 3},
+    ]
+    result = seats_increased_from_order(baseline, order_records)
+    # vacant = (9+3) - (4+3) = 5, new = 47+5 = 52 — квота "Особая" должна
+    # учесться в сумме, а не потеряться из-за разницы в пробеле.
+    assert result == {"G": {"direction": "A/B", "form": "очная",
+                            "old": 47, "new": 52, "enrolled": 0}}
+
+
 def test_seats_increased_from_order_skips_key_not_in_order_records():
     baseline = {
         "G": {"main_kcp": True, "direction": "D", "form": "очная",

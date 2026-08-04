@@ -6,13 +6,31 @@
 квот в build_lists_index.build_index() (переменная quota_by_key) —
 см. спек 2026-08-03).
 """
+import re
 from typing import Dict, List, Optional, Tuple
 
 Key = Tuple[Optional[str], Optional[str], Optional[str]]
 
+_SLASH_WS_RE = re.compile(r"\s*/\s*")
+
+
+def _norm_direction(direction: Optional[str]) -> Optional[str]:
+    """Схлопнуть пробелы вокруг "/" в направленности для сопоставления.
+
+    И epk25, и приказ переносят длинную направленность по словам
+    построчно, и место переноса относительно "/" не стабильно между
+    двумя списками одного и того же направления (или между epk25 и
+    приказом) — иногда после склейки остаётся "…код/ Название", иногда
+    "…код/Название". Только для СОПОСТАВЛЕНИЯ группировки, само поле
+    direction в записи не трогаем.
+    """
+    if direction is None:
+        return None
+    return _SLASH_WS_RE.sub("/", direction)
+
 
 def _key(m: dict) -> Key:
-    return (m.get("direction"), m.get("form"), m.get("unit"))
+    return (_norm_direction(m.get("direction")), m.get("form"), m.get("unit"))
 
 
 def compute_group_vacancies(lists: Dict[str, dict]) -> Dict[Key, dict]:
