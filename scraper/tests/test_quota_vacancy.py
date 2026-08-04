@@ -13,6 +13,7 @@ from scraper.abitur.quota_vacancy import (compute_group_vacancies,
                                            general_list_for_key,
                                            seats_increased,
                                            seats_increased_from_order,
+                                           unmatched_order_keys,
                                            vacancy_for_list)
 
 KEY = ("44.03.01 Русский язык и Литература", "очная", "Институт филологии")
@@ -271,6 +272,20 @@ def test_seats_increased_from_order_partial_quota_data_skips_group():
          "quota_kind": "бви", "count": 3},
     ]
     assert seats_increased_from_order(baseline, order_records) == {}
+
+
+def test_unmatched_order_keys_finds_direction_missing_from_baseline():
+    baseline = {
+        "G": {"main_kcp": True, "direction": "D", "form": "очная",
+              "unit": "U", "kcp_epk": 33},
+    }
+    order_records = [
+        {"unit": "U", "direction": "D", "form": "очная",
+         "quota_kind": "особая", "count": 1},
+        {"unit": "U2", "direction": "D2", "form": "очная",
+         "quota_kind": "бви", "count": 5},
+    ]
+    assert unmatched_order_keys(baseline, order_records) == [("D2", "очная", "U2")]
 
 
 def test_seats_increased_from_order_skips_when_general_kcp_unknown():

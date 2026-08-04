@@ -171,11 +171,22 @@ def seats_increased_from_order(baseline: Dict[str, dict],
             continue
         key = _key(m)
         if key not in by_key:
+            # Приказ вообще ни разу не упомянул этот ключ — это НЕИЗВЕСТНО,
+            # а не ноль (см. unmatched_order_keys() для диагностики того,
+            # сколько таких ключей реально накапливается из-за расхождений
+            # в написании direction/unit между epk25 и приказом).
             continue
 
         quota_members = quota_groups.get(key, [])
         if any(qm.get("kcp_epk") is None for qm in quota_members):
+            # Квотные списки для ключа ЕСТЬ, но хотя бы у одного kcp_epk не
+            # распарсился — это другой случай: не "квот нет", а "квоты есть,
+            # но данные неполные", поэтому пропускаем группу целиком, а не
+            # угадываем.
             continue
+        # Пустой quota_members (после фильтра выше) — законный ноль: для
+        # этого ключа в baseline вообще нет квотных списков (направление
+        # без отдельной/особой/целевой квоты), а не "неизвестно".
         quota_kcp_sum = sum(qm["kcp_epk"] for qm in quota_members)
 
         counts = by_key[key]
@@ -185,6 +196,12 @@ def seats_increased_from_order(baseline: Dict[str, dict],
         if vacant <= 0:
             continue
         new = old + vacant
+        # Намеренно не None (в отличие от enrolled в seats_increased()):
+        # раз ключ уже найден в приказе, отсутствие записей БВИ для него —
+        # подтверждённый ноль из документа, а не неизвестность. Это именно
+        # "занято по БВИ на сейчас", а не итоговая занятость общего конкурса
+        # — приём по общему конкурсу оформляется отдельным, более поздним
+        # приказом и в этой цифре не учитывается.
         enrolled = counts.get("бви", 0)
 
         result[code] = {
@@ -195,6 +212,20 @@ def seats_increased_from_order(baseline: Dict[str, dict],
             "enrolled": enrolled,
         }
     return result
+
+
+def unmatched_order_keys(baseline: Dict[str, dict],
+                         order_records: List[dict]) -> List[tuple]:
+    """Ключи (direction, form, unit) из order_records, которых нет НИ СРЕДИ
+    main_kcp, НИ СРЕДИ quota списков baseline — то есть приказ упомянул
+    направление, а epk25-снимок его вообще не узнал (например, из-за
+    сокращённого названия на epk25 — см. list_aliases_2026.json). Чисто
+    диагностика, для ручного просмотра перед отправкой — не используется
+    в самой рассылке.
+    """
+    baseline_keys = {_key(m) for m in baseline.values()}
+    order_keys = {_key(rec) for rec in order_records}
+    return sorted(order_keys - baseline_keys)
 
 
 def format_seats_increased(old: int, new: int, direction: str, form: str,
