@@ -255,6 +255,36 @@ def test_seats_increased_from_order_matches_despite_slash_spacing_drift():
                             "old": 47, "new": 52, "enrolled": 0}}
 
 
+# Регрессия 2026-08-04: постоянный alias-словарь известных расхождений
+# написания между приказом и epk25 (дефис после кода направления, отличия
+# от сокращений на epk25, обрезанные "..." направленности). Реальный
+# случай — Ставропольский филиал, приказ пишет с дефисом "44.03.02 -
+# Психолого-педагогическое...", на epk25 дефиса нет.
+def test_seats_increased_from_order_resolves_known_direction_alias():
+    baseline = {
+        "G": {"main_kcp": True,
+              "direction": "44.03.02 Психолого-педагогическое образование. "
+                           "Психология и социальная педагогика",
+              "form": "очная", "unit": "Ставропольский филиал", "kcp_epk": 19},
+        "Q1": {"quota": True,
+               "direction": "44.03.02 Психолого-педагогическое образование. "
+                            "Психология и социальная педагогика",
+               "form": "очная", "unit": "Ставропольский филиал", "kcp_epk": 5},
+    }
+    order_records = [
+        {"unit": "Ставропольский филиал",
+         "direction": "44.03.02 - Психолого-педагогическое образование. "
+                      "Психология и социальная педагогика",
+         "form": "очная", "quota_kind": "отдельная", "count": 3},
+    ]
+    result = seats_increased_from_order(baseline, order_records)
+    assert result == {"G": {
+        "direction": "44.03.02 Психолого-педагогическое образование. "
+                     "Психология и социальная педагогика",
+        "form": "очная", "old": 19, "new": 21, "enrolled": 0}}
+    assert unmatched_order_keys(baseline, order_records) == []
+
+
 def test_seats_increased_from_order_skips_key_not_in_order_records():
     baseline = {
         "G": {"main_kcp": True, "direction": "D", "form": "очная",
