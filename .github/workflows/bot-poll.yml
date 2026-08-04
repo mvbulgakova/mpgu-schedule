@@ -7,24 +7,47 @@ name: Telegram Bot (polling)
 # завершения. Для суток покрытия хватает 4–5 сработавших кронов из 24.
 # Секреты репозитория: BOT_TOKEN и ANTHROPIC_API_KEY (Settings → Secrets → Actions).
 # Срочно передеплоить код: отменить текущий ран вручную → очередь стартует новый.
+#
+# Ручные разовые рассылки (job notify) ЖИВУТ ЗДЕСЬ ЖЕ, а не в отдельном
+# workflow-файле: GitHub Actions cache не даёт ОДНОМУ workflow читать кэш,
+# сохранённый ДРУГИМ workflow — даже на той же ветке и с тем же ключом
+# (проверено эмпирически 2026-08-04, стандартный restore-keys-подход не
+# сработал ни с префиксом, ни с точным ключом). Кэш подписок (subs.json)
+# читают только job'ы ВНУТРИ этого файла — job notify использует
+# независимую от poll конкурентность (свой concurrency-group), поэтому не
+# ждёт в очереди 5.5-часовой поллинг.
+#
+# Запуск разовой рассылки: Actions → Telegram Bot (polling) → Run workflow →
+# mode: seats_increased (+ baseline_ref) или mode: quota (+ list_code).
 
 on:
   schedule:
-    - cron: "0 * * * *"   # каждый час (сработает — встанет в очередь)
+    - cron: "0 * * * *"   # каждый час (сработает — встанет в очередь poll)
   workflow_dispatch:
-
-# НЕ отменяем работающий ран: новый ждёт в очереди и подхватывает сразу после
-concurrency:
-  group: telegram-bot-poll
-  cancel-in-progress: false
+    inputs:
+      mode:
+        description: "poll (обычный запуск бота) | seats_increased | quota"
+        required: false
+        default: "poll"
+      baseline_ref:
+        description: "SHA/ref на ветке data ДО приказа — только для mode=seats_increased"
+        required: false
+      list_code:
+        description: "код общего списка — только для mode=quota"
+        required: false
 
 permissions:
   contents: read
 
 jobs:
   poll:
+    if: github.event_name == 'schedule' || github.event.inputs.mode == 'poll'
     runs-on: ubuntu-latest
     timeout-minutes: 350
+    # НЕ отменяем работающий ран: новый ждёт в очереди и подхватывает сразу после
+    concurrency:
+      group: telegram-bot-poll
+      cancel-in-progress: false
     steps:
       - uses: actions/checkout@v4
         with:
@@ -69,3 +92,70 @@ jobs:
             subs.json
             feedback.json
           key: bot-state-${{ github.run_id }}
+
+  notify:
+    if: github.event_name == 'workflow_dispatch' && (github.event.inputs.mode == 'seats_increased' || github.event.inputs.mode == 'quota')
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    # Отдельная группа конкурентности — разовая рассылка не должна ждать,
+    # пока освободится 5.5-часовой poll (та же группа = очередь на часы).
+    concurrency:
+      group: telegram-bot-notify
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install deps
+        run: pip install "anthropic>=0.30"
+
+      # Тот же кэш, что сохраняет job poll выше — читается корректно только
+      # потому, что это ТОТ ЖЕ workflow-файл (см. комментарий вверху файла).
+      - name: Restore subscriptions
+        uses: actions/cache/restore@v4
+        with:
+          path: subs.json
+          key: bot-state-${{ github.run_id }}
+          restore-keys: |
+            bot-state-
+            bot-subs-
+
+      - name: Seats increased notify
+        if: github.event.inputs.mode == 'seats_increased'
+        env:
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+          SUBS_PATH: subs.json
+          BASELINE_META_PATH: baseline_meta.json
+          LISTS_META_PATH: lists_meta.json
+          BASELINE_REF: ${{ github.event.inputs.baseline_ref }}
+        run: |
+          if [ -z "$BASELINE_REF" ]; then
+            echo "::error::baseline_ref обязателен для mode=seats_increased"
+            exit 1
+          fi
+          git fetch --filter=blob:none origin data
+          git show -s --format='Baseline: %h %ci %s' "$BASELINE_REF"
+          git show "$BASELINE_REF:admissions/lists_meta.json" > baseline_meta.json
+          git show origin/data:admissions/lists_meta.json > lists_meta.json
+          python -m scraper.notify_seats_increased
+
+      - name: Quota notify
+        if: github.event.inputs.mode == 'quota'
+        env:
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+          SUBS_PATH: subs.json
+          LISTS_META_PATH: lists_meta.json
+          LIST_CODE: ${{ github.event.inputs.list_code }}
+        run: |
+          if [ -z "$LIST_CODE" ]; then
+            echo "::error::list_code обязателен для mode=quota"
+            exit 1
+          fi
+          git fetch --depth=1 origin data
+          git show origin/data:admissions/lists_meta.json > lists_meta.json
+          python -m scraper.notify_quota_seats --code "$LIST_CODE"
