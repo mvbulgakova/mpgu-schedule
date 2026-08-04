@@ -8,21 +8,24 @@ name: Telegram Bot (polling)
 # Секреты репозитория: BOT_TOKEN и ANTHROPIC_API_KEY (Settings → Secrets → Actions).
 # Срочно передеплоить код: отменить текущий ран вручную → очередь стартует новый.
 #
-# Ручные разовые рассылки (job notify) ЖИВУТ ЗДЕСЬ ЖЕ, а не в отдельном
-# workflow-файле: GitHub Actions cache не даёт ОДНОМУ workflow читать кэш,
-# сохранённый ДРУГИМ workflow — даже на той же ветке и с тем же ключом
-# (проверено эмпирически 2026-08-04, стандартный restore-keys-подход не
-# сработал ни с префиксом, ни с точным ключом). Кэш подписок (subs.json)
-# читают только job'ы ВНУТРИ этого файла — job notify использует
-# независимую от poll конкурентность (свой concurrency-group), поэтому не
-# ждёт в очереди 5.5-часовой поллинг.
+# Ручные разовые рассылки (mode=seats_increased|quota) ЖИВУТ ЗДЕСЬ ЖЕ, В ТОМ
+# ЖЕ JOB'Е, а не в отдельном workflow-файле или отдельном job'е: проверено
+# эмпирически 2026-08-04 — GitHub Actions cache не даёт РАЗНЫМ job'ам читать
+# кэш друг друга, даже в одном workflow-файле на одной ветке (restore
+# отдельного job'а «notify» не находил кэш, сохранённый job'ом «poll», ни по
+# префиксу, ни по точному известному ключу). Единственный надёжно рабочий
+# случай — тот же job, что сохранял. Поэтому рассылка — это шаг ВНУТРИ
+# ЕДИНСТВЕННОГО job'а poll, просто выполняется ВМЕСТО поллинга при mode≠poll.
+# Следствие: разовая рассылка встаёт в ту же очередь concurrency, что и
+# обычный поллинг — если сейчас идёт 5.5-часовой поллинг-ран, рассылка
+# подождёт его завершения (или отмени текущий ран вручную, чтобы не ждать).
 #
 # Запуск разовой рассылки: Actions → Telegram Bot (polling) → Run workflow →
 # mode: seats_increased (+ baseline_ref) или mode: quota (+ list_code).
 
 on:
   schedule:
-    - cron: "0 * * * *"   # каждый час (сработает — встанет в очередь poll)
+    - cron: "0 * * * *"   # каждый час (сработает — встанет в очередь)
   workflow_dispatch:
     inputs:
       mode:
@@ -36,18 +39,19 @@ on:
         description: "код общего списка — только для mode=quota"
         required: false
 
+# НЕ отменяем работающий ран: новый ждёт в очереди и подхватывает сразу после.
+# Разовые рассылки (mode≠poll) — та же очередь: см. комментарий выше.
+concurrency:
+  group: telegram-bot-poll
+  cancel-in-progress: false
+
 permissions:
   contents: read
 
 jobs:
   poll:
-    if: github.event_name == 'schedule' || github.event.inputs.mode == 'poll'
     runs-on: ubuntu-latest
     timeout-minutes: 350
-    # НЕ отменяем работающий ран: новый ждёт в очереди и подхватывает сразу после
-    concurrency:
-      group: telegram-bot-poll
-      cancel-in-progress: false
     steps:
       - uses: actions/checkout@v4
         with:
@@ -74,6 +78,7 @@ jobs:
             bot-subs-
 
       - name: Run bot (long-polling)
+        if: github.event_name == 'schedule' || github.event.inputs.mode == 'poll' || github.event.inputs.mode == ''
         env:
           BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
@@ -84,49 +89,8 @@ jobs:
           PYTHONUNBUFFERED: "1"   # реальные метки времени в логах, а не всё при выходе
         run: python -m scraper.telegram_bot
 
-      - name: Save state (subscriptions + feedback)
-        if: always()
-        uses: actions/cache/save@v4
-        with:
-          path: |
-            subs.json
-            feedback.json
-          key: bot-state-${{ github.run_id }}
-
-  notify:
-    if: github.event_name == 'workflow_dispatch' && (github.event.inputs.mode == 'seats_increased' || github.event.inputs.mode == 'quota')
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    # Отдельная группа конкурентности — разовая рассылка не должна ждать,
-    # пока освободится 5.5-часовой poll (та же группа = очередь на часы).
-    concurrency:
-      group: telegram-bot-notify
-      cancel-in-progress: false
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: main
-
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-
-      - name: Install deps
-        run: pip install "anthropic>=0.30"
-
-      # Тот же кэш, что сохраняет job poll выше — читается корректно только
-      # потому, что это ТОТ ЖЕ workflow-файл (см. комментарий вверху файла).
-      - name: Restore subscriptions
-        uses: actions/cache/restore@v4
-        with:
-          path: subs.json
-          key: bot-state-${{ github.run_id }}
-          restore-keys: |
-            bot-state-
-            bot-subs-
-
       - name: Seats increased notify
-        if: github.event.inputs.mode == 'seats_increased'
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.mode == 'seats_increased'
         env:
           BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
           SUBS_PATH: subs.json
@@ -145,7 +109,7 @@ jobs:
           python -m scraper.notify_seats_increased
 
       - name: Quota notify
-        if: github.event.inputs.mode == 'quota'
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.mode == 'quota'
         env:
           BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
           SUBS_PATH: subs.json
@@ -159,3 +123,12 @@ jobs:
           git fetch --depth=1 origin data
           git show origin/data:admissions/lists_meta.json > lists_meta.json
           python -m scraper.notify_quota_seats --code "$LIST_CODE"
+
+      - name: Save state (subscriptions + feedback)
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            subs.json
+            feedback.json
+          key: bot-state-${{ github.run_id }}
