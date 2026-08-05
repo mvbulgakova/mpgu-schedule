@@ -1,0 +1,115 @@
+name: Fetch Competitive Lists (sharded)
+
+# То же, что Fetch Competitive Lists, но обход разложен по нескольким раннерам.
+#
+# Зачем. epk25 ограничивает число одновременных соединений С ОДНОГО адреса.
+# С раннера GitHub пул на 50 соединений уронил все 667 страниц, а на 8 потоках
+# обход шёл 49 минут и не уложился в таймаут (run 442, 2026-08-05). С другого
+# адреса те же 667 страниц снимаются за 112 секунд теми же 8 потоками. Значит
+# упираемся не в скорость сайта, а в лимит на адрес: лечится не числом потоков,
+# а числом адресов — каждый раннер берёт свою долю списков.
+#
+# Между шагами передаются РАЗОБРАННЫЕ строки, а не HTML: страницы весят на
+# порядок больше. Индекс собирается одним шагом над объединением долей —
+# симуляция зачисления глобальная, по частям её посчитать нельзя.
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "*/10 * 1-11 8 *"   # этапы зачисления
+
+concurrency:
+  # Своя очередь, НЕ общая с несегментированным обходом: тот при неудаче
+  # занимает раннер почти на час и иначе просто не давал бы этому запуститься.
+  # Гонку публикаций разруливает git_storage (push с rebase на вершину data).
+  group: fetch-lists-sharded
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  discover:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install deps
+        run: pip install requests beautifulsoup4 lxml
+      # Один раз на весь прогон: уровни и направления — ~48 последовательных
+      # страниц, повторять их в каждой доле значит умножить на число раннеров.
+      - name: Discover lists
+        run: python -m scraper.discover_lists --out entries.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: entries
+          path: entries.json
+          retention-days: 1
+
+  fetch:
+    needs: discover
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false        # упавшая доля не должна ронять остальные
+      matrix:
+        index: [0, 1, 2, 3, 4, 5]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install deps
+        run: pip install requests beautifulsoup4 lxml
+      - uses: actions/download-artifact@v4
+        with:
+          name: entries
+      - name: Crawl shard ${{ matrix.index }}
+        run: |
+          python -m scraper.crawl_shard --entries entries.json \
+            --index ${{ matrix.index }} --of 6 --out shard-${{ matrix.index }}.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: shard-${{ matrix.index }}
+          path: shard-${{ matrix.index }}.json
+          retention-days: 1
+
+  publish:
+    needs: fetch
+    if: always()              # собираем из того, что дошло; неполноту ловит guard
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - name: Checkout data branch
+        uses: actions/checkout@v4
+        with:
+          ref: data
+          path: data
+          fetch-depth: 0   # нужна история: публикация делает rebase на вершину
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install deps
+        run: pip install requests beautifulsoup4 lxml pymupdf
+      - uses: actions/download-artifact@v4
+        with:
+          path: shards
+          pattern: shard-*
+          merge-multiple: true
+      - name: Build lists index
+        env:
+          DATA_PATH: data
+          SHARDS_DIR: shards
+        run: |
+          ls -la shards/
+          python -m scraper.build_lists_index
