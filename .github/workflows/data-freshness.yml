@@ -22,10 +22,28 @@ jobs:
         id: fresh
         run: |
           set -e
-          UPDATED=$(curl -sf --max-time 30 \
+          curl -sf --max-time 30 \
             "https://raw.githubusercontent.com/${{ github.repository }}/data/admissions/lists_meta.json" \
-            | python3 -c "import sys,json;print(json.load(sys.stdin)['updated_at'])")
+            -o meta.json
+          UPDATED=$(python3 -c "import json;print(json.load(open('meta.json'))['updated_at'])")
           echo "updated_at=$UPDATED"
+          # Две разные даты: когда мы сняли списки и когда САМ вуз их пересчитал.
+          # Свежий обход поверх застывшего epk25 всё равно показывает старую
+          # картину, поэтому вторую тоже видно в логе (см. ночь 2026-08-05:
+          # обход каждые несколько минут, а списки стояли на 22:00 семь часов).
+          python3 - <<'EOF'
+          import json, datetime as dt
+          lists = json.load(open('meta.json')).get('lists', {})
+          stamps = [m['page_updated_at'] for m in lists.values() if m.get('page_updated_at')]
+          if not stamps:
+              print('page_updated_at: нет ни у одного списка')
+          else:
+              newest = max(stamps)
+              age = dt.datetime.now(dt.timezone.utc) - dt.datetime.fromisoformat(newest)
+              print(f'epk25 обновил списки: {newest} '
+                    f'({int(age.total_seconds() // 3600)}ч назад), '
+                    f'самый отстающий список: {min(stamps)}')
+          EOF
           AGE_H=$(python3 - "$UPDATED" <<'EOF'
           import sys, datetime as dt
           upd = dt.datetime.fromisoformat(sys.argv[1])
