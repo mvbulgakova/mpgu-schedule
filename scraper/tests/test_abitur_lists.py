@@ -487,3 +487,40 @@ def test_quota_list_shows_own_seats_and_position(monkeypatch):
     assert "особая квота: место 3 из 9" in out
     assert "✅" in out
     assert "платное" not in out
+
+
+# ── «Когда МПГУ последний раз обновлял списки» ────────────────────────────────
+
+def test_source_updated_at_takes_the_freshest_page_update():
+    # page_updated_at — момент, когда САМ вуз пересчитал список. Списки
+    # обновляются вразнобой (2026-08-05: 325 списков на 08:00, а часть уже
+    # на 09:50), поэтому «когда обновлялись списки» — это самый свежий из них,
+    # а не время нашего обхода.
+    meta = {"updated_at": "2026-08-05T10:09:48+03:00", "lists": {
+        "A": {"page_updated_at": "2026-08-05T08:00:00+03:00"},
+        "B": {"page_updated_at": "2026-08-05T09:50:00+03:00"},
+        "C": {"page_updated_at": "2026-08-05T09:30:00+03:00"},
+        "D": {},                       # без отметки — не должен ломать
+    }}
+    assert L.source_updated_at(meta) == "2026-08-05T09:50:00+03:00"
+
+
+def test_source_updated_at_none_when_no_page_updates():
+    assert L.source_updated_at({"lists": {"A": {}}}) is None
+    assert L.source_updated_at(None) is None
+
+
+def test_short_format_shows_both_source_and_crawl_time():
+    import scraper.abitur.lists as LM
+    LM._QUOTA_CACHE.clear()
+    meta = {"updated_at": "2026-08-05T10:09:48+03:00", "lists": {
+        "G": {"direction": "44.03.01 История", "form": "очная", "kind": "бюджет",
+              "count": 100, "general": True, "places": 10, "seats_open": 10,
+              "page_updated_at": "2026-08-05T09:50:00+03:00"}}}
+    shard = {"updated_at": "t", "codes": {"777": [
+        {"list": "G", "position": 5, "score_total": 240, "consent": True,
+         "priority_pz": 1, "bvi": False, "status": "",
+         "cons_above": 1, "sim_above": 1}]}}
+    out = L.format_positions_short(meta, shard, "777")
+    assert "09:50" in out      # когда вуз обновил списки
+    assert "10:09" in out      # когда мы их сняли

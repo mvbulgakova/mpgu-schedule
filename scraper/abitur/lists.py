@@ -241,6 +241,23 @@ def _quota_for(m: dict) -> Optional[int]:
     return q
 
 
+def source_updated_at(meta: Optional[dict]) -> Optional[str]:
+    """Когда САМ вуз последний раз пересчитывал списки (максимум page_updated_at).
+
+    Не путать с meta["updated_at"] — это момент нашего обхода. Списки на epk25
+    пересчитываются вразнобой (2026-08-05: 325 списков стояли на 08:00, часть
+    уже на 09:50), поэтому «когда обновились списки» — самый свежий из них.
+    """
+    stamps = [m.get("page_updated_at") for m in ((meta or {}).get("lists") or {}).values()
+              if m.get("page_updated_at")]
+    return max(stamps) if stamps else None
+
+
+def _hhmm_dd_mm(ts: str) -> str:
+    """'2026-08-05T09:50:00+03:00' → '09:50 05.08'."""
+    return f"{ts[11:16]} {ts[8:10]}.{ts[5:7]}"
+
+
 def _general_seats(m: dict, places: int):
     """(мест в общем конкурсе сейчас, квотных). Общий = КЦП − квоты (если известны).
 
@@ -416,8 +433,13 @@ def format_positions_short(meta: Optional[dict], shard: Optional[dict],
         lines.append("⚠️ Согласие на зачисление не отмечено — на основном этапе "
                      "нужно до <b>5 августа 12:00</b>")
     upd = (meta or {}).get("updated_at", "")
+    src = source_updated_at(meta)
+    if src:
+        # Две разные даты, и путать их нельзя: вуз мог не пересчитывать списки
+        # полсуток, и тогда свежий обход всё равно показывает старую картину.
+        lines.append(f"<i>Списки на epk25 обновлены: {_hhmm_dd_mm(src)}</i>")
     if upd:
-        lines.append(f"<i>Обновлено: {upd[11:16]} {upd[8:10]}.{upd[5:7]}</i>")
+        lines.append(f"<i>Мы сверялись: {_hhmm_dd_mm(upd)}</i>")
     return "\n".join(lines)
 
 
@@ -535,9 +557,14 @@ def format_positions(meta: Optional[dict], shard: Optional[dict], code: str) -> 
                      "Без согласия зачислить не могут: на основном этапе его нужно подать "
                      "до <b>5 августа 12:00</b> (отметка на Госуслугах или заявление в ПК). "
                      "Если уже подали — обновление могло ещё не дойти до списков.")
-    if updated:
+    src_full = source_updated_at(meta)
+    if src_full:
         lines.append("")
-        lines.append(f"Обновлено: {updated}")
+        lines.append(f"Списки на epk25 обновлены: {_hhmm_dd_mm(src_full)}")
+    if updated:
+        if not src_full:
+            lines.append("")
+        lines.append(f"Мы сверялись: {updated}")
     lines.append(f"Официальные списки: {_OFFICIAL}")
     lines.append("⚠️ Данные предварительные — ориентируйтесь на официальные списки и ЛК на Госуслугах.")
     return "\n".join(lines)

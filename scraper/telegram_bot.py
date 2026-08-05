@@ -81,6 +81,7 @@ def _menu_keyboard() -> List[List[Tuple[str, str]]]:
     rows.append([("➕ Калькулятор баллов", "open:calc")])
     rows.append([("🧮 Подбор по ЕГЭ", "open:shansy"), ("🔎 Мои списки", "open:spisok")])
     rows.append([("📄 Учебный план", "open:plan")])
+    rows.append([("🔔 Обновление списков", "u:1")])
     return rows
 
 
@@ -202,7 +203,7 @@ def _lookup_code(code: str, detailed: bool = False) -> Reply:
         row = [("🔔 Следить", f"f:{norm}")]
         if not detailed:
             row.insert(0, ("📋 Подробнее", f"x:{norm}"))
-        kb = [row]
+        kb = [row, [("🔔 Обновление списков", "u:1")]]
     return Reply(text, kb)
 
 
@@ -232,6 +233,34 @@ def _unfollow(chat_id: int) -> Reply:
         _save_subs()
         return Reply("🔕 Подписка отключена.", [])
     return Reply("Активной подписки нет. Оформить: /spisok → кнопка «Следить».", [])
+
+
+def _follow_updates(chat_id: int, on: bool) -> Reply:
+    """Подписка на сам факт обновления списков на epk25 — без кода заявления.
+
+    Отдельная от «следить за кодом»: обновление списков касается всех, и знать
+    о нём хотят и те, кто свой код не вводил. Живёт в той же записи подписчика,
+    поэтому включение/выключение не должно задевать слежку за кодом.
+    """
+    sub = SUBS.setdefault(str(chat_id), {})
+    if not on:
+        sub.pop("lists_updates", None)
+        sub.pop("src", None)
+        if not sub.get("code"):
+            SUBS.pop(str(chat_id), None)
+        _save_subs()
+        return Reply("🔕 Больше не сообщаю об обновлении списков.", [])
+    meta = lists.fetch_meta()
+    sub["lists_updates"] = True
+    # Запоминаем текущую отметку, иначе первое же уведомление придёт про
+    # обновление, которое случилось ДО подписки.
+    sub["src"] = lists.source_updated_at(meta)
+    _save_subs()
+    src = sub["src"]
+    when = f" (последнее — {lists._hhmm_dd_mm(src)})" if src else ""
+    return Reply("🔔 Сообщу, когда МПГУ обновит конкурсные списки на epk25"
+                 f"{when}.\nОтключить: кнопка «Не сообщать об обновлении списков».",
+                 [[("🔕 Не сообщать об обновлении списков", "u:0")]])
 
 
 _OTZYV_THANKS = ("Спасибо! 🙏 Записал анонимно — это поможет отвечать абитуриентам "
@@ -388,6 +417,8 @@ def _handle_callback(chat_id: int, data: str) -> Reply:
     if data.startswith("d:"):
         text_d, kb = faq.dates_step(data[2:])
         return Reply(text_d, kb)
+    if data.startswith("u:"):
+        return _follow_updates(chat_id, data[2:] == "1")
     if data.startswith("f:"):
         arg = data[2:]
         if arg == "off":
@@ -461,8 +492,29 @@ def _check_subs(token: str):
     if not meta:
         return
     upd = meta.get("updated_at", "")
+    src = lists.source_updated_at(meta)
     changed = False
     for chat, sub in list(SUBS.items()):
+        # Подписка на обновление списков: ориентир — отметка САМОГО epk25, а не
+        # время нашего обхода. Обход идёт каждые несколько минут и сдвигает
+        # updated_at постоянно; списки вуз пересчитывает куда реже, и людям
+        # важно именно это событие.
+        if sub.get("lists_updates") and src and sub.get("src") != src:
+            sub["src"] = src
+            changed = True
+            try:
+                _send(token, int(chat), Reply(
+                    f"🔔 МПГУ обновил конкурсные списки на epk25 "
+                    f"({lists._hhmm_dd_mm(src)}).\n"
+                    f"Посмотреть свои позиции: /spisok", []))
+            except Exception as e:
+                print(f"notify error {chat}: {e}")
+                if "403" in str(e):
+                    SUBS.pop(str(chat), None)
+                    print(f"подписка {chat} снята (бот заблокирован)")
+                    continue
+        if not sub.get("code"):
+            continue  # подписан только на обновление списков — кода нет
         if sub.get("updated_at") == upd:
             continue  # данные не менялись с прошлой сверки этого подписчика
         shard = lists.fetch_shard(sub["code"])

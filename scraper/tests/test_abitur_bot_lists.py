@@ -109,3 +109,68 @@ def test_check_subs_sends_diff_once(monkeypatch):
     # повторная проверка при тех же данных — тишина
     bot._check_subs("tok")
     assert len(sent) == 1
+
+
+# ── Подписка «обновление списков» (независимо от слежки за кодом) ─────────────
+
+def _meta(src, upd="2026-08-05T10:00:00+03:00"):
+    return {"updated_at": upd,
+            "lists": {"G": {"page_updated_at": src, "direction": "44.03.01 X",
+                            "form": "очная", "kind": "бюджет"}}}
+
+
+def test_subscribe_to_list_updates_without_following_a_code(monkeypatch):
+    monkeypatch.setattr(bot.lists, "fetch_meta",
+                        lambda *a, **k: _meta("2026-08-05T09:50:00+03:00"))
+    out = bot._handle_callback(chat_id=10, data="u:1")
+    assert "10" in bot.SUBS
+    sub = bot.SUBS["10"]
+    assert sub.get("lists_updates") is True
+    assert sub.get("src") == "2026-08-05T09:50:00+03:00"   # текущее — не шлём сразу
+    assert sub.get("code") is None                          # код при этом не нужен
+    assert "обновл" in out.text.lower()
+
+
+def test_unsubscribe_from_list_updates_keeps_code_following(monkeypatch):
+    monkeypatch.setattr(bot.lists, "fetch_meta",
+                        lambda *a, **k: _meta("2026-08-05T09:50:00+03:00"))
+    bot.SUBS["11"] = {"code": "1234567", "last": {"G": 5}, "updated_at": "t"}
+    bot._handle_callback(chat_id=11, data="u:1")
+    assert bot.SUBS["11"]["lists_updates"] is True
+    bot._handle_callback(chat_id=11, data="u:0")
+    assert bot.SUBS["11"].get("lists_updates") is not True
+    assert bot.SUBS["11"]["code"] == "1234567"      # слежку за кодом не трогаем
+
+
+def test_notifies_only_when_source_timestamp_advances(monkeypatch):
+    sent = []
+    monkeypatch.setattr(bot, "_send", lambda tok, chat, reply: sent.append((chat, reply.text)))
+    monkeypatch.setattr(bot.lists, "fetch_shard", lambda code: None)
+    bot.SUBS["12"] = {"lists_updates": True, "src": "2026-08-05T08:00:00+03:00"}
+
+    monkeypatch.setattr(bot.lists, "fetch_meta",
+                        lambda *a, **k: _meta("2026-08-05T08:00:00+03:00"))
+    bot._check_subs("token")
+    assert sent == []                                # не менялось — молчим
+
+    monkeypatch.setattr(bot.lists, "fetch_meta",
+                        lambda *a, **k: _meta("2026-08-05T09:50:00+03:00"))
+    bot._check_subs("token")
+    assert len(sent) == 1 and sent[0][0] == 12
+    assert "09:50" in sent[0][1]
+    assert bot.SUBS["12"]["src"] == "2026-08-05T09:50:00+03:00"
+
+    sent.clear()
+    bot._check_subs("token")
+    assert sent == []                                # повторно то же — молчим
+
+
+def test_code_follower_without_updates_subscription_gets_no_list_notice(monkeypatch):
+    sent = []
+    monkeypatch.setattr(bot, "_send", lambda tok, chat, reply: sent.append((chat, reply.text)))
+    monkeypatch.setattr(bot.lists, "fetch_shard", lambda code: None)
+    monkeypatch.setattr(bot.lists, "fetch_meta",
+                        lambda *a, **k: _meta("2026-08-05T09:50:00+03:00"))
+    bot.SUBS["13"] = {"code": "1234567", "last": {}, "updated_at": "old"}
+    bot._check_subs("token")
+    assert sent == []
