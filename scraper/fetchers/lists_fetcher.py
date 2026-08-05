@@ -163,9 +163,16 @@ def crawl(levels: List[str] = None, pause: float = 0.3,
     def fetch_view(code: str) -> str:
         return _get(f"{BASE}/competitive-list/view?code={code}")
 
+    # Прогресс печатаем обязательно: 2026-08-05 прогон в CI шёл 49 минут и был
+    # убит таймаутом, а в логе не оказалось НИ ОДНОЙ строки — все print стоят
+    # в конце. Понять, где именно ушло время, было нельзя.
+    t0 = time.time()
+    done = 0
+    step = max(50, len(entries) // 10)
     failed: List[str] = []
     with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as pool:
         futures = {pool.submit(fetch_view, code): code for code in entries}
+        print(f"Списков к обходу: {len(entries)}, потоков: {workers}", flush=True)
         for fut in concurrent.futures.as_completed(futures):
             code = futures[fut]
             try:
@@ -173,6 +180,12 @@ def crawl(levels: List[str] = None, pause: float = 0.3,
                 meta[code] = entries[code]
             except Exception:
                 failed.append(code)
+            done += 1
+            if done % step == 0 or done == len(entries):
+                print(f"  {done}/{len(entries)} за {time.time() - t0:.0f}с "
+                      f"(упало пока: {len(failed)})", flush=True)
+    print(f"Пул завершён за {time.time() - t0:.0f}с, на повтор: {len(failed)}",
+          flush=True)
 
     # Второй проход — последовательно, с вежливой паузой. Пул может упереться
     # не в саму страницу, а в лимит одновременных соединений: 2026-08-05 с
@@ -180,13 +193,20 @@ def crawl(levels: List[str] = None, pause: float = 0.3,
     # тогда как последовательные страницы направлений с того же раннера в том
     # же прогоне проходили без единой ошибки. Без этого прохода такой отказ =
     # пустой индекс и сутки без обновлений у пользователей.
-    for code in failed:
+    t1 = time.time()
+    for n, code in enumerate(failed, 1):
         time.sleep(pause)
         try:
             pages[code] = _get(f"{BASE}/competitive-list/view?code={code}")
             meta[code] = entries[code]
         except Exception:
             stats["views_failed"] += 1
+        if n % 50 == 0:
+            print(f"  повтор {n}/{len(failed)} за {time.time() - t1:.0f}с",
+                  flush=True)
 
     stats["views_retried"] = len(failed)
+    stats["seconds"] = round(time.time() - t0)
+    print(f"Обход занял {stats['seconds']}с, страниц получено: {len(pages)}",
+          flush=True)
     return pages, meta, stats
