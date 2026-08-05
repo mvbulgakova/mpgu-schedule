@@ -443,6 +443,46 @@ def _guard_incomplete(meta_doc: dict, stats: dict, prev):
     return None
 
 
+def carry_forward_missing(parsed: Dict[str, dict], prev: Optional[dict],
+                          data_root) -> List[str]:
+    """Достроить parsed прежними данными по спискам, которые не удалось снять.
+
+    Возвращает коды перенесённых списков (изменяет parsed на месте).
+
+    Непрочитанная страница молча выкидывала весь список из индекса, и его
+    абитуриенты пропадали из бота, оставаясь в списках на epk25 (2026-08-05:
+    доля не отдала 3 страницы из 111, опубликовалось 664 списка вместо 667).
+    Порог защиты такую потерю не видит — 664 из 667 это 99,5%. Показать
+    вчерашнюю позицию честнее, чем сделать вид, что человека нет: метаданные
+    переносим прежние целиком, включая page_updated_at, поэтому «свежесть»
+    по такому списку не врёт.
+    """
+    import json
+    if not prev:
+        return []
+    missing = [lc for lc in (prev.get("lists") or {}) if lc not in parsed]
+    if not missing:
+        return []
+    rows_by_list: Dict[str, list] = {lc: [] for lc in missing}
+    shard_dir = Path(data_root) / "admissions" / "by_code"
+    for path in sorted(shard_dir.glob("*.json")):
+        try:
+            doc = json.loads(path.read_text(encoding="utf-8"))
+        except Exception:  # noqa: BLE001
+            continue
+        for code, entries in (doc.get("codes") or {}).items():
+            for e in entries:
+                if e.get("list") in rows_by_list:
+                    row = {k: v for k, v in e.items()
+                           if k not in ("list", "cons_above", "vpp_above", "sim_above")}
+                    row["unique_code"] = code
+                    rows_by_list[e["list"]].append(row)
+    for lc in missing:
+        parsed[lc] = {"rows": sorted(rows_by_list[lc], key=lambda r: r["position"]),
+                      "meta": dict(prev["lists"][lc])}
+    return missing
+
+
 def load_shards(directory: str) -> Tuple[Dict[str, dict], dict]:
     """Объединить доли, снятые разными раннерами (scraper/crawl_shard.py).
 
@@ -513,8 +553,6 @@ def main() -> int:
     now = dt.datetime.now(dt.timezone(dt.timedelta(hours=3))).isoformat(timespec="seconds")
     if parsed is None:
         parsed = parse_pages(pages, meta)
-    meta_doc, shards = build_index_from_parsed(
-        parsed, updated_at=now, enrolled_elsewhere=enrolled_elsewhere)
 
     storage = GitStorage(os.environ.get("DATA_PATH", "data"))
     prev_path = storage.root / "admissions" / "lists_meta.json"
@@ -524,6 +562,14 @@ def main() -> int:
             prev = json.loads(prev_path.read_text(encoding="utf-8"))
         except Exception:
             prev = None
+
+    carried = carry_forward_missing(parsed, prev, storage.root)
+    if carried:
+        print(f"Не снято списков: {len(carried)} — переношу прежние данные "
+              f"({', '.join(carried[:10])}{'...' if len(carried) > 10 else ''})")
+
+    meta_doc, shards = build_index_from_parsed(
+        parsed, updated_at=now, enrolled_elsewhere=enrolled_elsewhere)
 
     reason = _guard_incomplete(meta_doc, stats, prev)
     if reason and not os.environ.get("FORCE_PUBLISH"):

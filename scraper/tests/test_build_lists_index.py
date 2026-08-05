@@ -488,3 +488,50 @@ def test_build_index_ignores_invalid_placeholder_date():
     md, _ = build_index({"G": view}, meta, updated_at="t", places_fn=lambda m: 10)
     g = md["lists"]["G"]
     assert "page_updated_at" not in g
+
+
+# ── Непрочитанный список нельзя терять ───────────────────────────────────────
+
+def test_carry_forward_keeps_lists_that_failed_to_fetch(tmp_path):
+    # 2026-08-05: доля не смогла снять 3 страницы из 111, отчиталась успехом,
+    # и индекс опубликовался БЕЗ этих списков — их абитуриенты исчезли. Порог
+    # защиты (85%) такую потерю не ловит: 664 из 667 это 99,5%.
+    import json
+    from scraper.build_lists_index import carry_forward_missing
+    prev = {"lists": {
+        "G1": {"direction": "44.03.01 История", "form": "очная", "kind": "бюджет",
+               "count": 2, "page_updated_at": "2026-08-05T08:00:00+03:00"},
+        "G2": {"direction": "44.03.02 Психология", "form": "очная", "kind": "бюджет",
+               "count": 1, "page_updated_at": "2026-08-05T08:00:00+03:00"}}}
+    root = tmp_path / "admissions" / "by_code"
+    root.mkdir(parents=True)
+    (root / "11.json").write_text(json.dumps({"codes": {"111": [
+        {"list": "G1", "position": 1, "score_total": 290, "consent": True,
+         "priority_pz": 1, "bvi": False, "status": "", "vpp": True},
+        {"list": "G2", "position": 5, "score_total": 200, "consent": False,
+         "priority_pz": 2, "bvi": False, "status": ""}]}}), encoding="utf-8")
+    (root / "22.json").write_text(json.dumps({"codes": {"222": [
+        {"list": "G1", "position": 2, "score_total": 250, "consent": False,
+         "priority_pz": 1, "bvi": False, "status": ""}]}}), encoding="utf-8")
+
+    parsed = {"G2": {"rows": [], "meta": dict(prev["lists"]["G2"])}}   # G1 не снялся
+    carried = carry_forward_missing(parsed, prev, tmp_path)
+
+    assert carried == ["G1"]
+    assert "G1" in parsed
+    rows = sorted(parsed["G1"]["rows"], key=lambda r: r["position"])
+    assert [r["unique_code"] for r in rows] == ["111", "222"]
+    assert rows[0]["consent"] is True and rows[0]["vpp"] is True
+    assert rows[1]["score_total"] == 250
+    # метаданные берём прежние — включая отметку, когда вуз обновлял страницу,
+    # чтобы «свежесть» не врала про перенесённый список
+    assert parsed["G1"]["meta"]["page_updated_at"] == "2026-08-05T08:00:00+03:00"
+
+
+def test_carry_forward_does_not_touch_lists_that_were_fetched(tmp_path):
+    from scraper.build_lists_index import carry_forward_missing
+    prev = {"lists": {"G1": {"direction": "X", "count": 1}}}
+    parsed = {"G1": {"rows": [{"unique_code": "999", "position": 1}],
+                     "meta": {"direction": "X"}}}
+    assert carry_forward_missing(parsed, prev, tmp_path) == []
+    assert parsed["G1"]["rows"][0]["unique_code"] == "999"
