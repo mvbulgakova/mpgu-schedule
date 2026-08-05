@@ -136,12 +136,23 @@ def simulate_admission(candidates: Dict[str, list],
 
 
 def build_index(pages: Dict[str, str], meta: Dict[str, dict],
-                updated_at: str, places_fn=None) -> Tuple[dict, Dict[str, dict]]:
+                updated_at: str, places_fn=None,
+                enrolled_elsewhere: Optional[set] = None) -> Tuple[dict, Dict[str, dict]]:
     """Возвращает (meta_doc, shards): метаданные списков и шарды кодов.
 
     places_fn(meta_записи) -> бюджетные места программы (для тестов подменяемо;
     по умолчанию — матчинг из scraper.abitur.lists).
+
+    enrolled_elsewhere — коды абитуриентов, уже зачисленных официальным
+    приказом (квота/БВИ) НЕ в общем конкурсе (см.
+    scraper.fetchers.enrollment_order_fetcher). Конкурсные списки epk25 не
+    убирают таких людей из общего списка сами — без этого исключения
+    симуляция продолжает считать их живыми конкурентами общего конкурса и
+    занижает шансы тех, кто реально идёт следом (см. 2026-08-05: код
+    1319710 зачислен по квоте 03.08, но остаётся в списке 602 с consent=true
+    и без него отъедал бы место у кандидата на позиции 551 в симуляции).
     """
+    enrolled_elsewhere = enrolled_elsewhere or set()
     if places_fn is None:
         from scraper.abitur.lists import _places_for as places_fn
 
@@ -263,7 +274,7 @@ def build_index(pages: Dict[str, str], meta: Dict[str, dict],
     candidates: Dict[str, list] = {}
     for lc in places:
         for r in rows_by_list[lc]:
-            if r.get("consent"):
+            if r.get("consent") and r["unique_code"] not in enrolled_elsewhere:
                 candidates.setdefault(r["unique_code"], []).append(
                     (r.get("priority_pz") or 99, lc, r["position"]))
     admitted = simulate_admission(candidates, places)
@@ -380,11 +391,21 @@ def _guard_incomplete(meta_doc: dict, stats: dict, prev):
 def main() -> int:
     import json
     from scraper.fetchers import lists_fetcher as LF
+    from scraper.fetchers import enrollment_order_fetcher as EOF
     from scraper.storage.git_storage import GitStorage
 
     pages, meta, stats = LF.crawl()
+    try:
+        enrolled_elsewhere = EOF.collect_enrolled_codes()
+    except Exception as e:  # noqa: BLE001
+        print(f"Не удалось собрать коды зачисленных приказом (квоты/БВИ): {e}. "
+              f"Симуляция общего конкурса продолжит их учитывать.")
+        enrolled_elsewhere = set()
+    print(f"Зачислено приказом (квоты/БВИ), исключено из общего конкурса: "
+          f"{len(enrolled_elsewhere)}")
     now = dt.datetime.now(dt.timezone(dt.timedelta(hours=3))).isoformat(timespec="seconds")
-    meta_doc, shards = build_index(pages, meta, updated_at=now)
+    meta_doc, shards = build_index(pages, meta, updated_at=now,
+                                   enrolled_elsewhere=enrolled_elsewhere)
 
     storage = GitStorage(os.environ.get("DATA_PATH", "data"))
     prev_path = storage.root / "admissions" / "lists_meta.json"

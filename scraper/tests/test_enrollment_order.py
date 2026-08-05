@@ -1,5 +1,5 @@
 """Тесты парсера официальных PDF «Сведения о зачислении» (квоты + БВИ)."""
-from scraper.parsers.enrollment_order import parse_order_pdf_text
+from scraper.parsers.enrollment_order import parse_order_pdf_codes, parse_order_pdf_text
 
 QUOTA_BLOCK_OTDELNAYA = (
     "Учебное структурное подразделение: Институт филологии \n"
@@ -214,6 +214,32 @@ QUOTA_BLOCK_WRAPPED_HEADER = (
     " 2.  \n1188807 \n254 \n244 \n77 \n76 \n91 \n10 \n"
     " 3.  \n1806236 \n230 \n228 \n78 \n94 \n56 \n2 \n"
 )
+
+
+def test_parse_order_pdf_codes_collects_every_row_across_blocks():
+    doc = QUOTA_BLOCK_OTDELNAYA + QUOTA_BLOCK_OSOBAYA + BVI_BLOCK
+    codes = parse_order_pdf_codes(doc)
+    assert codes == sorted([
+        "1247486", "1212241", "1180076", "1857719", "1878522", "1952615",
+        "2049719",              # отдельная квота
+        "1472028",              # особая квота
+        "938184", "1205677", "1367134", "1349037", "1567646", "1840908",  # бви
+    ])
+
+
+def test_parse_order_pdf_codes_includes_unclassifiable_blocks():
+    # В отличие от parse_order_pdf_text, коды нужны даже из блока, который
+    # parse_order_pdf_text пропускает (не смог классифицировать quota_kind)
+    # — человек всё равно зачислен, просто не входит в разбивку по типам квот.
+    block = (
+        QUOTA_BLOCK_OTDELNAYA
+        .replace("Особенности приема: Отдельная квота \n", "Особенности приема: Общие места \n")
+        .replace("Особое право: Да \n", "Особое право: Нет \n")
+    )
+    assert parse_order_pdf_text(block, "квоты") == []
+    assert parse_order_pdf_codes(block) == sorted([
+        "1247486", "1212241", "1180076", "1857719", "1878522", "1952615", "2049719",
+    ])
 
 
 def test_wrapped_block_header_still_splits_and_is_not_swallowed():

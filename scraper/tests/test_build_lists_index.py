@@ -217,6 +217,25 @@ def test_build_index_vpp_above_counts_official_marks_ahead():
     assert e333["vpp"] is True and e333["vpp_above"] == 1    # 111 выше, 222 без ВПП не считается
 
 
+def test_build_index_excludes_codes_already_enrolled_by_order():
+    # Регрессия 2026-08-05: код, зачисленный официальным приказом (квота/БВИ)
+    # не в общем конкурсе, остаётся в конкурсном списке epk25 с consent=true
+    # — без исключения симуляция считает его живым конкурентом общего
+    # конкурса и занижает шансы того, кто реально идёт следующим (см. код
+    # 1319710: зачислен по квоте 03.08, но без этого исключения "отъедал"
+    # бы место у кандидата на позиции 551 в списке 000000602).
+    pages = {"G1": VIEW_SIM}
+    meta = {"G1": {"direction": "44.03.01 История", "form": "очная", "kind": "бюджет"}}
+    meta_doc, shards = build_index(pages, meta, updated_at="t",
+                                   places_fn=lambda m: 1,
+                                   enrolled_elsewhere={"111"})
+    # без исключения (test_build_index_sim_fields) единственное место в
+    # симуляции занимал 111, а 333 не проходил (sim_above == 1). Раз 111
+    # уже зачислен приказом не сюда — место освобождается для 333.
+    e333 = shards["33"]["codes"]["333"][0]
+    assert e333["sim_above"] == 0
+
+
 def test_build_index_prediction_signals(monkeypatch):
     # sim_cutoff = мин балл зачисленного в симуляции; cap = G-й сверху балл
     import scraper.abitur.lists as LM
