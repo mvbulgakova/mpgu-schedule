@@ -53,8 +53,10 @@ def diff_text(code: str, old: Dict[str, int], new_entries: List[dict],
         return None
     # Когда списки пересчитал ВУЗ — а не когда мы сходили проверить. Наш обход
     # идёт каждые несколько минут и сам по себе ничего не значит; человеку важно,
-    # к какому моменту относится его новое место.
-    src = L.source_updated_at(meta)
+    # к какому моменту относится его новое место. И считаем по ЕГО спискам:
+    # epk25 переписывает их волнами, глобальный максимум показал бы отметку
+    # чужого списка (см. lists.source_updated_for).
+    src = L.source_updated_for(meta, set(new) | set(old))
     if src:
         lines.append(f"Списки на epk25 обновлены: {L._hhmm_dd_mm(src)}")
     lines.append(f"Подробнее: /spisok {code}")

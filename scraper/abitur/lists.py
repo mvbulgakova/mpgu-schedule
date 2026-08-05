@@ -254,6 +254,21 @@ def source_updated_at(meta: Optional[dict]) -> Optional[str]:
     return max(stamps) if stamps else None
 
 
+def source_updated_for(meta: Optional[dict], list_codes) -> Optional[str]:
+    """Когда вуз пересчитывал ИМЕННО эти списки (максимум их page_updated_at).
+
+    Глобальный максимум конкретному человеку врёт. epk25 переписывает списки
+    волнами по десяткам минут: 2026-08-05 в 22:17 у 325 списков стояло 20:00,
+    у 135 — 21:10, а самый свежий был 21:50. Человеку с кодом 1914288 при этом
+    показали «обновлены 21:50», хотя все 13 ЕГО списков стояли на 20:00 —
+    время чужого списка, к его местам отношения не имеющее.
+    """
+    lst = ((meta or {}).get("lists") or {})
+    stamps = [(lst.get(c) or {}).get("page_updated_at") for c in (list_codes or [])]
+    stamps = [s for s in stamps if s]
+    return max(stamps) if stamps else None
+
+
 def _hhmm_dd_mm(ts: str) -> str:
     """'2026-08-05T09:50:00+03:00' → '09:50 05.08'."""
     return f"{ts[11:16]} {ts[8:10]}.{ts[5:7]}"
@@ -483,11 +498,13 @@ def format_positions_short(meta: Optional[dict], shard: Optional[dict],
     if budget and not consented:
         lines.append(_no_consent_warning(short=True))
     upd = (meta or {}).get("updated_at", "")
-    src = source_updated_at(meta)
+    # По спискам ЭТОГО человека, а не по всем 667: epk25 переписывает их
+    # волнами, и глобальный максимум — время чужого списка.
+    src = source_updated_for(meta, [e["list"] for e in entries])
     if src:
         # Две разные даты, и путать их нельзя: вуз мог не пересчитывать списки
         # полсуток, и тогда свежий обход всё равно показывает старую картину.
-        lines.append(f"<i>Списки на epk25 обновлены: {_hhmm_dd_mm(src)}</i>")
+        lines.append(f"<i>Ваши списки на epk25 обновлены: {_hhmm_dd_mm(src)}</i>")
     if upd:
         lines.append(f"<i>Мы сверялись: {_hhmm_dd_mm(upd)}</i>")
     return "\n".join(lines)
@@ -604,10 +621,10 @@ def format_positions(meta: Optional[dict], shard: Optional[dict], code: str) -> 
     if budget and not any(e.get("consent") for e in budget):
         lines.append("")
         lines.append(_no_consent_warning(short=False))
-    src_full = source_updated_at(meta)
+    src_full = source_updated_for(meta, [e["list"] for e in entries])
     if src_full:
         lines.append("")
-        lines.append(f"Списки на epk25 обновлены: {_hhmm_dd_mm(src_full)}")
+        lines.append(f"Ваши списки на epk25 обновлены: {_hhmm_dd_mm(src_full)}")
     if updated:
         if not src_full:
             lines.append("")

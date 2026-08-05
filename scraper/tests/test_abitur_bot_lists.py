@@ -292,3 +292,75 @@ def test_updates_only_sub_keeps_mark_when_send_fails(monkeypatch):
     bot.SUBS["32"] = {"lists_updates": True, "src": "2026-08-05T13:00:00+03:00"}
     bot._check_subs("tok")
     assert bot.SUBS["32"]["src"] == "2026-08-05T13:00:00+03:00"
+
+
+# ── Отметка времени должна быть про СВОИ списки, а не про чужие ───────────────
+
+def _wave_meta(upd="2026-08-05T22:17:00+03:00"):
+    """Снимок посреди волны epk25: чужой список уже переписан, наш ещё нет.
+
+    Ровно то, что случилось 2026-08-05: у 325 списков стояло 20:00, самый
+    свежий по всем 667 был 21:50 — и человеку с кодом 1914288 показали 21:50,
+    хотя все ЕГО списки стояли на 20:00.
+    """
+    return {"updated_at": upd, "lists": {
+        "G": {"page_updated_at": "2026-08-05T20:00:00+03:00",
+              "direction": "44.03.01 X", "form": "очная", "kind": "бюджет"},
+        "ЧУЖОЙ": {"page_updated_at": "2026-08-05T21:50:00+03:00",
+                  "direction": "44.03.01 Y", "form": "очная", "kind": "бюджет"}}}
+
+
+def test_update_notice_shows_the_time_of_the_persons_own_lists(monkeypatch):
+    sent = []
+    monkeypatch.setattr(bot, "_send", lambda t, c, r: sent.append((c, r.text)))
+    monkeypatch.setattr(bot.lists, "fetch_shard", lambda code: _no_change_shard())
+    monkeypatch.setattr(bot.lists, "fetch_meta", lambda *a, **k: _wave_meta())
+    bot.SUBS["30"] = {"code": "1234567", "last": {"G": 5}, "updated_at": "old",
+                      "src": "2026-08-05T19:00:00+03:00"}
+    bot._check_subs("token")
+    assert len(sent) == 1
+    assert "20:00" in sent[0][1], sent[0][1]
+    assert "21:50" not in sent[0][1], "показали время чужого списка"
+    assert bot.SUBS["30"]["src"] == "2026-08-05T20:00:00+03:00"
+
+
+def test_no_notice_when_only_someone_elses_list_was_recalculated(monkeypatch):
+    """Чужая волна — не событие: у человека ничего не пересчитывали."""
+    sent = []
+    monkeypatch.setattr(bot, "_send", lambda t, c, r: sent.append((c, r.text)))
+    monkeypatch.setattr(bot.lists, "fetch_shard", lambda code: _no_change_shard())
+    monkeypatch.setattr(bot.lists, "fetch_meta", lambda *a, **k: _wave_meta())
+    bot.SUBS["31"] = {"code": "1234567", "last": {"G": 5}, "updated_at": "old",
+                      "src": "2026-08-05T20:00:00+03:00"}
+    bot._check_subs("token")
+    assert sent == []
+
+
+def test_stale_global_mark_does_not_fire_a_backwards_notice(monkeypatch):
+    """У старых подписок в src лежит глобальный максимум — он ВПЕРЕДИ своего.
+
+    Сравнение «!=» на первом же проходе после выкатки разослало бы всем
+    уведомление с временем МЕНЬШЕ запомненного. Назад время не идёт.
+    """
+    sent = []
+    monkeypatch.setattr(bot, "_send", lambda t, c, r: sent.append((c, r.text)))
+    monkeypatch.setattr(bot.lists, "fetch_shard", lambda code: _no_change_shard())
+    monkeypatch.setattr(bot.lists, "fetch_meta", lambda *a, **k: _wave_meta())
+    bot.SUBS["32"] = {"code": "1234567", "last": {"G": 5}, "updated_at": "old",
+                      "src": "2026-08-05T21:50:00+03:00"}   # чужая отметка
+    bot._check_subs("token")
+    assert sent == []
+
+    # ...а когда волна дошла до его списка — уведомление приходит.
+    later = _wave_meta(upd="2026-08-05T22:30:00+03:00")
+    later["lists"]["G"]["page_updated_at"] = "2026-08-05T22:00:00+03:00"
+    monkeypatch.setattr(bot.lists, "fetch_meta", lambda *a, **k: later)
+    bot._check_subs("token")
+    assert len(sent) == 1 and "22:00" in sent[0][1]
+
+
+def test_position_diff_also_dates_by_the_persons_own_lists(monkeypatch):
+    from scraper.abitur import follow
+    txt = follow.diff_text("1234567", {"G": 9}, [{"list": "G", "position": 5}],
+                           _wave_meta())
+    assert "20:00" in txt and "21:50" not in txt

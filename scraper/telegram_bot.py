@@ -509,49 +509,57 @@ def _check_subs(token: str):
         # каждые несколько минут и сдвигает updated_at постоянно, а списки вуз
         # пересчитывает куда реже. Людям важно именно это событие.
         seen = sub.get("src")
-        source_moved = bool(src) and seen != src
-        if source_moved and seen is None:
+        if seen is None and src:
             # Подписка оформлена до появления этого поля: запоминаем текущую
             # отметку молча. Иначе первый же прогон после выкатки разошлёт
             # уведомление про обновление, которое случилось ДО подписки.
-            sub["src"] = src
+            sub["src"] = seen = src
             changed = True
-            source_moved = False
         # Отметку «видел» двигаем ТОЛЬКО после доставки. Иначе любой сбой
         # между отметкой и отправкой (моргнул CDN за шардом, Telegram отдал
         # 500) съедает обновление навсегда: на следующем проходе движения
         # источника уже «нет», и человек не узнает о пересчёте вовсе.
-        if source_moved and sub.get("lists_updates") and not sub.get("code"):
-            try:
-                _send(token, int(chat), Reply(
-                    f"🔔 МПГУ обновил конкурсные списки на epk25 "
-                    f"({lists._hhmm_dd_mm(src)}).\n"
-                    f"Посмотреть свои позиции: /spisok", []))
-                sent_count[0] += 1
-                sub["src"] = src
-                changed = True
-            except Exception as e:
-                print(f"notify error {chat}: {e}")
-                if "403" in str(e):
-                    SUBS.pop(str(chat), None)
-                    changed = True
-                    print(f"подписка {chat} снята (бот заблокирован)")
-            continue
         if not sub.get("code"):
-            continue  # подписан только на обновление списков — кода нет
-        if not source_moved and sub.get("updated_at") == upd:
-            continue  # данные не менялись с прошлой сверки этого подписчика
+            # Подписан только на «обновление списков»: своих списков нет,
+            # ориентир может быть только глобальным.
+            if sub.get("lists_updates") and src and seen and src > seen:
+                try:
+                    _send(token, int(chat), Reply(
+                        f"🔔 МПГУ обновил конкурсные списки на epk25 "
+                        f"({lists._hhmm_dd_mm(src)}).\n"
+                        f"Посмотреть свои позиции: /spisok", []))
+                    sent_count[0] += 1
+                    sub["src"] = src
+                    changed = True
+                except Exception as e:
+                    print(f"notify error {chat}: {e}")
+                    if "403" in str(e):
+                        SUBS.pop(str(chat), None)
+                        changed = True
+                        print(f"подписка {chat} снята (бот заблокирован)")
+            continue
+        if sub.get("updated_at") == upd:
+            # Индекс не сдвинулся с прошлой сверки ЭТОГО подписчика, а отметка
+            # двигается только вместе с доставкой — значит и показать нечего.
+            continue
         shard = lists.fetch_shard(sub["code"])
         if shard is None:
             continue  # сеть/CDN моргнули — src не трогаем, повторим в следующий проход
         entries = lists.lookup(shard, sub["code"])
+        # Считаем по спискам ЭТОГО человека: epk25 переписывает списки волнами,
+        # и глобальная отметка означала «где-то что-то пересчитали». Строгое «>»,
+        # а не «!=»: посреди волны максимум по чужим спискам мог уйти вперёд
+        # нашего, и равенство сравнивать нечестно — назад время не идёт.
+        own_src = lists.source_updated_for(meta, [e.get("list") for e in entries])
+        src_for_sub = own_src or src
+        source_moved = bool(own_src) and bool(seen) and own_src > seen
         txt = follow.diff_text(sub["code"], sub.get("last") or {}, entries, meta)
         if txt is None and source_moved:
             # Списки пересчитали, а у человека ничего не сдвинулось. Это тоже
             # новость: молчание он читает как «данные не обновлялись». Дифф,
             # если он есть, сам начинается со слов «Списки обновились» —
             # поэтому второе сообщение сверху не шлём.
-            txt = (f"🔔 МПГУ обновил списки ({lists._hhmm_dd_mm(src)}) — "
+            txt = (f"🔔 МПГУ обновил списки ({lists._hhmm_dd_mm(src_for_sub)}) — "
                    f"у вас по коду <b>{sub['code']}</b> без изменений.\n"
                    f"Подробнее: /spisok {sub['code']}")
         if not txt:
@@ -559,7 +567,7 @@ def _check_subs(token: str):
             sub["last"] = follow.positions_of(entries)
             sub["updated_at"] = upd
             if source_moved:
-                sub["src"] = src
+                sub["src"] = own_src
             changed = True
         if txt:
             try:
@@ -568,7 +576,7 @@ def _check_subs(token: str):
                 sub["last"] = follow.positions_of(entries)
                 sub["updated_at"] = upd
                 if source_moved:
-                    sub["src"] = src
+                    sub["src"] = own_src
                 changed = True
             except Exception as e:
                 print(f"notify error {chat}: {e}")
