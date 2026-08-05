@@ -3,6 +3,7 @@
 admissions/lists_meta.json    — метаданные списков (направление/форма/вид/totals)
 admissions/by_code/<XX>.json  — позиции абитуриентов (шард по первым 2 цифрам кода)
 """
+import datetime as dt
 import json
 import os
 import re
@@ -314,16 +315,66 @@ def _prediction_line(m: dict) -> Optional[str]:
         _history_for(m), m.get("sim_cutoff"), m.get("cap"), m.get("general_seats"))
 
 
+_MSK = dt.timezone(dt.timedelta(hours=3))
+# Правила приёма МПГУ 2026, разд. 6.2 (бюджет БВО/бакалавриат/специалитет).
+_MAIN_CONSENT_DEADLINE = dt.datetime(2026, 8, 5, 12, 0, tzinfo=_MSK)
+_EXTRA_CONSENT_DEADLINE = dt.datetime(2026, 8, 9, 12, 0, tzinfo=_MSK)
+
+
+def _now_msk() -> dt.datetime:
+    """Отдельной функцией — чтобы тесты могли встать в нужный момент кампании."""
+    return dt.datetime.now(_MSK)
+
+
+def _no_consent_warning(short: bool) -> str:
+    """Напоминание про согласие. После закрытия этапа зовёт на следующий.
+
+    Звать «подайте до 5 августа 12:00» после 5 августа 12:00 — вредный совет:
+    человек решит, что всё пропало, хотя остаётся дополнительный этап.
+    """
+    now = _now_msk()
+    if now >= _EXTRA_CONSENT_DEADLINE:
+        return ("⚠️ Согласие на зачисление не отмечено, приём согласий "
+                "завершён — зачисление возможно только при дополнительном приёме.")
+    if now >= _MAIN_CONSENT_DEADLINE:
+        if short:
+            return ("⚠️ Согласие не отмечено. Основной этап закрыт, остался "
+                    "дополнительный — до <b>9 августа 12:00</b>")
+        return ("⚠️ <b>В бюджетных списках согласие на зачисление не отмечено.</b> "
+                "Приём согласий на основном этапе закрыт (5 августа 12:00). "
+                "Остаётся дополнительный этап: согласие до <b>9 августа 12:00</b>, "
+                "если после приказов 7 августа останутся места. Если вы уже "
+                "подавали — обновление могло ещё не дойти до списков.")
+    if short:
+        return ("⚠️ Согласие на зачисление не отмечено — на основном этапе "
+                "нужно до <b>5 августа 12:00</b>")
+    return ("⚠️ <b>В бюджетных списках согласие на зачисление не отмечено.</b> "
+            "Без согласия зачислить не могут: на основном этапе его нужно подать "
+            "до <b>5 августа 12:00</b> (отметка на Госуслугах или заявление в ПК). "
+            "Если уже подали — обновление могло ещё не дойти до списков.")
+
+
 def _consent_caveat(entries: List[Dict], lists_meta_all: dict) -> str:
-    """Честная оговорка: оценка основана на подавших согласие СЕЙЧАС, а их пока мало."""
+    """Честная оговорка про предварительность оценки.
+
+    До закрытия приёма согласий главный риск — что конкурентов станет больше.
+    После 5 августа 12:00 это уже неправда: новых согласий на основном этапе
+    не будет, и обещание «их станет больше» в самый нервный день кампании
+    просто дезинформирует. Поэтому текст зависит от момента.
+    """
     share = ""
     for e in entries:
         m = lists_meta_all.get(e["list"], {})
         if m.get("general") and m.get("consented") is not None and m.get("count"):
             pct = round(100 * m["consented"] / m["count"]) if m["count"] else 0
-            share = (f" В этом списке согласие подали пока лишь {m['consented']} "
+            share = (f" Согласие в этом списке подали {m['consented']} "
                      f"из {m['count']} (~{pct}%).")
             break
+    if _now_msk() >= _MAIN_CONSENT_DEADLINE:
+        return ("⚠️ <b>Приём согласий на основном этапе закрыт</b> "
+                "(5 августа 12:00)." + share + " Списки ещё пересчитываются, "
+                "пока вуз обрабатывает поданные согласия, так что позиция может "
+                "сдвинуться. Приказы о зачислении — <b>7 августа</b>.")
     return ("⚠️ <b>Это очень предварительно.</b>" + share + " Большинство подаёт "
             "согласие ближе к <b>5 августа</b> — конкурентов станет больше, и позиция, "
             "скорее всего, ухудшится. Не расслабляйтесь и не понижайте приоритеты, "
@@ -430,8 +481,7 @@ def format_positions_short(meta: Optional[dict], shard: Optional[dict],
     budget = [e for e in entries
               if lists_meta_all.get(e["list"], {}).get("kind") == "бюджет"]
     if budget and not consented:
-        lines.append("⚠️ Согласие на зачисление не отмечено — на основном этапе "
-                     "нужно до <b>5 августа 12:00</b>")
+        lines.append(_no_consent_warning(short=True))
     upd = (meta or {}).get("updated_at", "")
     src = source_updated_at(meta)
     if src:
@@ -553,10 +603,7 @@ def format_positions(meta: Optional[dict], shard: Optional[dict], code: str) -> 
               if lists_meta.get(e["list"], {}).get("kind") == "бюджет"]
     if budget and not any(e.get("consent") for e in budget):
         lines.append("")
-        lines.append("⚠️ <b>В бюджетных списках согласие на зачисление не отмечено.</b> "
-                     "Без согласия зачислить не могут: на основном этапе его нужно подать "
-                     "до <b>5 августа 12:00</b> (отметка на Госуслугах или заявление в ПК). "
-                     "Если уже подали — обновление могло ещё не дойти до списков.")
+        lines.append(_no_consent_warning(short=False))
     src_full = source_updated_at(meta)
     if src_full:
         lines.append("")

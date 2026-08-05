@@ -98,8 +98,17 @@ SHARD2 = {"updated_at": "t", "codes": {"555": [
 ]}}
 
 
+def _freeze_before_deadline(monkeypatch):
+    """Встать до 5 августа 12:00: оговорка про согласия зависит от даты."""
+    import datetime as dt
+    import scraper.abitur.lists as LM
+    monkeypatch.setattr(LM, "_now_msk",
+                        lambda: dt.datetime(2026, 7, 20, 10, 0, tzinfo=LM._MSK))
+
+
 def _fake_places(monkeypatch, quota=None):
     import scraper.abitur.lists as LM
+    _freeze_before_deadline(monkeypatch)
     LM._PLACES_CACHE.clear(); LM._QUOTA_CACHE.clear()
     monkeypatch.setattr(LM, "_places_for",
                         lambda m: {"44.03.01 История": 30,
@@ -237,6 +246,7 @@ SHARD3 = {"updated_at": "t", "codes": {"777": [
 
 def test_short_format_is_compact_and_sorted_by_priority(monkeypatch):
     import scraper.abitur.lists as LM
+    _freeze_before_deadline(monkeypatch)
     LM._QUOTA_CACHE.clear()
     monkeypatch.setattr(LM, "_quota_for", lambda m: None)   # без вычета квот в тесте
     out = L.format_positions_short(META3, SHARD3, "777")
@@ -524,3 +534,67 @@ def test_short_format_shows_both_source_and_crawl_time():
     out = L.format_positions_short(meta, shard, "777")
     assert "09:50" in out      # когда вуз обновил списки
     assert "10:09" in out      # когда мы их сняли
+
+
+# ── Оговорка про согласия должна меняться после дедлайна ─────────────────────
+
+def _caveat_meta():
+    return {"updated_at": "t", "lists": {
+        "G": {"direction": "44.03.01 История", "form": "очная", "kind": "бюджет",
+              "count": 2000, "consented": 592, "general": True,
+              "places": 80, "seats_open": 80}}}
+
+
+def _caveat_shard():
+    return {"updated_at": "t", "codes": {"777": [
+        {"list": "G", "position": 551, "score_total": 237, "consent": True,
+         "priority_pz": 1, "bvi": False, "status": "",
+         "cons_above": 221, "sim_above": 69}]}}
+
+
+def test_caveat_warns_about_incoming_consents_before_deadline(monkeypatch):
+    import datetime as dt
+    import scraper.abitur.lists as LM
+    LM._QUOTA_CACHE.clear()
+    monkeypatch.setattr(LM, "_quota_for", lambda m: None)
+    monkeypatch.setattr(LM, "_now_msk",
+                        lambda: dt.datetime(2026, 8, 4, 10, 0, tzinfo=LM._MSK))
+    out = L.format_positions_short(_caveat_meta(), _caveat_shard(), "777")
+    assert "5 августа" in out and "конкурентов станет больше" in out
+
+
+def test_caveat_stops_promising_more_competitors_after_deadline(monkeypatch):
+    # 5 августа 12:00 приём согласий на основном этапе закрыт. Обещать «их
+    # станет больше» после этого — прямая дезинформация в самый нервный день.
+    import datetime as dt
+    import scraper.abitur.lists as LM
+    LM._QUOTA_CACHE.clear()
+    monkeypatch.setattr(LM, "_quota_for", lambda m: None)
+    monkeypatch.setattr(LM, "_now_msk",
+                        lambda: dt.datetime(2026, 8, 5, 12, 30, tzinfo=LM._MSK))
+    out = L.format_positions_short(_caveat_meta(), _caveat_shard(), "777")
+    assert "конкурентов станет больше" not in out
+    assert "7 августа" in out          # куда смотреть дальше — приказы
+
+
+def test_no_consent_warning_points_to_next_stage_after_deadline(monkeypatch):
+    # После 5 августа 12:00 звать «подайте согласие до 5 августа 12:00» — уже
+    # бессмысленно. Остаётся дополнительный этап: согласие до 9 августа 12:00.
+    import datetime as dt
+    import scraper.abitur.lists as LM
+    LM._QUOTA_CACHE.clear()
+    monkeypatch.setattr(LM, "_quota_for", lambda m: None)
+    monkeypatch.setattr(LM, "_now_msk",
+                        lambda: dt.datetime(2026, 8, 5, 13, 0, tzinfo=LM._MSK))
+    meta = {"updated_at": "t", "lists": {"G": {
+        "direction": "44.03.01 История", "form": "очная", "kind": "бюджет",
+        "count": 100, "general": True, "places": 10, "seats_open": 10}}}
+    shard = {"updated_at": "t", "codes": {"777": [
+        {"list": "G", "position": 50, "score_total": 200, "consent": False,
+         "priority_pz": 1, "bvi": False, "status": "",
+         "cons_above": 20, "sim_above": 20}]}}
+    short = L.format_positions_short(meta, shard, "777")
+    full = L.format_positions(meta, shard, "777")
+    for out in (short, full):
+        assert "до <b>5 августа 12:00</b>" not in out
+        assert "9 августа" in out
