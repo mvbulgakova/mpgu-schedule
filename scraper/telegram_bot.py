@@ -495,11 +495,19 @@ def _check_subs(token: str):
     src = lists.source_updated_at(meta)
     changed = False
     for chat, sub in list(SUBS.items()):
-        # Подписка на обновление списков: ориентир — отметка САМОГО epk25, а не
-        # время нашего обхода. Обход идёт каждые несколько минут и сдвигает
-        # updated_at постоянно; списки вуз пересчитывает куда реже, и людям
-        # важно именно это событие.
-        if sub.get("lists_updates") and src and sub.get("src") != src:
+        # Ориентир — отметка САМОГО epk25, а не время нашего обхода: обход идёт
+        # каждые несколько минут и сдвигает updated_at постоянно, а списки вуз
+        # пересчитывает куда реже. Людям важно именно это событие.
+        seen = sub.get("src")
+        source_moved = bool(src) and seen != src
+        if source_moved and seen is None:
+            # Подписка оформлена до появления этого поля: запоминаем текущую
+            # отметку молча. Иначе первый же прогон после выкатки разошлёт
+            # уведомление про обновление, которое случилось ДО подписки.
+            sub["src"] = src
+            changed = True
+            source_moved = False
+        if source_moved and sub.get("lists_updates") and not sub.get("code"):
             sub["src"] = src
             changed = True
             try:
@@ -512,16 +520,27 @@ def _check_subs(token: str):
                 if "403" in str(e):
                     SUBS.pop(str(chat), None)
                     print(f"подписка {chat} снята (бот заблокирован)")
-                    continue
+            continue
         if not sub.get("code"):
             continue  # подписан только на обновление списков — кода нет
-        if sub.get("updated_at") == upd:
+        if source_moved:
+            sub["src"] = src
+            changed = True
+        elif sub.get("updated_at") == upd:
             continue  # данные не менялись с прошлой сверки этого подписчика
         shard = lists.fetch_shard(sub["code"])
         if shard is None:
             continue  # сеть/CDN моргнули — попробуем в следующий проход
         entries = lists.lookup(shard, sub["code"])
         txt = follow.diff_text(sub["code"], sub.get("last") or {}, entries, meta)
+        if txt is None and source_moved:
+            # Списки пересчитали, а у человека ничего не сдвинулось. Это тоже
+            # новость: молчание он читает как «данные не обновлялись». Дифф,
+            # если он есть, сам начинается со слов «Списки обновились» —
+            # поэтому второе сообщение сверху не шлём.
+            txt = (f"🔔 МПГУ обновил списки ({lists._hhmm_dd_mm(src)}) — "
+                   f"у вас по коду <b>{sub['code']}</b> без изменений.\n"
+                   f"Подробнее: /spisok {sub['code']}")
         sub["last"] = follow.positions_of(entries)
         sub["updated_at"] = upd
         changed = True

@@ -174,3 +174,73 @@ def test_code_follower_without_updates_subscription_gets_no_list_notice(monkeypa
     bot.SUBS["13"] = {"code": "1234567", "last": {}, "updated_at": "old"}
     bot._check_subs("token")
     assert sent == []
+
+
+# ── Подписчики /follow тоже узнают об обновлении списков ──────────────────────
+
+def _no_change_shard():
+    return {"updated_at": "t", "codes": {"1234567": [
+        {"list": "G", "position": 5, "score_total": 240, "consent": True,
+         "priority_pz": 1, "bvi": False, "status": ""}]}}
+
+
+def test_existing_follower_is_not_spammed_on_first_seen_source(monkeypatch):
+    """У старых подписок поля src нет — первый прогон только запоминает."""
+    sent = []
+    monkeypatch.setattr(bot, "_send", lambda t, c, r: sent.append((c, r.text)))
+    monkeypatch.setattr(bot.lists, "fetch_meta",
+                        lambda *a, **k: _meta("2026-08-05T10:00:00+03:00"))
+    monkeypatch.setattr(bot.lists, "fetch_shard", lambda code: _no_change_shard())
+    bot.SUBS["20"] = {"code": "1234567", "last": {"G": 5},
+                      "updated_at": "2026-08-05T10:00:00+03:00"}
+    bot._check_subs("token")
+    assert sent == []
+    assert bot.SUBS["20"]["src"] == "2026-08-05T10:00:00+03:00"
+
+
+def test_follower_notified_when_source_updates_even_if_position_same(monkeypatch):
+    sent = []
+    monkeypatch.setattr(bot, "_send", lambda t, c, r: sent.append((c, r.text)))
+    monkeypatch.setattr(bot.lists, "fetch_shard", lambda code: _no_change_shard())
+    bot.SUBS["21"] = {"code": "1234567", "last": {"G": 5}, "updated_at": "old",
+                      "src": "2026-08-05T10:00:00+03:00"}
+    monkeypatch.setattr(bot.lists, "fetch_meta",
+                        lambda *a, **k: _meta("2026-08-05T11:00:00+03:00"))
+    bot._check_subs("token")
+    assert len(sent) == 1
+    assert "11:00" in sent[0][1] and "без изменений" in sent[0][1].lower()
+    assert bot.SUBS["21"]["src"] == "2026-08-05T11:00:00+03:00"
+
+    sent.clear()
+    bot._check_subs("token")
+    assert sent == []          # то же обновление второй раз не шлём
+
+
+def test_position_diff_is_not_duplicated_by_update_notice(monkeypatch):
+    """Если позиция сдвинулась — шлём только дифф, он и так про обновление."""
+    sent = []
+    monkeypatch.setattr(bot, "_send", lambda t, c, r: sent.append((c, r.text)))
+    moved = {"updated_at": "t", "codes": {"1234567": [
+        {"list": "G", "position": 3, "score_total": 240, "consent": True,
+         "priority_pz": 1, "bvi": False, "status": ""}]}}
+    monkeypatch.setattr(bot.lists, "fetch_shard", lambda code: moved)
+    monkeypatch.setattr(bot.lists, "fetch_meta",
+                        lambda *a, **k: _meta("2026-08-05T11:00:00+03:00"))
+    bot.SUBS["22"] = {"code": "1234567", "last": {"G": 5}, "updated_at": "old",
+                      "src": "2026-08-05T10:00:00+03:00"}
+    bot._check_subs("token")
+    assert len(sent) == 1
+    assert "5" in sent[0][1] and "3" in sent[0][1]     # дифф позиции
+    assert "без изменений" not in sent[0][1].lower()
+
+
+def test_no_notice_when_source_did_not_move(monkeypatch):
+    sent = []
+    monkeypatch.setattr(bot, "_send", lambda t, c, r: sent.append((c, r.text)))
+    monkeypatch.setattr(bot.lists, "fetch_shard", lambda code: _no_change_shard())
+    monkeypatch.setattr(bot.lists, "fetch_meta",
+                        lambda *a, **k: _meta("2026-08-05T10:00:00+03:00"))
+    bot.SUBS["23"] = {"code": "1234567", "last": {"G": 5}, "updated_at": "old",
+                      "src": "2026-08-05T10:00:00+03:00"}
+    bot._check_subs("token")
+    assert sent == []
