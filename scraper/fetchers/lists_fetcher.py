@@ -95,7 +95,11 @@ def _get(url: str, retries: int = 3) -> str:
     raise RuntimeError(f"GET failed {url}: {last}")
 
 
-def crawl(levels: List[str] = None, pause: float = 0.3, max_workers: int = None):
+DEFAULT_VIEW_WORKERS = 50
+
+
+def crawl(levels: List[str] = None, pause: float = 0.3,
+          max_workers: int = DEFAULT_VIEW_WORKERS):
     """Возвращает (pages, meta, stats).
 
     pages: {code -> html}; meta: {code -> {direction, level, form, kind}};
@@ -106,7 +110,13 @@ def crawl(levels: List[str] = None, pause: float = 0.3, max_workers: int = None)
     с вежливой паузой, чтобы получить полный список кодов списков. Затем сами
     списки (view?code=...) — их сотни, и время между первым и последним снятым
     списком напрямую портит консистентность снимка (согласия успевают сдвинуться),
-    поэтому их бьём все разом через пул потоков, а не по одному.
+    поэтому их бьём пулом потоков, а не по одному.
+
+    max_workers по умолчанию — 50, НЕ «все разом»: проверено на реальном
+    epk25 2026-08-05 — при concurrency ~667 (весь набор целиком) сервер
+    рвёт ~92% соединений (ConnectionResetError), при 50 обходится 666/667
+    за ~27с. «Все сразу» физически не работает против их инфраструктуры;
+    ограниченный пул — рабочий компромисс между скоростью и надёжностью.
 
     Сеть; в тестах не вызывается напрямую (см. monkeypatch _get в тестах).
     """
