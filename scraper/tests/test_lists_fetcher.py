@@ -170,3 +170,28 @@ def test_crawl_counts_failed_views_without_losing_the_rest(monkeypatch):
     assert set(pages.keys()) == {"111"}
     assert stats["views_total"] == 2
     assert stats["views_failed"] == 1
+
+
+def test_shard_of_splits_without_gaps_or_overlaps():
+    codes = [f"{i:06d}" for i in range(667)]
+    for of in (1, 3, 8, 10):
+        parts = [LF.shard_of(codes, i, of) for i in range(of)]
+        union = sorted(c for p in parts for c in p)
+        assert union == sorted(codes), f"of={of}: доли не покрывают весь набор"
+        seen = [c for p in parts for c in p]
+        assert len(seen) == len(set(seen)), f"of={of}: доли пересекаются"
+        # доли примерно равны — иначе один раннер станет узким местом
+        assert max(len(p) for p in parts) - min(len(p) for p in parts) <= 1
+
+
+def test_shard_of_is_stable_regardless_of_input_order():
+    a = LF.shard_of(["3", "1", "2", "4"], 0, 2)
+    b = LF.shard_of(["4", "2", "1", "3"], 0, 2)
+    assert a == b == ["1", "3"]
+
+
+def test_shard_of_rejects_bad_arguments():
+    import pytest
+    for bad in [(0, 0), (2, 2), (-1, 3)]:
+        with pytest.raises(ValueError):
+            LF.shard_of(["1"], *bad)

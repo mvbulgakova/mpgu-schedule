@@ -103,6 +103,52 @@ def _get(url: str, retries: int = 3) -> str:
 DEFAULT_VIEW_WORKERS = 8
 
 
+def discover(levels: List[str] = None, pause: float = 0.3):
+    """(entries, stats) — какие списки вообще существуют, без снятия страниц.
+
+    entries: {код списка: {direction, level, form, kind}}. Страниц немного
+    (уровни + направления), берём последовательно с вежливой паузой.
+    Вынесено отдельно, чтобы обход списков можно было разложить по нескольким
+    раннерам: состав списков находит один шаг, а страницы снимают несколько.
+    """
+    levels = levels or LEVELS
+    stats = {"levels_failed": [], "directions_total": 0, "directions_failed": 0,
+             "views_total": 0, "views_failed": 0}
+    entries: Dict[str, dict] = {}
+    for lvl in levels:
+        try:
+            struct = _get(structural_url(lvl))
+        except Exception:
+            stats["levels_failed"].append(lvl)  # весь уровень не прочитан — критично
+            continue
+        for dir_url in extract_direction_links(struct):
+            stats["directions_total"] += 1
+            time.sleep(pause)
+            try:
+                dhtml = _get(dir_url)
+            except Exception:
+                stats["directions_failed"] += 1
+                continue
+            for entry in extract_view_entries(dhtml):
+                code = entry["code"]
+                if code in entries:
+                    continue
+                entries[code] = {"direction": entry["direction"], "level": lvl,
+                                 "form": entry["form"], "kind": entry["kind"]}
+    return entries, stats
+
+
+def shard_of(codes, index: int, of: int) -> List[str]:
+    """Доля index из of, детерминированно и без пересечений.
+
+    Нарезка по остатку от деления на отсортированном списке: каждый раннер
+    получает свою часть, объединение долей = весь набор при любом of.
+    """
+    if of < 1 or not 0 <= index < of:
+        raise ValueError(f"некорректная доля: {index} из {of}")
+    return [c for i, c in enumerate(sorted(codes)) if i % of == index]
+
+
 def crawl(levels: List[str] = None, pause: float = 0.3,
           max_workers: int = DEFAULT_VIEW_WORKERS):
     """Возвращает (pages, meta, stats).
@@ -125,40 +171,27 @@ def crawl(levels: List[str] = None, pause: float = 0.3,
 
     Сеть; в тестах не вызывается напрямую (см. monkeypatch _get в тестах).
     """
-    levels = levels or LEVELS
+    entries, stats = discover(levels, pause)
+    pages, meta, fetch_stats = fetch_views(entries, workers=max_workers, pause=pause)
+    stats.update(fetch_stats)
+    return pages, meta, stats
+
+
+def fetch_views(entries: Dict[str, dict], workers: int = DEFAULT_VIEW_WORKERS,
+                pause: float = 0.3):
+    """(pages, meta, stats) — снять страницы перечисленных списков.
+
+    Отдельно от discover, чтобы один и тот же код работал и для целого обхода,
+    и для доли на отдельном раннере (см. scraper/crawl_shard.py).
+    """
+    import concurrent.futures
     pages: Dict[str, str] = {}
     meta: Dict[str, dict] = {}
-    stats = {"levels_failed": [], "directions_total": 0, "directions_failed": 0,
-             "views_total": 0, "views_failed": 0}
-
-    entries: Dict[str, dict] = {}  # code -> {direction, level, form, kind}
-    for lvl in levels:
-        try:
-            struct = _get(structural_url(lvl))
-        except Exception:
-            stats["levels_failed"].append(lvl)  # весь уровень не прочитан — критично
-            continue
-        for dir_url in extract_direction_links(struct):
-            stats["directions_total"] += 1
-            time.sleep(pause)
-            try:
-                dhtml = _get(dir_url)
-            except Exception:
-                stats["directions_failed"] += 1
-                continue
-            for entry in extract_view_entries(dhtml):
-                code = entry["code"]
-                if code in entries:
-                    continue
-                entries[code] = {"direction": entry["direction"], "level": lvl,
-                                  "form": entry["form"], "kind": entry["kind"]}
-
-    stats["views_total"] = len(entries)
+    stats = {"views_total": len(entries), "views_failed": 0}
     if not entries:
         return pages, meta, stats
 
-    import concurrent.futures
-    workers = max(1, max_workers or DEFAULT_VIEW_WORKERS)
+    workers = max(1, workers or DEFAULT_VIEW_WORKERS)
 
     def fetch_view(code: str) -> str:
         return _get(f"{BASE}/competitive-list/view?code={code}")

@@ -136,32 +136,20 @@ def simulate_admission(candidates: Dict[str, list],
     return {lc: {person for _, person in h} for lc, h in held.items()}
 
 
-def build_index(pages: Dict[str, str], meta: Dict[str, dict],
-                updated_at: str, places_fn=None,
-                enrolled_elsewhere: Optional[set] = None) -> Tuple[dict, Dict[str, dict]]:
-    """Возвращает (meta_doc, shards): метаданные списков и шарды кодов.
+def parse_pages(pages: Dict[str, str],
+                meta: Dict[str, dict]) -> Dict[str, dict]:
+    """{код списка: {"rows": [...], "meta": {...}}} — разбор HTML без сборки.
 
-    places_fn(meta_записи) -> бюджетные места программы (для тестов подменяемо;
-    по умолчанию — матчинг из scraper.abitur.lists).
-
-    enrolled_elsewhere — коды абитуриентов, уже зачисленных официальным
-    приказом (квота/БВИ) НЕ в общем конкурсе (см.
-    scraper.fetchers.enrollment_order_fetcher). Конкурсные списки epk25 не
-    убирают таких людей из общего списка сами — без этого исключения
-    симуляция продолжает считать их живыми конкурентами общего конкурса и
-    занижает шансы тех, кто реально идёт следом (см. 2026-08-05: код
-    1319710 зачислен по квоте 03.08, но остаётся в списке 602 с consent=true
-    и без него отъедал бы место у кандидата на позиции 551 в симуляции).
+    Отделено от build_index, чтобы обход можно было разложить по нескольким
+    раннерам: epk25 режет число одновременных соединений с одного IP (см.
+    .github/workflows/fetch-lists.yml), поэтому каждый раннер снимает свою
+    часть списков и отдаёт уже разобранные строки, а сборка индекса —
+    отдельным шагом над объединённым результатом. HTML между шагами не
+    таскаем: он на порядок тяжелее разобранных строк.
     """
-    enrolled_elsewhere = enrolled_elsewhere or set()
-    if places_fn is None:
-        from scraper.abitur.lists import _places_for as places_fn
-
-    lists: Dict[str, dict] = {}
-    rows_by_list: Dict[str, list] = {}
+    out: Dict[str, dict] = {}
     for code_list, html in pages.items():
         rows = sorted(parse_view(html), key=lambda r: r["position"])
-        rows_by_list[code_list] = rows
         m = dict(meta.get(code_list, {}))
         m["count"] = len(rows)
         m["consented"] = sum(1 for r in rows if r.get("consent"))
@@ -192,7 +180,47 @@ def build_index(pages: Dict[str, str], meta: Dict[str, dict],
         page_updated_at = _parse_updated_at(html)
         if page_updated_at is not None:
             m["page_updated_at"] = page_updated_at
-        lists[code_list] = m
+        out[code_list] = {"rows": rows, "meta": m}
+    return out
+
+
+def build_index(pages: Dict[str, str], meta: Dict[str, dict],
+                updated_at: str, places_fn=None,
+                enrolled_elsewhere: Optional[set] = None) -> Tuple[dict, Dict[str, dict]]:
+    """Возвращает (meta_doc, shards): метаданные списков и шарды кодов.
+
+    places_fn(meta_записи) -> бюджетные места программы (для тестов подменяемо;
+    по умолчанию — матчинг из scraper.abitur.lists).
+
+    enrolled_elsewhere — коды абитуриентов, уже зачисленных официальным
+    приказом (квота/БВИ) НЕ в общем конкурсе (см.
+    scraper.fetchers.enrollment_order_fetcher). Конкурсные списки epk25 не
+    убирают таких людей из общего списка сами — без этого исключения
+    симуляция продолжает считать их живыми конкурентами общего конкурса и
+    занижает шансы тех, кто реально идёт следом (см. 2026-08-05: код
+    1319710 зачислен по квоте 03.08, но остаётся в списке 602 с consent=true
+    и без него отъедал бы место у кандидата на позиции 551 в симуляции).
+    """
+    return build_index_from_parsed(parse_pages(pages, meta), updated_at,
+                                   places_fn, enrolled_elsewhere)
+
+
+def build_index_from_parsed(parsed: Dict[str, dict], updated_at: str,
+                            places_fn=None,
+                            enrolled_elsewhere: Optional[set] = None
+                            ) -> Tuple[dict, Dict[str, dict]]:
+    """То же, что build_index, но поверх уже разобранных страниц (parse_pages).
+
+    Нужна, когда обход разложен по нескольким раннерам: каждый отдаёт свою
+    часть parse_pages, а индекс собирается один раз над объединённым словарём.
+    Симуляция глобальная — считать её по частям нельзя, только над всем сразу.
+    """
+    enrolled_elsewhere = enrolled_elsewhere or set()
+    if places_fn is None:
+        from scraper.abitur.lists import _places_for as places_fn
+
+    lists = {lc: p["meta"] for lc, p in parsed.items()}
+    rows_by_list = {lc: p["rows"] for lc, p in parsed.items()}
 
     # Общий конкурс определяем ФАКТОМ со страницы: «Вид мест: основные места в
     # рамках КЦП». Прежняя эвристика «крупнейший список направления+формы»
@@ -415,13 +443,44 @@ def _guard_incomplete(meta_doc: dict, stats: dict, prev):
     return None
 
 
+def load_shards(directory: str) -> Tuple[Dict[str, dict], dict]:
+    """Объединить доли, снятые разными раннерами (scraper/crawl_shard.py).
+
+    Долей может не хватать (упавший раннер), поэтому сверяем число собранных
+    списков с тем, сколько их нашёл discover: молча собрать индекс из половины
+    списков — ровно та потеря данных, от которой защищает _guard_incomplete.
+    """
+    import json
+    parsed: Dict[str, dict] = {}
+    stats = {"levels_failed": [], "directions_total": 0, "directions_failed": 0,
+             "views_total": 0, "views_failed": 0, "shards": 0}
+    discovered = 0
+    for path in sorted(Path(directory).glob("*.json")):
+        doc = json.loads(path.read_text(encoding="utf-8"))
+        parsed.update(doc["parsed"])
+        stats["views_failed"] += doc["stats"].get("views_failed", 0)
+        stats["shards"] += 1
+        discovered = max(discovered, doc.get("discovered", 0))
+    stats["views_total"] = discovered or len(parsed)
+    stats["discovered"] = discovered
+    return parsed, stats
+
+
 def main() -> int:
     import json
     from scraper.fetchers import lists_fetcher as LF
     from scraper.fetchers import enrollment_order_fetcher as EOF
     from scraper.storage.git_storage import GitStorage
 
-    pages, meta, stats = LF.crawl()
+    shards_dir = os.environ.get("SHARDS_DIR")
+    if shards_dir:
+        parsed, stats = load_shards(shards_dir)
+        print(f"Долей собрано: {stats['shards']}, списков: {len(parsed)} "
+              f"из найденных {stats['discovered']}")
+        pages, meta = None, None
+    else:
+        pages, meta, stats = LF.crawl()
+        parsed = None
     storage_root = Path(os.environ.get("DATA_PATH", "data"))
     cache_path = storage_root / "admissions" / "enrolled_codes.json"
     try:
@@ -452,8 +511,10 @@ def main() -> int:
     print(f"Зачислено приказом (квоты/БВИ), исключено из общего конкурса: "
           f"{len(enrolled_elsewhere)}")
     now = dt.datetime.now(dt.timezone(dt.timedelta(hours=3))).isoformat(timespec="seconds")
-    meta_doc, shards = build_index(pages, meta, updated_at=now,
-                                   enrolled_elsewhere=enrolled_elsewhere)
+    if parsed is None:
+        parsed = parse_pages(pages, meta)
+    meta_doc, shards = build_index_from_parsed(
+        parsed, updated_at=now, enrolled_elsewhere=enrolled_elsewhere)
 
     storage = GitStorage(os.environ.get("DATA_PATH", "data"))
     prev_path = storage.root / "admissions" / "lists_meta.json"
