@@ -12,6 +12,13 @@ name: Fetch Competitive Lists (sharded)
 # Между шагами передаются РАЗОБРАННЫЕ строки, а не HTML: страницы весят на
 # порядок больше. Индекс собирается одним шагом над объединением долей —
 # симуляция зачисления глобальная, по частям её посчитать нельзя.
+#
+# Почему долей 10, а не 6. При шести на раннер приходится 111 страниц, и
+# 2026-08-05 одна доля прошла ровно 100 за 20с, после чего упёрлась в лимит
+# и три последние страницы (позиции 109-111 очереди) не дались вообще —
+# ни в пуле, ни повторами следующие пять минут. Похоже, пара раннеров делит
+# внешний адрес, и вдвоём они этот порог пробивают. По 67 страниц на долю
+# оставляет запас даже такой паре.
 
 on:
   workflow_dispatch:
@@ -58,7 +65,7 @@ jobs:
     strategy:
       fail-fast: false        # упавшая доля не должна ронять остальные
       matrix:
-        index: [0, 1, 2, 3, 4, 5]
+        index: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
     steps:
       - uses: actions/checkout@v4
         with:
@@ -74,7 +81,7 @@ jobs:
       - name: Crawl shard ${{ matrix.index }}
         run: |
           python -m scraper.crawl_shard --entries entries.json \
-            --index ${{ matrix.index }} --of 6 --out shard-${{ matrix.index }}.json
+            --index ${{ matrix.index }} --of 10 --out shard-${{ matrix.index }}.json
       - uses: actions/upload-artifact@v4
         with:
           name: shard-${{ matrix.index }}
