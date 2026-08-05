@@ -101,6 +101,8 @@ def _get(url: str, retries: int = 3) -> str:
 # Дешевле ходить в несколько потоков и всегда получать данные, чем быстро
 # и не получать ничего: пустой индекс в день дедлайна — худший исход.
 DEFAULT_VIEW_WORKERS = 8
+# Пауза перед последовательным повтором упавших страниц.
+RETRY_DELAY = 60.0
 
 
 def discover(levels: List[str] = None, pause: float = 0.3):
@@ -150,7 +152,8 @@ def shard_of(codes, index: int, of: int) -> List[str]:
 
 
 def crawl(levels: List[str] = None, pause: float = 0.3,
-          max_workers: int = DEFAULT_VIEW_WORKERS):
+          max_workers: int = DEFAULT_VIEW_WORKERS,
+          retry_delay: float = RETRY_DELAY):
     """Возвращает (pages, meta, stats).
 
     pages: {code -> html}; meta: {code -> {direction, level, form, kind}};
@@ -172,13 +175,14 @@ def crawl(levels: List[str] = None, pause: float = 0.3,
     Сеть; в тестах не вызывается напрямую (см. monkeypatch _get в тестах).
     """
     entries, stats = discover(levels, pause)
-    pages, meta, fetch_stats = fetch_views(entries, workers=max_workers, pause=pause)
+    pages, meta, fetch_stats = fetch_views(entries, workers=max_workers,
+                                           pause=pause, retry_delay=retry_delay)
     stats.update(fetch_stats)
     return pages, meta, stats
 
 
 def fetch_views(entries: Dict[str, dict], workers: int = DEFAULT_VIEW_WORKERS,
-                pause: float = 0.3):
+                pause: float = 0.3, retry_delay: float = RETRY_DELAY):
     """(pages, meta, stats) — снять страницы перечисленных списков.
 
     Отдельно от discover, чтобы один и тот же код работал и для целого обхода,
@@ -226,6 +230,14 @@ def fetch_views(entries: Dict[str, dict], workers: int = DEFAULT_VIEW_WORKERS,
     # тогда как последовательные страницы направлений с того же раннера в том
     # же прогоне проходили без единой ошибки. Без этого прохода такой отказ =
     # пустой индекс и сутки без обновлений у пользователей.
+    if failed and retry_delay:
+        # Ждём ОДИН раз перед всем проходом, а не между страницами: лимит
+        # epk25 висит на адресе минутами, и повтор внутри того же окна
+        # гарантированно упрётся снова (2026-08-05: три страницы не дались
+        # ни разу за пять минут повторов сразу после отказа пула).
+        print(f"Жду {retry_delay:.0f}с перед повтором — похоже на лимит epk25",
+              flush=True)
+        time.sleep(retry_delay)
     t1 = time.time()
     for n, code in enumerate(failed, 1):
         time.sleep(pause)

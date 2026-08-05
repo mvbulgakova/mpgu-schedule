@@ -130,7 +130,8 @@ def test_crawl_retries_pool_failures_sequentially(monkeypatch):
         return "<html>ok</html>"
 
     monkeypatch.setattr(LF, "_get", fake_get)
-    pages, meta, stats = LF.crawl(levels=["basic_higher_education"], pause=0)
+    pages, meta, stats = LF.crawl(levels=["basic_higher_education"], pause=0,
+                                  retry_delay=0)
 
     assert set(pages.keys()) == {"111", "222"}   # спасены вторым проходом
     assert stats["views_failed"] == 0
@@ -165,7 +166,8 @@ def test_crawl_counts_failed_views_without_losing_the_rest(monkeypatch):
 
     monkeypatch.setattr(LF, "_get", fake_get)
 
-    pages, meta, stats = LF.crawl(levels=["basic_higher_education"], pause=0)
+    pages, meta, stats = LF.crawl(levels=["basic_higher_education"], pause=0,
+                                  retry_delay=0)
 
     assert set(pages.keys()) == {"111"}
     assert stats["views_total"] == 2
@@ -195,3 +197,68 @@ def test_shard_of_rejects_bad_arguments():
     for bad in [(0, 0), (2, 2), (-1, 3)]:
         with pytest.raises(ValueError):
             LF.shard_of(["1"], *bad)
+
+
+def test_retry_pass_waits_before_retrying(monkeypatch):
+    """Лимит epk25 держится минутами — повторять сразу бессмысленно."""
+    struct_html = ('<a href="/competitive-list/direction?educationLevel='
+                   'basic_higher_education&structuralUnit=1">И</a>')
+    direction_html = """
+    <article class="landing-competitive-direction__card">
+      <div class="landing-competitive-direction__head">44.03.01 История</div>
+      <table><tbody>
+        <tr><td class="landing-competitive-direction__form">очная</td>
+            <td><a href="/competitive-list/view?code=111">Бюджет</a></td></tr>
+      </tbody></table>
+    </article>
+    """
+    attempts = {"n": 0}
+
+    def fake_get(url, retries=3):
+        if "/direction?" in url:
+            return direction_html
+        if "/structural?" in url:
+            return struct_html
+        attempts["n"] += 1
+        if attempts["n"] == 1:
+            raise RuntimeError("rate limited")
+        return "<html>ok</html>"
+
+    slept = []
+    monkeypatch.setattr(LF, "_get", fake_get)
+    monkeypatch.setattr(LF.time, "sleep", lambda s: slept.append(s))
+
+    pages, meta, stats = LF.crawl(levels=["basic_higher_education"], pause=0,
+                                  retry_delay=45)
+    assert set(pages) == {"111"}
+    assert stats["views_failed"] == 0
+    # перед повторным проходом должна быть ОДНА длинная пауза, а не только
+    # покодовые: иначе повтор попадает в то же окно блокировки
+    assert 45 in slept
+
+
+def test_no_wait_when_pool_lost_nothing(monkeypatch):
+    struct_html = ('<a href="/competitive-list/direction?educationLevel='
+                   'basic_higher_education&structuralUnit=1">И</a>')
+    direction_html = """
+    <article class="landing-competitive-direction__card">
+      <div class="landing-competitive-direction__head">44.03.01 История</div>
+      <table><tbody>
+        <tr><td class="landing-competitive-direction__form">очная</td>
+            <td><a href="/competitive-list/view?code=111">Бюджет</a></td></tr>
+      </tbody></table>
+    </article>
+    """
+
+    def fake_get(url, retries=3):
+        if "/direction?" in url:
+            return direction_html
+        if "/structural?" in url:
+            return struct_html
+        return "<html>ok</html>"
+
+    slept = []
+    monkeypatch.setattr(LF, "_get", fake_get)
+    monkeypatch.setattr(LF.time, "sleep", lambda s: slept.append(s))
+    LF.crawl(levels=["basic_higher_education"], pause=0, retry_delay=45)
+    assert 45 not in slept
