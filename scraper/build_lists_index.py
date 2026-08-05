@@ -290,8 +290,12 @@ def build_index(pages: Dict[str, str], meta: Dict[str, dict],
     # а не намерение на дату приказа. Исключаем по приказу только тех, у кого
     # действующей отметки ВПП нет (2026-08-05: таких «вернувшихся» двое —
     # 1153448 и 1680192, и каждый был корнем цепочки ошибок на своём списке).
-    still_competing = {r["unique_code"] for rows in rows_by_list.values()
-                       for r in rows if r.get("vpp")}
+    # Считаем ТОЛЬКО общие бюджетные списки: отметки ВПП есть и на платных
+    # (1558 штук на 2026-08-05), но платное место — не возвращение в бюджетный
+    # общий конкурс, и по ним «возвращенцами» ошибочно становятся 27 человек
+    # вместо двух, что само по себе портит симуляцию сильнее исходной ошибки.
+    still_competing = {r["unique_code"] for lc in places
+                       for r in rows_by_list[lc] if r.get("vpp")}
     excluded = enrolled_elsewhere - still_competing
     candidates: Dict[str, list] = {}
     for lc in places:

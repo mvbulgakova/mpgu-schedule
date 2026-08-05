@@ -271,6 +271,22 @@ def test_live_vpp_mark_overrides_order_exclusion():
     assert e333["sim_above"] == 1     # 111 занял единственное место, 333 не проходит
 
 
+def test_vpp_on_paid_list_does_not_cancel_order_exclusion():
+    # Отметки ВПП есть и на платных списках (1558 на 2026-08-05). Платное
+    # место — не возвращение в бюджетный общий конкурс, и если считать их
+    # тоже, «возвращенцами» становятся 27 человек вместо двух, и точность
+    # падает ниже исходной (89 → 80 списков из 99).
+    pages = {"G1": VIEW_SIM, "P1": VIEW_VPP}
+    meta = {"G1": {"direction": "44.03.01 История", "form": "очная", "kind": "бюджет"},
+            "P1": {"direction": "44.03.01 История", "form": "очная", "kind": "платное"}}
+    meta_doc, shards = build_index(pages, meta, updated_at="t", places_fn=lambda m: 1,
+                                   enrolled_elsewhere={"111"})
+    assert meta_doc["lists"]["P1"].get("general") is None    # платный список
+    # у 111 отметка ВПП только на платном → исключение по приказу остаётся
+    e333 = next(x for x in shards["33"]["codes"]["333"] if x["list"] == "G1")
+    assert e333["sim_above"] == 0
+
+
 def test_order_exclusion_still_applies_without_vpp_mark():
     pages = {"G1": VIEW_SIM}          # в VIEW_SIM отметок ВПП нет вовсе
     meta = {"G1": {"direction": "44.03.01 История", "form": "очная", "kind": "бюджет"}}
