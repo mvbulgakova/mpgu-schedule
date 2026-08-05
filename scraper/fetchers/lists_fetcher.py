@@ -153,7 +153,8 @@ def shard_of(codes, index: int, of: int) -> List[str]:
 
 def crawl(levels: List[str] = None, pause: float = 0.3,
           max_workers: int = DEFAULT_VIEW_WORKERS,
-          retry_delay: float = RETRY_DELAY):
+          retry_delay: float = RETRY_DELAY,
+          batch: int = 0, batch_pause: float = 0.0):
     """Возвращает (pages, meta, stats).
 
     pages: {code -> html}; meta: {code -> {direction, level, form, kind}};
@@ -176,17 +177,25 @@ def crawl(levels: List[str] = None, pause: float = 0.3,
     """
     entries, stats = discover(levels, pause)
     pages, meta, fetch_stats = fetch_views(entries, workers=max_workers,
-                                           pause=pause, retry_delay=retry_delay)
+                                           pause=pause, retry_delay=retry_delay,
+                                           batch=batch, batch_pause=batch_pause)
     stats.update(fetch_stats)
     return pages, meta, stats
 
 
 def fetch_views(entries: Dict[str, dict], workers: int = DEFAULT_VIEW_WORKERS,
-                pause: float = 0.3, retry_delay: float = RETRY_DELAY):
+                pause: float = 0.3, retry_delay: float = RETRY_DELAY,
+                batch: int = 0, batch_pause: float = 0.0):
     """(pages, meta, stats) — снять страницы перечисленных списков.
 
     Отдельно от discover, чтобы один и тот же код работал и для целого обхода,
     и для доли на отдельном раннере (см. scraper/crawl_shard.py).
+
+    batch/batch_pause режут обход на пачки с паузой между ними. Нужно, когда
+    все списки снимает ОДИН раннер: epk25 ограничивает адрес, и после примерно
+    сотни запросов подряд следующие перестают отдаваться на минуты (2026-08-05,
+    доля из 111 страниц прошла 100 за 20с и встала). Пачками тот же раннер
+    проходит весь набор, просто медленнее.
     """
     import concurrent.futures
     pages: Dict[str, str] = {}
@@ -207,20 +216,27 @@ def fetch_views(entries: Dict[str, dict], workers: int = DEFAULT_VIEW_WORKERS,
     done = 0
     step = max(50, len(entries) // 10)
     failed: List[str] = []
-    with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as pool:
-        futures = {pool.submit(fetch_view, code): code for code in entries}
-        print(f"Списков к обходу: {len(entries)}, потоков: {workers}", flush=True)
-        for fut in concurrent.futures.as_completed(futures):
-            code = futures[fut]
-            try:
-                pages[code] = fut.result()
-                meta[code] = entries[code]
-            except Exception:
-                failed.append(code)
-            done += 1
-            if done % step == 0 or done == len(entries):
-                print(f"  {done}/{len(entries)} за {time.time() - t0:.0f}с "
-                      f"(упало пока: {len(failed)})", flush=True)
+    codes = list(entries)
+    size = batch if batch and batch > 0 else len(codes)
+    chunks = [codes[i:i + size] for i in range(0, len(codes), size)]
+    print(f"Списков к обходу: {len(entries)}, потоков: {workers}"
+          + (f", пачками по {size}" if len(chunks) > 1 else ""), flush=True)
+    for ci, chunk in enumerate(chunks):
+        with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as pool:
+            futures = {pool.submit(fetch_view, code): code for code in chunk}
+            for fut in concurrent.futures.as_completed(futures):
+                code = futures[fut]
+                try:
+                    pages[code] = fut.result()
+                    meta[code] = entries[code]
+                except Exception:
+                    failed.append(code)
+                done += 1
+                if done % step == 0 or done == len(entries):
+                    print(f"  {done}/{len(entries)} за {time.time() - t0:.0f}с "
+                          f"(упало пока: {len(failed)})", flush=True)
+        if batch_pause and ci < len(chunks) - 1:
+            time.sleep(batch_pause)
     print(f"Пул завершён за {time.time() - t0:.0f}с, на повтор: {len(failed)}",
           flush=True)
 

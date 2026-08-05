@@ -1,0 +1,80 @@
+name: Fetch Competitive Lists (loop)
+
+# Обновление списков БЕЗ опоры на расписание: один прогон живёт 5,5 часов и
+# внутри себя обходит epk25 по кругу.
+#
+# Зачем. Расписание GitHub Actions — «по возможности», и в горячие часы оно
+# просто не срабатывает: 2026-08-05 при cron */10 у сегментированного обхода
+# фактически случился ОДИН запуск за 2,3 часа, всё остальное время данные
+# двигались только после ручных запусков. Зато ОДИН длинный прогон GitHub
+# держит надёжно — на этом же приёме работает бот (bot-poll.yml). Поэтому
+# расписание здесь нужно только чтобы поднять прогон, если предыдущий кончился:
+# частый крон служит «подхватом», новый триггер ждёт в очереди
+# (cancel-in-progress: false) и стартует сразу после завершения текущего.
+#
+# Почему обход пачками, а не в 10 раннеров. Внутри одного прогона раннер один,
+# а epk25 ограничивает адрес: примерно после сотни запросов подряд следующие
+# перестают отдаваться на минуты. CRAWL_BATCH/CRAWL_BATCH_PAUSE режут обход на
+# пачки с паузой — медленнее сегментированного (минуты вместо 3,5), но
+# укладывается в цикл и не требует ни расписания, ни шести раннеров.
+#
+# Соотношение с другими workflow: fetch-lists-sharded остаётся быстрым
+# запасным вариантом (и для ручного запуска, когда нужно «прямо сейчас»),
+# fetch-lists — часовым запасом. Гонку публикаций разруливает git_storage
+# (push с rebase на вершину data), поэтому параллельная работа безопасна.
+
+on:
+  schedule:
+    - cron: "0 * * * *"   # раз в час: сработает — встанет в очередь за текущим
+  workflow_dispatch:
+    inputs:
+      seconds:
+        description: "сколько секунд крутить цикл (по умолчанию 19800 = 5,5 ч)"
+        required: false
+      interval:
+        description: "минимум секунд между НАЧАЛАМИ проходов (по умолчанию 900)"
+        required: false
+
+concurrency:
+  # НЕ отменяем работающий прогон: новый ждёт в очереди и подхватывает сразу.
+  # Очередь своя — сегментированный обход должен запускаться независимо.
+  group: fetch-lists-loop
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  loop:
+    runs-on: ubuntu-latest
+    # Чуть меньше, чем RUN_SECONDS + запас на установку: цикл должен выходить
+    # сам, а не убиваться таймаутом посреди публикации.
+    timeout-minutes: 350
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Checkout data branch
+        uses: actions/checkout@v4
+        with:
+          ref: data
+          path: data
+          fetch-depth: 0   # нужна история: публикация делает rebase на вершину
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install deps
+        run: pip install requests beautifulsoup4 lxml pymupdf
+
+      - name: Crawl in a loop
+        env:
+          DATA_PATH: data
+          RUN_SECONDS: ${{ github.event.inputs.seconds || '19800' }}
+          CYCLE_SECONDS: ${{ github.event.inputs.interval || '900' }}
+          CRAWL_BATCH: "80"
+          CRAWL_BATCH_PAUSE: "60"
+          PYTHONUNBUFFERED: "1"   # метки времени в логах по ходу, а не при выходе
+        run: python -m scraper.crawl_loop

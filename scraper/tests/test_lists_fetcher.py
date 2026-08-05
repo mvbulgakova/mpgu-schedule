@@ -262,3 +262,38 @@ def test_no_wait_when_pool_lost_nothing(monkeypatch):
     monkeypatch.setattr(LF.time, "sleep", lambda s: slept.append(s))
     LF.crawl(levels=["basic_higher_education"], pause=0, retry_delay=45)
     assert 45 not in slept
+
+
+def test_fetch_views_paces_itself_in_batches(monkeypatch):
+    """Один раннер должен обходить все списки, не пробивая лимит на адрес.
+
+    2026-08-05: с раннера GitHub пул уверенно проходит около сотни страниц,
+    после чего упирается в лимит и следующие не отдаются минутами. Значит
+    длинный обход надо резать на пачки с паузой между ними.
+    """
+    entries = {f"{i:03d}": {"direction": "d"} for i in range(10)}
+    order = []
+
+    def fake_get(url, retries=3):
+        order.append(("get", url[-3:]))
+        return "<html>ok</html>"
+
+    slept = []
+    monkeypatch.setattr(LF, "_get", fake_get)
+    monkeypatch.setattr(LF.time, "sleep", lambda s: slept.append(s))
+
+    pages, meta, stats = LF.fetch_views(entries, workers=2, pause=0,
+                                        retry_delay=0, batch=4, batch_pause=30)
+    assert len(pages) == 10 and stats["views_failed"] == 0
+    # 10 страниц пачками по 4 → паузы после 1-й и 2-й пачки, после последней нет
+    assert slept.count(30) == 2, f"пауз между пачками: {slept.count(30)}"
+
+
+def test_fetch_views_without_batching_does_not_pause(monkeypatch):
+    entries = {f"{i:03d}": {"direction": "d"} for i in range(10)}
+    monkeypatch.setattr(LF, "_get", lambda url, retries=3: "<html>ok</html>")
+    slept = []
+    monkeypatch.setattr(LF.time, "sleep", lambda s: slept.append(s))
+    pages, _, _ = LF.fetch_views(entries, workers=2, pause=0, retry_delay=0)
+    assert len(pages) == 10
+    assert 30 not in slept

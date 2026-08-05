@@ -519,7 +519,12 @@ def main() -> int:
               f"из найденных {stats['discovered']}")
         pages, meta = None, None
     else:
-        pages, meta, stats = LF.crawl()
+        # Пакетность включается переменными окружения: длинный обход одним
+        # раннером упирается в лимит epk25 на адрес, и его надо резать паузами
+        # (см. scraper/crawl_loop.py). Для шардированного обхода не нужна.
+        pages, meta, stats = LF.crawl(
+            batch=int(os.environ.get("CRAWL_BATCH", "0") or 0),
+            batch_pause=float(os.environ.get("CRAWL_BATCH_PAUSE", "0") or 0))
         parsed = None
     storage_root = Path(os.environ.get("DATA_PATH", "data"))
     cache_path = storage_root / "admissions" / "enrolled_codes.json"
