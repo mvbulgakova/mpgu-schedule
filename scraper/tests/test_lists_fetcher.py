@@ -96,6 +96,47 @@ def test_crawl_fetches_all_view_pages_concurrently(monkeypatch):
     assert meta["111"]["direction"] == "44.03.01 История"
 
 
+def test_crawl_retries_pool_failures_sequentially(monkeypatch):
+    """Отказ пула — часто лимит соединений, а не мёртвая страница."""
+    struct_html = (
+        '<a href="/competitive-list/direction?educationLevel=basic_higher_education'
+        '&university=main_university&structuralUnit=1">Институт истории</a>'
+    )
+    direction_html = """
+    <article class="landing-competitive-direction__card">
+      <div class="landing-competitive-direction__head">44.03.01 История</div>
+      <table><tbody>
+        <tr><td class="landing-competitive-direction__form">очная</td>
+            <td><a href="/competitive-list/view?code=111">Бюджет</a></td></tr>
+        <tr><td class="landing-competitive-direction__form">очная</td>
+            <td><a href="/competitive-list/view?code=222">Бюджет</a></td></tr>
+      </tbody></table>
+    </article>
+    """
+    seen = {"concurrent": 0}
+    lock = __import__("threading").Lock()
+
+    def fake_get(url, retries=3):
+        if "/direction?" in url:
+            return direction_html
+        if "/structural?" in url:
+            return struct_html
+        # первый (параллельный) заход по каждому коду падает, второй проходит
+        with lock:
+            seen[url] = seen.get(url, 0) + 1
+            attempt = seen[url]
+        if attempt == 1:
+            raise RuntimeError("connection reset by peer")
+        return "<html>ok</html>"
+
+    monkeypatch.setattr(LF, "_get", fake_get)
+    pages, meta, stats = LF.crawl(levels=["basic_higher_education"], pause=0)
+
+    assert set(pages.keys()) == {"111", "222"}   # спасены вторым проходом
+    assert stats["views_failed"] == 0
+    assert stats["views_retried"] == 2
+
+
 def test_crawl_counts_failed_views_without_losing_the_rest(monkeypatch):
     struct_html = (
         '<a href="/competitive-list/direction?educationLevel=basic_higher_education'

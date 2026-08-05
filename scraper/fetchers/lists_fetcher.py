@@ -95,7 +95,12 @@ def _get(url: str, retries: int = 3) -> str:
     raise RuntimeError(f"GET failed {url}: {last}")
 
 
-DEFAULT_VIEW_WORKERS = 50
+# Осознанно скромно. 2026-08-05: с раннеров GitHub Actions пул на 50
+# соединений ронял ВСЕ 667 view-страниц (views_failed=667, прогон падал
+# 9 часов подряд), хотя из локальной среды те же 50 давали 666/667.
+# Дешевле ходить в несколько потоков и всегда получать данные, чем быстро
+# и не получать ничего: пустой индекс в день дедлайна — худший исход.
+DEFAULT_VIEW_WORKERS = 8
 
 
 def crawl(levels: List[str] = None, pause: float = 0.3,
@@ -153,11 +158,12 @@ def crawl(levels: List[str] = None, pause: float = 0.3,
         return pages, meta, stats
 
     import concurrent.futures
-    workers = max_workers or len(entries)
+    workers = max(1, max_workers or DEFAULT_VIEW_WORKERS)
 
     def fetch_view(code: str) -> str:
         return _get(f"{BASE}/competitive-list/view?code={code}")
 
+    failed: List[str] = []
     with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as pool:
         futures = {pool.submit(fetch_view, code): code for code in entries}
         for fut in concurrent.futures.as_completed(futures):
@@ -166,6 +172,21 @@ def crawl(levels: List[str] = None, pause: float = 0.3,
                 pages[code] = fut.result()
                 meta[code] = entries[code]
             except Exception:
-                stats["views_failed"] += 1
+                failed.append(code)
 
+    # Второй проход — последовательно, с вежливой паузой. Пул может упереться
+    # не в саму страницу, а в лимит одновременных соединений: 2026-08-05 с
+    # раннеров GitHub Actions пул ронял ВСЕ 667 запросов (views_failed=667),
+    # тогда как последовательные страницы направлений с того же раннера в том
+    # же прогоне проходили без единой ошибки. Без этого прохода такой отказ =
+    # пустой индекс и сутки без обновлений у пользователей.
+    for code in failed:
+        time.sleep(pause)
+        try:
+            pages[code] = _get(f"{BASE}/competitive-list/view?code={code}")
+            meta[code] = entries[code]
+        except Exception:
+            stats["views_failed"] += 1
+
+    stats["views_retried"] = len(failed)
     return pages, meta, stats

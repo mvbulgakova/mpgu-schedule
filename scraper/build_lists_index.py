@@ -8,6 +8,7 @@ build_index — чистая (given HTML → (meta_doc, shards)).
 """
 import datetime as dt
 import os
+from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
 import re
@@ -421,12 +422,33 @@ def main() -> int:
     from scraper.storage.git_storage import GitStorage
 
     pages, meta, stats = LF.crawl()
+    storage_root = Path(os.environ.get("DATA_PATH", "data"))
+    cache_path = storage_root / "admissions" / "enrolled_codes.json"
     try:
         enrolled_elsewhere = EOF.collect_enrolled_codes()
     except Exception as e:  # noqa: BLE001
-        print(f"Не удалось собрать коды зачисленных приказом (квоты/БВИ): {e}. "
-              f"Симуляция общего конкурса продолжит их учитывать.")
+        print(f"Ошибка при сборе кодов зачисленных приказом: {e}")
         enrolled_elsewhere = set()
+    # Пустой результат почти всегда означает сетевой сбой, а не отсутствие
+    # приказов: collect_enrolled_codes глушит исключения и возвращает пустое
+    # множество. Молча продолжить нельзя — без исключений 543 уже зачисленных
+    # человека снова становятся конкурентами, и позиции у всех едут вниз
+    # (2026-08-05: именно так прошёл прогон 06:30 UTC). Берём последний
+    # удачный список с data-ветки.
+    if not enrolled_elsewhere and cache_path.exists():
+        try:
+            cached = set(json.loads(cache_path.read_text(encoding="utf-8")))
+        except Exception:  # noqa: BLE001
+            cached = set()
+        if cached:
+            print(f"Приказы не скачались — беру последний сохранённый список "
+                  f"({len(cached)} кодов).")
+            enrolled_elsewhere = cached
+    elif enrolled_elsewhere:
+        cache_path.parent.mkdir(parents=True, exist_ok=True)
+        cache_path.write_text(
+            json.dumps(sorted(enrolled_elsewhere), ensure_ascii=False, indent=1),
+            encoding="utf-8")
     print(f"Зачислено приказом (квоты/БВИ), исключено из общего конкурса: "
           f"{len(enrolled_elsewhere)}")
     now = dt.datetime.now(dt.timezone(dt.timedelta(hours=3))).isoformat(timespec="seconds")
