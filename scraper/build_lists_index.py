@@ -271,13 +271,26 @@ def build_index(pages: Dict[str, str], meta: Dict[str, dict],
     # Симуляция: только согласившиеся в общих бюджетных списках с известными местами.
     places = {lc: m["places"] for lc, m in lists.items()
               if m.get("general") and m.get("places")}
+    # Ёмкость для симуляции — «Мест для зачисления» (seats_open) со страницы
+    # epk25, а не полный КЦП: seats_open — это КЦП МИНУС уже зачисленные
+    # приказом, т.е. буквально сколько мест разыгрывается прямо сейчас.
+    # Проверено 2026-08-05 на живых данных: на бакалавриате число официальных
+    # отметок ВПП совпадает с seats_open на 97 списках из 99, а с полным КЦП —
+    # только на 70. Раздавая полный КЦП, симуляция зачисляла лишних людей на
+    # верхние приоритеты, те переставали конкурировать ниже, и ошибка
+    # каскадом расходилась по всем спискам (см. 000000690: КЦП 22, реально
+    # разыгрывается 19, зачислено приказом 3).
+    sim_places = {lc: (m["seats_open"] if m.get("seats_open") is not None
+                       else m["places"])
+                  for lc, m in lists.items()
+                  if m.get("general") and m.get("places")}
     candidates: Dict[str, list] = {}
     for lc in places:
         for r in rows_by_list[lc]:
             if r.get("consent") and r["unique_code"] not in enrolled_elsewhere:
                 candidates.setdefault(r["unique_code"], []).append(
                     (r.get("priority_pz") or 99, lc, r["position"]))
-    admitted = simulate_admission(candidates, places)
+    admitted = simulate_admission(candidates, sim_places)
 
     # Сигналы для прогноза проходного-2026 (см. scraper.abitur.prediction):
     #   sim_cutoff — минимальный балл среди зачисленных в симуляции (живой пол);

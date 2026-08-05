@@ -311,6 +311,44 @@ def test_no_vpp_keeps_old_sim_based_verdict(monkeypatch):
     assert "прошли бы на" not in out   # никуда не проходит без vpp и без места
 
 
+def test_seats_shown_are_seats_open_not_full_kcp(monkeypatch):
+    # Регрессия 2026-08-05: «из N» должно быть числом мест, которые реально
+    # разыгрываются сейчас (КЦП минус зачисленные приказом), иначе вердикт
+    # расходится с официальным ВПП. Список 000000690: КЦП 22, зачислено 3,
+    # разыгрывается 19 — и отметок ВПП там ровно 19.
+    import scraper.abitur.lists as LM
+    LM._QUOTA_CACHE.clear()
+    monkeypatch.setattr(LM, "_quota_for", lambda m: None)
+    meta = {"updated_at": "t", "lists": {
+        "G": {"direction": "44.03.01 История", "form": "очная", "kind": "бюджет",
+              "count": 700, "general": True, "places": 22,
+              "seats_open": 19, "enrolled": 3}}}
+    shard = {"updated_at": "t", "codes": {"777": [
+        {"list": "G", "position": 300, "score_total": 240, "consent": True,
+         "priority_pz": 1, "bvi": False, "status": "",
+         "cons_above": 100, "sim_above": 19}]}}   # 20-е место
+    out = L.format_positions_short(meta, shard, "777")
+    assert "из 19" in out and "из 22" not in out
+    assert "⏳" in out          # 20-е из 19 — не проходит
+    assert "прошли бы на" not in out
+
+
+def test_seats_fall_back_to_kcp_without_seats_open(monkeypatch):
+    import scraper.abitur.lists as LM
+    LM._QUOTA_CACHE.clear()
+    monkeypatch.setattr(LM, "_quota_for", lambda m: None)
+    meta = {"updated_at": "t", "lists": {
+        "G": {"direction": "44.03.01 История", "form": "очная", "kind": "бюджет",
+              "count": 700, "general": True, "places": 22}}}
+    shard = {"updated_at": "t", "codes": {"777": [
+        {"list": "G", "position": 300, "score_total": 240, "consent": True,
+         "priority_pz": 1, "bvi": False, "status": "",
+         "cons_above": 100, "sim_above": 19}]}}
+    out = L.format_positions_short(meta, shard, "777")
+    assert "из 22" in out
+    assert "✅" in out          # 20-е из 22 — проходит
+
+
 # ── Матчинг списка → программа: специфичность и ручные привязки ──────────────
 
 def _progs(monkeypatch, progs):

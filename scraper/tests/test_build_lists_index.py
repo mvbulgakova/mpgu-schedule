@@ -236,6 +236,53 @@ def test_build_index_excludes_codes_already_enrolled_by_order():
     assert e333["sim_above"] == 0
 
 
+# 4 строки, все с согласием — 4-я служит индикатором: её sim_above равен
+# числу зачисленных выше, т.е. напрямую показывает, сколько мест раздала
+# симуляция.
+VIEW_SEATS = """
+<TABLE>
+<TR><TD>№</TD><TD>Уникальный код</TD><TD>Наличие согласия на зачисление</TD><TD>ПЗ</TD><TD>ОВП</TD><TD>ВПП</TD>
+<TD>Основание приема БВИ</TD><TD>Сумма конкурсных баллов</TD><TD>Сумма баллов за ВИ</TD>
+<TD COLSPAN=3>Количество баллов за каждое ВИ</TD><TD>ИД</TD><TD>ПП</TD>
+<TD>Информация о рассмотрении заявления</TD><TD>Причина отказа</TD></TR>
+<TR><TD>1</TD><TD>111</TD><TD>+</TD><TD>1</TD><TD></TD><TD></TD><TD></TD><TD>290</TD><TD>290</TD>
+<TD>96</TD><TD>94</TD><TD>100</TD><TD>0</TD><TD></TD><TD>Участвует</TD><TD></TD></TR>
+<TR><TD>2</TD><TD>222</TD><TD>+</TD><TD>1</TD><TD></TD><TD></TD><TD></TD><TD>280</TD><TD>280</TD>
+<TD>96</TD><TD>94</TD><TD>90</TD><TD>0</TD><TD></TD><TD>Участвует</TD><TD></TD></TR>
+<TR><TD>3</TD><TD>333</TD><TD>+</TD><TD>1</TD><TD></TD><TD></TD><TD></TD><TD>270</TD><TD>270</TD>
+<TD>90</TD><TD>90</TD><TD>90</TD><TD>0</TD><TD></TD><TD>Участвует</TD><TD></TD></TR>
+<TR><TD>4</TD><TD>444</TD><TD>+</TD><TD>1</TD><TD></TD><TD></TD><TD></TD><TD>260</TD><TD>260</TD>
+<TD>90</TD><TD>90</TD><TD>80</TD><TD>0</TD><TD></TD><TD>Участвует</TD><TD></TD></TR>
+</TABLE>
+"""
+
+
+def test_sim_capacity_uses_seats_open_not_full_kcp():
+    # Регрессия 2026-08-05: симуляция раздавала полный КЦП, хотя часть мест
+    # уже занята зачисленными приказом. «Мест для зачисления» (seats_open) —
+    # это КЦП минус зачисленные, т.е. сколько реально разыгрывается сейчас.
+    # На живых данных: число отметок ВПП совпадает с seats_open на 97
+    # бакалаврских списках из 99, а с полным КЦП — только на 70.
+    page = VIEW_SEATS + "\nКонтрольные цифры приема: 3\nМест для зачисления: 2\nЗачислено: 1\n"
+    meta = {"G1": {"direction": "44.03.01 История", "form": "очная", "kind": "бюджет"}}
+    meta_doc, shards = build_index({"G1": page}, meta, updated_at="t",
+                                   places_fn=lambda m: 3)
+    lm = meta_doc["lists"]["G1"]
+    assert lm["places"] == 3 and lm["seats_open"] == 2 and lm["enrolled"] == 1
+    # разыгрывается 2 места, а не 3 → выше 4-й строки зачислены только двое
+    assert shards["44"]["codes"]["444"][0]["sim_above"] == 2
+
+
+def test_sim_capacity_falls_back_to_places_without_seats_open():
+    # Магистратура: epk25 не публикует «Мест для зачисления» — остаёмся на КЦП.
+    meta = {"G1": {"direction": "44.03.01 История", "form": "очная", "kind": "бюджет"}}
+    meta_doc, shards = build_index({"G1": VIEW_SEATS}, meta, updated_at="t",
+                                   places_fn=lambda m: 3)
+    assert meta_doc["lists"]["G1"].get("seats_open") is None
+    # без seats_open раздаём полный КЦП=3 → выше 4-й строки зачислены трое
+    assert shards["44"]["codes"]["444"][0]["sim_above"] == 3
+
+
 def test_build_index_prediction_signals(monkeypatch):
     # sim_cutoff = мин балл зачисленного в симуляции; cap = G-й сверху балл
     import scraper.abitur.lists as LM
