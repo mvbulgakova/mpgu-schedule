@@ -21,7 +21,8 @@ name: Telegram Bot (polling)
 # подождёт его завершения (или отмени текущий ран вручную, чтобы не ждать).
 #
 # Запуск разовой рассылки: Actions → Telegram Bot (polling) → Run workflow →
-# mode: seats_increased (+ baseline_ref) или mode: quota (+ list_code).
+# mode: seats_increased (+ baseline_ref) или mode: quota (+ list_code) или
+# mode: seats_increased_from_order (+ baseline_ref).
 
 on:
   schedule:
@@ -29,14 +30,17 @@ on:
   workflow_dispatch:
     inputs:
       mode:
-        description: "poll (обычный запуск бота) | seats_increased | quota"
+        description: "poll (обычный запуск бота) | seats_increased | seats_increased_from_order | quota | correction"
         required: false
         default: "poll"
       baseline_ref:
-        description: "SHA/ref на ветке data ДО приказа — только для mode=seats_increased"
+        description: "SHA/ref на ветке data ДО приказа — для mode=seats_increased и mode=seats_increased_from_order"
         required: false
       list_code:
-        description: "код общего списка — только для mode=quota"
+        description: "код списка — для mode=quota и mode=correction"
+        required: false
+      message:
+        description: "текст рассылки — только для mode=correction"
         required: false
 
 # НЕ отменяем работающий ран: новый ждёт в очереди и подхватывает сразу после.
@@ -108,6 +112,35 @@ jobs:
           git show origin/data:admissions/lists_meta.json > lists_meta.json
           python -m scraper.notify_seats_increased
 
+      - name: Seats increased notify (from order)
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.mode == 'seats_increased_from_order'
+        env:
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+          SUBS_PATH: subs.json
+          BASELINE_META_PATH: baseline_meta.json
+          LISTS_META_PATH: lists_meta.json
+          ORDER_RECORDS_PATH: order_records.json
+          EXCLUDE_CODES_PATH: exclude_codes.json
+          BASELINE_REF: ${{ github.event.inputs.baseline_ref }}
+        run: |
+          if [ -z "$BASELINE_REF" ]; then
+            echo "::error::baseline_ref обязателен для mode=seats_increased_from_order"
+            exit 1
+          fi
+          git fetch --filter=blob:none origin data
+          git show -s --format='Baseline: %h %ci %s' "$BASELINE_REF"
+          git show "$BASELINE_REF:admissions/lists_meta.json" > baseline_meta.json
+          git show origin/data:admissions/lists_meta.json > lists_meta.json
+          git show origin/data:admissions/order_records.json > order_records.json
+          # Коды, которым уже отправлено mode=seats_increased по живым данным
+          # epk25 (тот же baseline/current), исключаем — иначе подписчик
+          # получит два уведомления про один и тот же список. Однострочник —
+          # чтобы не ловить IndentationError от отступа YAML-блока внутри
+          # heredoc/питоновского тела (Python требует нулевой отступ у
+          # верхнеуровневых операторов).
+          python -c "import json; from scraper.abitur import quota_vacancy as qv; b=json.load(open('baseline_meta.json'))['lists']; c=json.load(open('lists_meta.json'))['lists']; json.dump(list(qv.seats_increased(b, c)), open('exclude_codes.json', 'w'))"
+          python -m scraper.notify_seats_increased_from_order
+
       - name: Quota notify
         if: github.event_name == 'workflow_dispatch' && github.event.inputs.mode == 'quota'
         env:
@@ -123,6 +156,20 @@ jobs:
           git fetch --depth=1 origin data
           git show origin/data:admissions/lists_meta.json > lists_meta.json
           python -m scraper.notify_quota_seats --code "$LIST_CODE"
+
+      - name: Correction notify
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.mode == 'correction'
+        env:
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+          SUBS_PATH: subs.json
+          LIST_CODE: ${{ github.event.inputs.list_code }}
+          CORRECTION_MESSAGE: ${{ github.event.inputs.message }}
+        run: |
+          if [ -z "$LIST_CODE" ] || [ -z "$CORRECTION_MESSAGE" ]; then
+            echo "::error::list_code и message обязательны для mode=correction"
+            exit 1
+          fi
+          python -m scraper.notify_correction --list-code "$LIST_CODE"
 
       - name: Save state (subscriptions + feedback)
         if: always()
