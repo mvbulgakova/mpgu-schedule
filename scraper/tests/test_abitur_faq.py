@@ -72,7 +72,7 @@ def test_dates_route_walk_base_budget_vi():
 
     text, kb = faq.dates_step("base:budget:vi")
     assert kb == []
-    assert "15 июля" in text and "5 августа" in text
+    assert "20 июля" in text and "5 августа" in text
 
 
 def test_dates_route_finals_have_correct_deadlines():
