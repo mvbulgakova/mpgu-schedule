@@ -487,12 +487,22 @@ def _broadcast(text: str) -> Reply:
 def _check_subs(token: str):
     """Сверяет позиции подписчиков со свежими данными; шлёт диффы."""
     if not SUBS:
+        # Пустой список подписок и «всё тихо, уведомлять некого» выглядят
+        # снаружи одинаково. Отличить их без этой строки нельзя: логи
+        # работающего прогона GitHub не отдаёт, а идёт он часами.
+        print("check_subs: подписок нет — уведомлять некого", flush=True)
         return
     meta = lists.fetch_meta(force=True)
     if not meta:
+        print("check_subs: индекс недоступен — пропускаю проход", flush=True)
         return
     upd = meta.get("updated_at", "")
     src = lists.source_updated_at(meta)
+    seen_srcs = {s.get("src") for s in SUBS.values()}
+    print(f"check_subs: подписок {len(SUBS)}, обход {upd[11:16]}, "
+          f"вуз {src[11:16] if src else '—'}, у подписчиков запомнено "
+          f"{sorted(x[11:16] if x else '—' for x in seen_srcs)}", flush=True)
+    sent_count = [0]
     changed = False
     for chat, sub in list(SUBS.items()):
         # Ориентир — отметка САМОГО epk25, а не время нашего обхода: обход идёт
@@ -515,6 +525,7 @@ def _check_subs(token: str):
                     f"🔔 МПГУ обновил конкурсные списки на epk25 "
                     f"({lists._hhmm_dd_mm(src)}).\n"
                     f"Посмотреть свои позиции: /spisok", []))
+                sent_count[0] += 1
             except Exception as e:
                 print(f"notify error {chat}: {e}")
                 if "403" in str(e):
@@ -547,6 +558,7 @@ def _check_subs(token: str):
         if txt:
             try:
                 _send(token, int(chat), Reply(txt, []))
+                sent_count[0] += 1
             except Exception as e:
                 print(f"notify error {chat}: {e}")
                 # 403 = человек заблокировал бота или удалил чат. Подписка иначе
@@ -555,6 +567,7 @@ def _check_subs(token: str):
                     SUBS.pop(str(chat), None)
                     changed = True
                     print(f"подписка {chat} снята (бот заблокирован)")
+    print(f"check_subs: отправлено уведомлений {sent_count[0]}", flush=True)
     if changed:
         _save_subs()
 
