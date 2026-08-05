@@ -63,3 +63,23 @@ def test_diff_mentions_only_changed_lists():
 
 def test_positions_of():
     assert follow.positions_of([_e("L1", 5), _e("L2", 7)]) == {"L1": 5, "L2": 7}
+
+
+def test_diff_shows_when_the_university_updated_the_lists():
+    # В уведомлении важно, когда списки пересчитал ВУЗ, а не когда мы сходили
+    # проверить: наш обход идёт каждые несколько минут и сам по себе ничего
+    # не значит. Без этой строки человек не понимает, к какому моменту относится
+    # его новое место.
+    meta = {"updated_at": "2026-08-05T12:38:00+03:00", "lists": {
+        "L1": {"direction": "44.03.01 История", "form": "очная", "kind": "бюджет",
+               "page_updated_at": "2026-08-05T11:34:00+03:00"},
+        "L2": {"direction": "44.03.01 История", "form": "очная", "kind": "платное",
+               "page_updated_at": "2026-08-05T10:00:00+03:00"}}}
+    txt = follow.diff_text("123", {"L1": 5}, [_e("L1", 3)], meta)
+    assert "11:34" in txt          # самый свежий пересчёт вузом
+    assert "12:38" not in txt      # время нашего обхода в уведомлении не нужно
+
+
+def test_diff_without_page_updates_has_no_timestamp_line():
+    txt = follow.diff_text("123", {"L1": 5}, [_e("L1", 3)], META)
+    assert txt is not None and "epk25 обновлены" not in txt

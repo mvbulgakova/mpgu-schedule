@@ -51,5 +51,11 @@ def diff_text(code: str, old: Dict[str, int], new_entries: List[dict],
             lines.append(f"• {label}: вас больше нет в этом списке")
     if len(lines) == 1:  # разница была только в составе ключей с теми же позициями
         return None
+    # Когда списки пересчитал ВУЗ — а не когда мы сходили проверить. Наш обход
+    # идёт каждые несколько минут и сам по себе ничего не значит; человеку важно,
+    # к какому моменту относится его новое место.
+    src = L.source_updated_at(meta)
+    if src:
+        lines.append(f"Списки на epk25 обновлены: {L._hhmm_dd_mm(src)}")
     lines.append(f"Подробнее: /spisok {code}")
     return "\n".join(lines)
