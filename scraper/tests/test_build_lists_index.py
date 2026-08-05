@@ -257,6 +257,29 @@ VIEW_SEATS = """
 """
 
 
+def test_live_vpp_mark_overrides_order_exclusion():
+    # 2026-08-05: приказ может упоминать человека, который потом отказался от
+    # зачисления по квоте и вернулся в общий конкурс — epk25 снова ставит ему
+    # ВПП. Действующая отметка ВПП авторитетнее приказа, иначе мы вычёркиваем
+    # реального конкурента и ошибка расходится цепочкой по спискам.
+    pages = {"G1": VIEW_VPP}
+    meta = {"G1": {"direction": "44.03.01 История", "form": "очная", "kind": "бюджет"}}
+    # 111 стоит в приказе, но у него живая отметка ВПП → всё равно конкурирует
+    meta_doc, shards = build_index(pages, meta, updated_at="t", places_fn=lambda m: 1,
+                                   enrolled_elsewhere={"111"})
+    e333 = shards["33"]["codes"]["333"][0]
+    assert e333["sim_above"] == 1     # 111 занял единственное место, 333 не проходит
+
+
+def test_order_exclusion_still_applies_without_vpp_mark():
+    pages = {"G1": VIEW_SIM}          # в VIEW_SIM отметок ВПП нет вовсе
+    meta = {"G1": {"direction": "44.03.01 История", "form": "очная", "kind": "бюджет"}}
+    meta_doc, shards = build_index(pages, meta, updated_at="t", places_fn=lambda m: 1,
+                                   enrolled_elsewhere={"111"})
+    e333 = shards["33"]["codes"]["333"][0]
+    assert e333["sim_above"] == 0     # 111 выбыл по приказу → место освободилось
+
+
 def test_sim_capacity_uses_seats_open_not_full_kcp():
     # Регрессия 2026-08-05: симуляция раздавала полный КЦП, хотя часть мест
     # уже занята зачисленными приказом. «Мест для зачисления» (seats_open) —

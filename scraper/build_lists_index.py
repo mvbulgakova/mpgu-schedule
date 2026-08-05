@@ -284,10 +284,19 @@ def build_index(pages: Dict[str, str], meta: Dict[str, dict],
                        else m["places"])
                   for lc, m in lists.items()
                   if m.get("general") and m.get("places")}
+    # Живая отметка ВПП важнее приказа: приказ говорит, что человека зачислили
+    # по квоте/БВИ, но он мог от этого зачисления отказаться и вернуться в
+    # общий конкурс. Тогда epk25 снова ставит ему ВПП — а это уже факт «сейчас»,
+    # а не намерение на дату приказа. Исключаем по приказу только тех, у кого
+    # действующей отметки ВПП нет (2026-08-05: таких «вернувшихся» двое —
+    # 1153448 и 1680192, и каждый был корнем цепочки ошибок на своём списке).
+    still_competing = {r["unique_code"] for rows in rows_by_list.values()
+                       for r in rows if r.get("vpp")}
+    excluded = enrolled_elsewhere - still_competing
     candidates: Dict[str, list] = {}
     for lc in places:
         for r in rows_by_list[lc]:
-            if r.get("consent") and r["unique_code"] not in enrolled_elsewhere:
+            if r.get("consent") and r["unique_code"] not in excluded:
                 candidates.setdefault(r["unique_code"], []).append(
                     (r.get("priority_pz") or 99, lc, r["position"]))
     admitted = simulate_admission(candidates, sim_places)
