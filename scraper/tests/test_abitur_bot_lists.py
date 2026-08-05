@@ -244,3 +244,51 @@ def test_no_notice_when_source_did_not_move(monkeypatch):
                       "src": "2026-08-05T10:00:00+03:00"}
     bot._check_subs("token")
     assert sent == []
+
+
+# ── Отметку «видел» нельзя двигать раньше доставки ───────────────────────────
+
+def test_source_mark_not_advanced_when_shard_fetch_fails(monkeypatch):
+    """Сбой загрузки шарда не должен «съедать» обновление насовсем."""
+    sent = []
+    monkeypatch.setattr(bot, "_send", lambda t, c, r: sent.append(r.text))
+    monkeypatch.setattr(bot.lists, "fetch_meta",
+                        lambda *a, **k: _meta("2026-08-05T14:00:00+03:00"))
+    monkeypatch.setattr(bot.lists, "fetch_shard", lambda code: None)   # CDN моргнул
+    bot.SUBS["30"] = {"code": "1234567", "last": {"G": 5}, "updated_at": "old",
+                      "src": "2026-08-05T13:00:00+03:00"}
+    bot._check_subs("tok")
+    assert sent == []
+    assert bot.SUBS["30"]["src"] == "2026-08-05T13:00:00+03:00", \
+        "отметка ушла вперёд без доставки — уведомление потеряно навсегда"
+
+    # сеть вернулась — уведомление всё ещё должно уйти
+    monkeypatch.setattr(bot.lists, "fetch_shard", lambda code: _no_change_shard())
+    bot._check_subs("tok")
+    assert len(sent) == 1 and "14:00" in sent[0]
+    assert bot.SUBS["30"]["src"] == "2026-08-05T14:00:00+03:00"
+
+
+def test_source_mark_not_advanced_when_send_fails(monkeypatch):
+    def boom(t, c, r):
+        raise RuntimeError("Telegram 500")
+    monkeypatch.setattr(bot, "_send", boom)
+    monkeypatch.setattr(bot.lists, "fetch_meta",
+                        lambda *a, **k: _meta("2026-08-05T14:00:00+03:00"))
+    monkeypatch.setattr(bot.lists, "fetch_shard", lambda code: _no_change_shard())
+    bot.SUBS["31"] = {"code": "1234567", "last": {"G": 5}, "updated_at": "old",
+                      "src": "2026-08-05T13:00:00+03:00"}
+    bot._check_subs("tok")
+    assert bot.SUBS["31"]["src"] == "2026-08-05T13:00:00+03:00"
+
+
+def test_updates_only_sub_keeps_mark_when_send_fails(monkeypatch):
+    def boom(t, c, r):
+        raise RuntimeError("Telegram 500")
+    monkeypatch.setattr(bot, "_send", boom)
+    monkeypatch.setattr(bot.lists, "fetch_meta",
+                        lambda *a, **k: _meta("2026-08-05T14:00:00+03:00"))
+    monkeypatch.setattr(bot.lists, "fetch_shard", lambda code: None)
+    bot.SUBS["32"] = {"lists_updates": True, "src": "2026-08-05T13:00:00+03:00"}
+    bot._check_subs("tok")
+    assert bot.SUBS["32"]["src"] == "2026-08-05T13:00:00+03:00"

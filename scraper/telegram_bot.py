@@ -517,31 +517,33 @@ def _check_subs(token: str):
             sub["src"] = src
             changed = True
             source_moved = False
+        # Отметку «видел» двигаем ТОЛЬКО после доставки. Иначе любой сбой
+        # между отметкой и отправкой (моргнул CDN за шардом, Telegram отдал
+        # 500) съедает обновление навсегда: на следующем проходе движения
+        # источника уже «нет», и человек не узнает о пересчёте вовсе.
         if source_moved and sub.get("lists_updates") and not sub.get("code"):
-            sub["src"] = src
-            changed = True
             try:
                 _send(token, int(chat), Reply(
                     f"🔔 МПГУ обновил конкурсные списки на epk25 "
                     f"({lists._hhmm_dd_mm(src)}).\n"
                     f"Посмотреть свои позиции: /spisok", []))
                 sent_count[0] += 1
+                sub["src"] = src
+                changed = True
             except Exception as e:
                 print(f"notify error {chat}: {e}")
                 if "403" in str(e):
                     SUBS.pop(str(chat), None)
+                    changed = True
                     print(f"подписка {chat} снята (бот заблокирован)")
             continue
         if not sub.get("code"):
             continue  # подписан только на обновление списков — кода нет
-        if source_moved:
-            sub["src"] = src
-            changed = True
-        elif sub.get("updated_at") == upd:
+        if not source_moved and sub.get("updated_at") == upd:
             continue  # данные не менялись с прошлой сверки этого подписчика
         shard = lists.fetch_shard(sub["code"])
         if shard is None:
-            continue  # сеть/CDN моргнули — попробуем в следующий проход
+            continue  # сеть/CDN моргнули — src не трогаем, повторим в следующий проход
         entries = lists.lookup(shard, sub["code"])
         txt = follow.diff_text(sub["code"], sub.get("last") or {}, entries, meta)
         if txt is None and source_moved:
@@ -552,13 +554,22 @@ def _check_subs(token: str):
             txt = (f"🔔 МПГУ обновил списки ({lists._hhmm_dd_mm(src)}) — "
                    f"у вас по коду <b>{sub['code']}</b> без изменений.\n"
                    f"Подробнее: /spisok {sub['code']}")
-        sub["last"] = follow.positions_of(entries)
-        sub["updated_at"] = upd
-        changed = True
+        if not txt:
+            # Сообщать нечего — отметку можно двигать сразу.
+            sub["last"] = follow.positions_of(entries)
+            sub["updated_at"] = upd
+            if source_moved:
+                sub["src"] = src
+            changed = True
         if txt:
             try:
                 _send(token, int(chat), Reply(txt, []))
                 sent_count[0] += 1
+                sub["last"] = follow.positions_of(entries)
+                sub["updated_at"] = upd
+                if source_moved:
+                    sub["src"] = src
+                changed = True
             except Exception as e:
                 print(f"notify error {chat}: {e}")
                 # 403 = человек заблокировал бота или удалил чат. Подписка иначе
