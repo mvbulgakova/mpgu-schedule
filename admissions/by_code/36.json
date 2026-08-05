@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-08-05T22:26:03+03:00",
+  "updated_at": "2026-08-05T22:41:15+03:00",
   "codes": {
     "364542": [
       {
@@ -15,6 +15,16 @@
     ],
     "368324": [
       {
+        "list": "000001037",
+        "position": 61,
+        "score_total": null,
+        "consent": true,
+        "priority_pz": null,
+        "bvi": false,
+        "status": "Принято к рассмотрению",
+        "vpp": false
+      },
+      {
         "list": "000001036",
         "position": 104,
         "score_total": null,
@@ -25,8 +35,8 @@
         "vpp": false
       },
       {
-        "list": "000001037",
-        "position": 61,
+        "list": "000001040",
+        "position": 77,
         "score_total": null,
         "consent": true,
         "priority_pz": null,
@@ -53,19 +63,19 @@
         "bvi": false,
         "status": "Соответствует правилам приема",
         "vpp": false
-      },
+      }
+    ],
+    "366693": [
       {
         "list": "000001040",
-        "position": 77,
+        "position": 82,
         "score_total": null,
-        "consent": true,
+        "consent": false,
         "priority_pz": null,
         "bvi": false,
         "status": "Принято к рассмотрению",
         "vpp": false
-      }
-    ],
-    "366693": [
+      },
       {
         "list": "000001039",
         "position": 129,
@@ -84,16 +94,6 @@
         "priority_pz": null,
         "bvi": false,
         "status": "Соответствует правилам приема",
-        "vpp": false
-      },
-      {
-        "list": "000001040",
-        "position": 82,
-        "score_total": null,
-        "consent": false,
-        "priority_pz": null,
-        "bvi": false,
-        "status": "Принято к рассмотрению",
         "vpp": false
       }
     ],
@@ -303,30 +303,46 @@
         "vpp": false
       }
     ],
-    "369896": [
+    "368923": [
       {
-        "list": "000001025",
-        "position": 48,
+        "list": "000001052",
+        "position": 10,
+        "score_total": null,
+        "consent": false,
+        "priority_pz": null,
+        "bvi": false,
+        "status": "Принято к рассмотрению",
+        "vpp": false
+      }
+    ],
+    "367468": [
+      {
+        "list": "000001052",
+        "position": 24,
         "score_total": null,
         "consent": false,
         "priority_pz": null,
         "bvi": false,
         "status": "Специальность зарегистрирована",
         "vpp": false
-      },
+      }
+    ],
+    "362839": [
+      {
+        "list": "000001052",
+        "position": 42,
+        "score_total": null,
+        "consent": false,
+        "priority_pz": null,
+        "bvi": false,
+        "status": "Принято к рассмотрению",
+        "vpp": false
+      }
+    ],
+    "369896": [
       {
         "list": "000001026",
         "position": 17,
-        "score_total": null,
-        "consent": false,
-        "priority_pz": null,
-        "bvi": false,
-        "status": "Специальность зарегистрирована",
-        "vpp": false
-      },
-      {
-        "list": "000001022",
-        "position": 77,
         "score_total": null,
         "consent": false,
         "priority_pz": null,
@@ -343,22 +359,10 @@
         "bvi": false,
         "status": "Специальность зарегистрирована",
         "vpp": false
-      }
-    ],
-    "369552": [
-      {
-        "list": "000001025",
-        "position": 56,
-        "score_total": null,
-        "consent": false,
-        "priority_pz": null,
-        "bvi": false,
-        "status": "Специальность зарегистрирована",
-        "vpp": false
       },
       {
-        "list": "000001026",
-        "position": 22,
+        "list": "000001025",
+        "position": 48,
         "score_total": null,
         "consent": false,
         "priority_pz": null,
@@ -368,7 +372,19 @@
       },
       {
         "list": "000001022",
-        "position": 89,
+        "position": 77,
+        "score_total": null,
+        "consent": false,
+        "priority_pz": null,
+        "bvi": false,
+        "status": "Специальность зарегистрирована",
+        "vpp": false
+      }
+    ],
+    "369552": [
+      {
+        "list": "000001026",
+        "position": 22,
         "score_total": null,
         "consent": false,
         "priority_pz": null,
@@ -385,12 +401,10 @@
         "bvi": false,
         "status": "Специальность зарегистрирована",
         "vpp": false
-      }
-    ],
-    "367950": [
+      },
       {
         "list": "000001025",
-        "position": 82,
+        "position": 56,
         "score_total": null,
         "consent": false,
         "priority_pz": null,
@@ -399,8 +413,40 @@
         "vpp": false
       },
       {
+        "list": "000001022",
+        "position": 89,
+        "score_total": null,
+        "consent": false,
+        "priority_pz": null,
+        "bvi": false,
+        "status": "Специальность зарегистрирована",
+        "vpp": false
+      }
+    ],
+    "367950": [
+      {
         "list": "000001026",
         "position": 31,
+        "score_total": null,
+        "consent": false,
+        "priority_pz": null,
+        "bvi": false,
+        "status": "Специальность зарегистрирована",
+        "vpp": false
+      },
+      {
+        "list": "000001023",
+        "position": 47,
+        "score_total": null,
+        "consent": false,
+        "priority_pz": null,
+        "bvi": false,
+        "status": "Специальность зарегистрирована",
+        "vpp": false
+      },
+      {
+        "list": "000001025",
+        "position": 82,
         "score_total": null,
         "consent": false,
         "priority_pz": null,
@@ -417,10 +463,108 @@
         "bvi": false,
         "status": "Специальность зарегистрирована",
         "vpp": false
+      }
+    ],
+    "365689": [
+      {
+        "list": "000001026",
+        "position": 44,
+        "score_total": null,
+        "consent": false,
+        "priority_pz": null,
+        "bvi": false,
+        "status": "Специальность зарегистрирована",
+        "vpp": false
       },
       {
         "list": "000001023",
-        "position": 47,
+        "position": 78,
+        "score_total": null,
+        "consent": false,
+        "priority_pz": null,
+        "bvi": false,
+        "status": "Принято к рассмотрению",
+        "vpp": false
+      },
+      {
+        "list": "000001019",
+        "position": 7,
+        "score_total": null,
+        "consent": false,
+        "priority_pz": null,
+        "bvi": false,
+        "status": "Специальность зарегистрирована",
+        "vpp": false
+      },
+      {
+        "list": "000001025",
+        "position": 119,
+        "score_total": null,
+        "consent": false,
+        "priority_pz": null,
+        "bvi": false,
+        "status": "Специальность зарегистрирована",
+        "vpp": false
+      },
+      {
+        "list": "000001021",
+        "position": 18,
+        "score_total": null,
+        "consent": false,
+        "priority_pz": null,
+        "bvi": false,
+        "status": "Специальность зарегистрирована",
+        "vpp": false
+      }
+    ],
+    "366133": [
+      {
+        "list": "000001023",
+        "position": 169,
+        "score_total": null,
+        "consent": false,
+        "priority_pz": null,
+        "bvi": false,
+        "status": "Специальность зарегистрирована",
+        "vpp": false
+      },
+      {
+        "list": "000001024",
+        "position": 121,
+        "score_total": null,
+        "consent": false,
+        "priority_pz": null,
+        "bvi": false,
+        "status": "Специальность зарегистрирована",
+        "vpp": false
+      },
+      {
+        "list": "000001022",
+        "position": 439,
+        "score_total": null,
+        "consent": false,
+        "priority_pz": null,
+        "bvi": false,
+        "status": "Специальность зарегистрирована",
+        "vpp": false
+      }
+    ],
+    "364709": [
+      {
+        "list": "000001024",
+        "position": 8,
+        "score_total": null,
+        "consent": false,
+        "priority_pz": null,
+        "bvi": false,
+        "status": "Специальность зарегистрирована",
+        "vpp": false
+      }
+    ],
+    "367655": [
+      {
+        "list": "000001020",
+        "position": 41,
         "score_total": null,
         "consent": false,
         "priority_pz": null,
@@ -451,58 +595,6 @@
         "vpp": false
       }
     ],
-    "365689": [
-      {
-        "list": "000001025",
-        "position": 119,
-        "score_total": null,
-        "consent": false,
-        "priority_pz": null,
-        "bvi": false,
-        "status": "Специальность зарегистрирована",
-        "vpp": false
-      },
-      {
-        "list": "000001026",
-        "position": 44,
-        "score_total": null,
-        "consent": false,
-        "priority_pz": null,
-        "bvi": false,
-        "status": "Специальность зарегистрирована",
-        "vpp": false
-      },
-      {
-        "list": "000001019",
-        "position": 7,
-        "score_total": null,
-        "consent": false,
-        "priority_pz": null,
-        "bvi": false,
-        "status": "Специальность зарегистрирована",
-        "vpp": false
-      },
-      {
-        "list": "000001021",
-        "position": 18,
-        "score_total": null,
-        "consent": false,
-        "priority_pz": null,
-        "bvi": false,
-        "status": "Специальность зарегистрирована",
-        "vpp": false
-      },
-      {
-        "list": "000001023",
-        "position": 78,
-        "score_total": null,
-        "consent": false,
-        "priority_pz": null,
-        "bvi": false,
-        "status": "Принято к рассмотрению",
-        "vpp": false
-      }
-    ],
     "369847": [
       {
         "list": "000001025",
@@ -529,62 +621,6 @@
       {
         "list": "000001025",
         "position": 238,
-        "score_total": null,
-        "consent": false,
-        "priority_pz": null,
-        "bvi": false,
-        "status": "Специальность зарегистрирована",
-        "vpp": false
-      }
-    ],
-    "367655": [
-      {
-        "list": "000001020",
-        "position": 41,
-        "score_total": null,
-        "consent": false,
-        "priority_pz": null,
-        "bvi": false,
-        "status": "Специальность зарегистрирована",
-        "vpp": false
-      }
-    ],
-    "364709": [
-      {
-        "list": "000001024",
-        "position": 8,
-        "score_total": null,
-        "consent": false,
-        "priority_pz": null,
-        "bvi": false,
-        "status": "Специальность зарегистрирована",
-        "vpp": false
-      }
-    ],
-    "366133": [
-      {
-        "list": "000001024",
-        "position": 121,
-        "score_total": null,
-        "consent": false,
-        "priority_pz": null,
-        "bvi": false,
-        "status": "Специальность зарегистрирована",
-        "vpp": false
-      },
-      {
-        "list": "000001022",
-        "position": 439,
-        "score_total": null,
-        "consent": false,
-        "priority_pz": null,
-        "bvi": false,
-        "status": "Специальность зарегистрирована",
-        "vpp": false
-      },
-      {
-        "list": "000001023",
-        "position": 169,
         "score_total": null,
         "consent": false,
         "priority_pz": null,
@@ -638,42 +674,6 @@
         "priority_pz": null,
         "bvi": false,
         "status": "Специальность зарегистрирована",
-        "vpp": false
-      }
-    ],
-    "368923": [
-      {
-        "list": "000001052",
-        "position": 10,
-        "score_total": null,
-        "consent": false,
-        "priority_pz": null,
-        "bvi": false,
-        "status": "Принято к рассмотрению",
-        "vpp": false
-      }
-    ],
-    "367468": [
-      {
-        "list": "000001052",
-        "position": 24,
-        "score_total": null,
-        "consent": false,
-        "priority_pz": null,
-        "bvi": false,
-        "status": "Специальность зарегистрирована",
-        "vpp": false
-      }
-    ],
-    "362839": [
-      {
-        "list": "000001052",
-        "position": 42,
-        "score_total": null,
-        "consent": false,
-        "priority_pz": null,
-        "bvi": false,
-        "status": "Принято к рассмотрению",
         "vpp": false
       }
     ]
