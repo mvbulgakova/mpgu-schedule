@@ -45,6 +45,15 @@ Two families:
   `meta/index.json`. Code/config changes go on the feature branch; data
   changes go on `data`.
 - **App:** `app/` is the Android client that consumes the `data` branch.
+- **CI branches are split, and it is not obvious.** The repo's default branch
+  is `claude/migrate-mpgu-schedule-jj5gV`, not `main`. GitHub takes the
+  *workflow file* (its `cron`, `timeout-minutes`, `workflow_dispatch` inputs)
+  from the default branch, while each job checks out `ref: main` for the code
+  it runs. So a change under `scraper/` takes effect as soon as it is on
+  `main`, but a change under `.github/workflows/` does nothing until it is
+  also pushed to the default branch — silently, with green-looking runs on
+  the old definition. Check both when a workflow change seems to have no
+  effect.
 
 ## Non-negotiables
 
