@@ -53,3 +53,14 @@ Two families:
 - Never trust a group count — diff parsed-unique against current data and
   explain every LOSE/GAIN before publishing (`verifying-schedule-completeness`).
 - Keep `meta/index.json` counts equal to the actual files on disk.
+- **Investigating a row means dumping the WHOLE row, every column, before
+  reasoning about it** — never a hand-picked subset of fields you think
+  matter. Print the header and the cells together and check they line up: on
+  epk25 the competitive-list header is two `<TR>`s with `ROWSPAN=2` and a
+  `COLSPAN=3` over «Количество баллов за каждое ВИ», so a naive
+  `zip(headers, cells)` silently shifts everything right of it (14 headers vs
+  16 cells) and you end up reading ИД as ПП. Verify with an arithmetic check
+  the row must satisfy (ВИ1+ВИ2+ВИ3 = «Сумма баллов за ВИ»; + ИД = «Сумма
+  конкурсных баллов»). Columns the parser ignores still matter to a
+  diagnosis: ОВП, ПП and the two trailing unnamed columns exist and are only
+  ever visible if you dump everything.
