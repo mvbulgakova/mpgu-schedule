@@ -443,6 +443,12 @@ def _guard_incomplete(meta_doc: dict, stats: dict, prev):
     return None
 
 
+# Список считаем недостроенным, если он потерял больше половины строк. Меньше
+# _COLLAPSE_MIN строк — не мерим: у крошечных списков доля скачет и без сбоев.
+_COLLAPSE_MIN = 20
+_COLLAPSE_RATIO = 0.5
+
+
 def carry_forward_missing(parsed: Dict[str, dict], prev: Optional[dict],
                           data_root) -> List[str]:
     """Достроить parsed прежними данными по спискам, которые не удалось снять.
@@ -456,11 +462,39 @@ def carry_forward_missing(parsed: Dict[str, dict], prev: Optional[dict],
     вчерашнюю позицию честнее, чем сделать вид, что человека нет: метаданные
     переносим прежние целиком, включая page_updated_at, поэтому «свежесть»
     по такому списку не врёт.
+
+    Сюда же — НЕДОСТРОЕННЫЕ страницы. epk25 во время пересчёта отдаёт список
+    не целиком: 2026-08-06 в 03:14 у списка 000000644 вместо 2729 строк
+    оказалось 585, а 36 страниц вернули заглушку «Списки обновляются» и
+    разобрались в ноль строк. Формально страница снята, поэтому потерю никто
+    не замечал — а для человека ниже обрыва это выглядит как «вас больше нет
+    в этом списке».
+
+    Переносим ОДИН раз: помечаем список carried_forward, и если на следующем
+    обходе он снова короткий — принимаем новое значение. Иначе настоящая
+    убыль (приказы о зачислении убирают людей из списков) заморозила бы
+    список навсегда.
     """
     import json
     if not prev:
         return []
-    missing = [lc for lc in (prev.get("lists") or {}) if lc not in parsed]
+    prev_lists = prev.get("lists") or {}
+    missing = []
+    for lc, pm in prev_lists.items():
+        cur = parsed.get(lc)
+        if cur is None:
+            missing.append(lc)
+            continue
+        if pm.get("carried_forward"):
+            continue        # прошлый раз уже переносили — верим свежим данным
+        was = pm.get("count") or 0
+        now = len(cur.get("rows") or [])
+        # Порог грубый нарочно: обычная убыль за 15 минут — единицы строк,
+        # а недостроенная страница теряет разом половину и больше.
+        if was >= _COLLAPSE_MIN and now < was * _COLLAPSE_RATIO:
+            print(f"Список {lc} отдан недостроенным: {now} строк вместо {was} "
+                  f"— переношу прежние")
+            missing.append(lc)
     if not missing:
         return []
     rows_by_list: Dict[str, list] = {lc: [] for lc in missing}
@@ -478,8 +512,12 @@ def carry_forward_missing(parsed: Dict[str, dict], prev: Optional[dict],
                     row["unique_code"] = code
                     rows_by_list[e["list"]].append(row)
     for lc in missing:
+        m = dict(prev_lists[lc])
+        # Метка живёт ровно один обход: следующий раз этот список переносить
+        # уже нельзя, иначе настоящая убыль заморозит его навсегда.
+        m["carried_forward"] = True
         parsed[lc] = {"rows": sorted(rows_by_list[lc], key=lambda r: r["position"]),
-                      "meta": dict(prev["lists"][lc])}
+                      "meta": m}
     return missing
 
 

@@ -535,3 +535,78 @@ def test_carry_forward_does_not_touch_lists_that_were_fetched(tmp_path):
                      "meta": {"direction": "X"}}}
     assert carry_forward_missing(parsed, prev, tmp_path) == []
     assert parsed["G1"]["rows"][0]["unique_code"] == "999"
+
+
+def _truncation_fixture(tmp_path, prev_count, now_rows):
+    """Список был prev_count строк, epk25 отдал now_rows."""
+    import json
+    root = tmp_path / "admissions" / "by_code"
+    root.mkdir(parents=True, exist_ok=True)
+    (root / "11.json").write_text(json.dumps({"codes": {
+        f"{i:07d}": [{"list": "G1", "position": i + 1, "score_total": 200,
+                      "consent": False, "priority_pz": 1, "bvi": False,
+                      "status": ""}] for i in range(prev_count)}}),
+        encoding="utf-8")
+    prev = {"lists": {"G1": {"direction": "44.03.01 История", "form": "очная",
+                             "kind": "бюджет", "count": prev_count,
+                             "page_updated_at": "2026-08-06T02:00:00+03:00"}}}
+    parsed = {"G1": {"rows": [{"unique_code": f"{i:07d}", "position": i + 1}
+                              for i in range(now_rows)],
+                     "meta": {"direction": "44.03.01 История", "count": now_rows}}}
+    return prev, parsed
+
+
+def test_half_built_page_is_carried_forward_not_published(tmp_path):
+    """epk25 во время пересчёта отдаёт список обрезанным — это не убыль людей.
+
+    2026-08-06 03:14: у списка 000000644 вместо 2729 строк пришло 585, и
+    абитуриент с позицией ~1317 получил «вас больше нет в этом списке», а
+    через минуту — «вы появились, место 1317».
+    """
+    from scraper.build_lists_index import carry_forward_missing
+    prev, parsed = _truncation_fixture(tmp_path, 2729, 585)
+    assert carry_forward_missing(parsed, prev, tmp_path) == ["G1"]
+    assert len(parsed["G1"]["rows"]) == 2729
+    assert parsed["G1"]["meta"]["page_updated_at"] == "2026-08-06T02:00:00+03:00"
+
+
+def test_placeholder_page_parsing_to_zero_rows_is_carried_forward(tmp_path):
+    """«Списки обновляются. Попробуйте зайти позже» разбирается в ноль строк."""
+    from scraper.build_lists_index import carry_forward_missing
+    prev, parsed = _truncation_fixture(tmp_path, 640, 0)
+    assert carry_forward_missing(parsed, prev, tmp_path) == ["G1"]
+    assert len(parsed["G1"]["rows"]) == 640
+
+
+def test_ordinary_shrinkage_is_published_as_is(tmp_path):
+    """Обычная убыль за 15 минут — единицы строк, её трогать нельзя."""
+    from scraper.build_lists_index import carry_forward_missing
+    prev, parsed = _truncation_fixture(tmp_path, 2729, 2700)
+    assert carry_forward_missing(parsed, prev, tmp_path) == []
+    assert len(parsed["G1"]["rows"]) == 2700
+
+
+def test_tiny_lists_are_not_second_guessed(tmp_path):
+    """У списка на 6 человек уход двоих — это ровно то, что произошло."""
+    from scraper.build_lists_index import carry_forward_missing
+    prev, parsed = _truncation_fixture(tmp_path, 6, 2)
+    assert carry_forward_missing(parsed, prev, tmp_path) == []
+
+
+def test_a_real_drop_is_accepted_on_the_next_crawl(tmp_path):
+    """Переносим ОДИН раз: приказ о зачислении реально режет список пополам.
+
+    Иначе список замёрзнет навсегда — прежний count всегда будет вдвое
+    больше нового, и каждый обход будет откатываться к старым данным.
+    """
+    from scraper.build_lists_index import carry_forward_missing
+    prev, parsed = _truncation_fixture(tmp_path, 2729, 585)
+    carry_forward_missing(parsed, prev, tmp_path)
+    assert parsed["G1"]["meta"]["carried_forward"] is True
+
+    # следующий обход: список по-прежнему короткий — значит это правда
+    prev2 = {"lists": {"G1": parsed["G1"]["meta"]}}
+    _, parsed2 = _truncation_fixture(tmp_path, 2729, 585)
+    assert carry_forward_missing(parsed2, prev2, tmp_path) == []
+    assert len(parsed2["G1"]["rows"]) == 585
+    assert not parsed2["G1"]["meta"].get("carried_forward")
