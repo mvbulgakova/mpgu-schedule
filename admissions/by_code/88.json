@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-08-06T17:56:50+03:00",
+  "updated_at": "2026-08-06T18:12:29+03:00",
   "codes": {
     "884480": [
       {
@@ -23,16 +23,6 @@
         "vpp": false
       },
       {
-        "list": "000000727",
-        "position": 678,
-        "score_total": 201,
-        "consent": false,
-        "priority_pz": 1,
-        "bvi": false,
-        "status": "Участвует в конкурсе",
-        "vpp": false
-      },
-      {
         "list": "000000724",
         "position": 1457,
         "score_total": 201,
@@ -44,6 +34,16 @@
         "cons_above": 208,
         "vpp_above": 5,
         "sim_above": 5
+      },
+      {
+        "list": "000000727",
+        "position": 678,
+        "score_total": 201,
+        "consent": false,
+        "priority_pz": 1,
+        "bvi": false,
+        "status": "Участвует в конкурсе",
+        "vpp": false
       }
     ],
     "884109": [
@@ -86,21 +86,34 @@
         "vpp": false
       },
       {
-        "list": "000000274",
-        "position": 126,
-        "score_total": 0,
-        "consent": false,
-        "priority_pz": 1,
-        "bvi": false,
-        "status": "На рассмотрении",
-        "vpp": false
-      },
-      {
         "list": "000000176",
         "position": 133,
         "score_total": 0,
         "consent": false,
         "priority_pz": 3,
+        "bvi": false,
+        "status": "На рассмотрении",
+        "vpp": false
+      },
+      {
+        "list": "000000175",
+        "position": 278,
+        "score_total": 0,
+        "consent": true,
+        "priority_pz": 3,
+        "bvi": false,
+        "status": "На рассмотрении",
+        "vpp": false,
+        "cons_above": 95,
+        "vpp_above": 15,
+        "sim_above": 30
+      },
+      {
+        "list": "000000274",
+        "position": 126,
+        "score_total": 0,
+        "consent": false,
+        "priority_pz": 1,
         "bvi": false,
         "status": "На рассмотрении",
         "vpp": false
@@ -116,19 +129,6 @@
         "vpp": false,
         "cons_above": 99,
         "vpp_above": 30,
-        "sim_above": 30
-      },
-      {
-        "list": "000000175",
-        "position": 278,
-        "score_total": 0,
-        "consent": true,
-        "priority_pz": 3,
-        "bvi": false,
-        "status": "На рассмотрении",
-        "vpp": false,
-        "cons_above": 95,
-        "vpp_above": 15,
         "sim_above": 30
       }
     ]
