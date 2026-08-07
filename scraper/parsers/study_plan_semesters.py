@@ -22,6 +22,19 @@ _CODE_RE = re.compile(r"^[0-9АВСABC]+$")
 _INDEX_RE = re.compile(r"^Б\d")
 # лист-дисциплина: индекс с ≥3 сегментами (Б1.О.01.01), а не модуль (Б1.О.01)
 _LEAF_RE = re.compile(r"^Б\d+\.[^.\s]+\.\d+\.\d+")
+# План свёрстан как дерево, и в самой левой колонке стоит значок раскрытия узла.
+# В названия он попадал буквально: «+ История России» у КАЖДОЙ дисциплины.
+_TREE_MARKS = {"+", "-", "–", "—", "±"}
+# Максимальный зазор, на котором строка-продолжение считается частью той же
+# клетки. Внутри названия строки идут через ~2,2pt, между дисциплинами ~7pt.
+_CELL_GAP = 5.0
+
+
+def _is_name_token(w: tuple, band_lo: float) -> bool:
+    """Слово относится к названию дисциплины (а не к индексу, значку или числам)."""
+    text = w[4]
+    return (30 < w[0] < band_lo and text not in _TREE_MARKS
+            and not _INDEX_RE.match(text))
 
 
 def decode_codes(tokens: List[str]) -> List[int]:
@@ -44,22 +57,46 @@ def _column_centers(words: List[tuple]) -> Optional[List[float]]:
 
 
 def parse_words(words: List[tuple], leaves_only: bool = True) -> List[dict]:
-    """Список слов страницы плана → дисциплины с семестрами."""
+    """Список слов страницы плана → дисциплины с семестрами.
+
+    Строка плана — это КЛЕТКА, а не одна строка текста. Длинное название
+    переносится на 2–3 строки, а индекс стоит по центру клетки, то есть на
+    средней из них. Если считать строкой каждый уровень y по отдельности,
+    у такой дисциплины на «строке индекса» не окажется ни одного слова
+    названия, а сами слова окажутся на строках без индекса и пропадут.
+    Так терялись целые предметы: «Нормативно-правовые основы
+    профессиональной деятельности» (Б1.О.01.05) и «Возрастная анатомия,
+    физиология и культура здоровья» (Б1.О.03.01) выводились как пустые.
+    Поэтому строки без индекса приклеиваем к ближайшей строке С индексом.
+    """
     centers = _column_centers(words)
     if not centers:
         return []
     band_lo, band_hi = min(centers) - 7, max(centers) + 7
-    lines: Dict[int, list] = defaultdict(list)
+    lines: Dict[float, list] = defaultdict(list)
     for w in words:
-        lines[round(w[1])].append(w)
-    out = []
+        lines[round(w[1], 2)].append(w)
+
+    anchors = [y for y in sorted(lines)
+               if any(_INDEX_RE.match(w[4]) for w in lines[y])]
+    if not anchors:
+        return []
+    # Клетка: строка с индексом плюс соседние строки-продолжения. Порог меньше
+    # шага между дисциплинами (~7pt) и больше межстрочного интервала внутри
+    # названия (~2,2pt), поэтому чужую строку не притянет.
+    cells: Dict[float, list] = {y: list(lines[y]) for y in anchors}
     for y in sorted(lines):
-        row = sorted(lines[y], key=lambda w: w[0])
-        idx = next((w[4] for w in row if _INDEX_RE.match(w[4])), None)
-        if not idx:
+        if y in cells:
             continue
-        name = " ".join(w[4] for w in row
-                         if 30 < w[0] < band_lo and not _INDEX_RE.match(w[4])).strip()
+        nearest = min(anchors, key=lambda a: abs(a - y))
+        if abs(nearest - y) <= _CELL_GAP:
+            cells[nearest].extend(lines[y])
+
+    out = []
+    for y in anchors:
+        row = sorted(cells[y], key=lambda w: (w[1], w[0]))
+        idx = next((w[4] for w in row if _INDEX_RE.match(w[4])), None)
+        name = " ".join(w[4] for w in row if _is_name_token(w, band_lo)).strip()
         codes = [w[4] for w in row
                  if band_lo <= ((w[0] + w[2]) / 2) <= band_hi and _CODE_RE.match(w[4])]
         sems = decode_codes(codes)
