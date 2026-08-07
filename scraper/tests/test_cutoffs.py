@@ -27,6 +27,10 @@ def _rows():
         {"list": "4", "direction": "44.03.01 Педагогическое образование. Химия",
          "form": "очная", "kind": "платное", "level": "basic_higher_education",
          "unit": "ИБХ", "seats": 100, "vpp": 2, "bvi": 0, "cutoff": 120, "exact": False},
+        {"list": "5", "direction": "44.03.01 Педагогическое образование. Математика и Экономика",
+         "form": "заочная", "kind": "бюджет", "level": "basic_higher_education",
+         "unit": "Анапский филиал", "seats": 16, "vpp": 14, "bvi": 0,
+         "cutoff": 137, "exact": False},
     ]
 
 
@@ -37,7 +41,7 @@ def _wire(monkeypatch):
 def test_only_budget_lists_count_as_cutoffs(monkeypatch):
     """«Проходной» люди спрашивают про бюджет; платные места — другой разговор."""
     _wire(monkeypatch)
-    assert {r["list"] for r in cutoffs.budget()} == {"1", "2", "3"}
+    assert {r["list"] for r in cutoffs.budget(with_branches=True)} == {"1", "2", "3", "5"}
 
 
 def test_bachelor_ranking_does_not_mix_in_masters(monkeypatch):
@@ -50,7 +54,7 @@ def test_bachelor_ranking_does_not_mix_in_masters(monkeypatch):
     txt = cutoffs.format_extremes(2)
     assert "Теория и практика перевода" not in txt   # магистерская — не здесь
     assert "56" not in txt                            # и её балл тоже
-    assert "бакалавриат — 2 списков" in txt           # считаем только бакалавриат
+    assert "бакалавриат, <b>Москва</b> — 2 списков" in txt   # только бакалавриат
     assert "290" in txt and "150" in txt
 
 
@@ -119,3 +123,39 @@ def test_menu_button_cancels_waiting(monkeypatch):
     bot.AWAITING_CUTOFF[9] = True
     bot.handle_callback(chat_id=9, data="open:menu")
     assert 9 not in bot.AWAITING_CUTOFF
+
+
+# ── Филиалы отдельно от Москвы ───────────────────────────────────────────────
+
+def test_branches_are_out_of_the_moscow_ranking(monkeypatch):
+    """У филиала свой КЦП и свой конкурс, а название направления московское.
+
+    Проходные там заметно ниже: на живых данных 2026 московский минимум по
+    бакалавриату — 188, а все цифры ниже (137 Черняховск, 142 Дербент,
+    150 Анапа) оказались филиальскими. В общем рейтинге они выглядели как
+    «самые доступные направления МПГУ».
+    """
+    _wire(monkeypatch)
+    assert {r["list"] for r in cutoffs.budget()} == {"1", "2", "3"}
+    txt = cutoffs.format_extremes(2)
+    assert "Москва" in txt
+    assert "137" not in txt          # филиальский балл в московский рейтинг не лезет
+
+
+def test_search_shows_moscow_and_branches_in_separate_blocks(monkeypatch):
+    _wire(monkeypatch)
+    txt = cutoffs.format_results(cutoffs.find("математика экономика"))
+    assert "<b>Москва:</b>" in txt and "<b>Филиалы:</b>" in txt
+    assert txt.index("<b>Москва:</b>") < txt.index("<b>Филиалы:</b>")
+
+
+def test_branch_entry_names_the_city(monkeypatch):
+    """«· Анапский» — прилагательное без существительного, читается обрубком."""
+    _wire(monkeypatch)
+    txt = cutoffs.format_results(cutoffs.find("математика экономика"))
+    assert "Анапа" in txt and "Анапский" not in txt
+
+
+def test_overview_tells_where_the_branches_went(monkeypatch):
+    _wire(monkeypatch)
+    assert "Анапа" in cutoffs.format_extremes(1)

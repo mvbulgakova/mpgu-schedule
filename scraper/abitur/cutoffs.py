@@ -40,16 +40,50 @@ _LEVEL_TAG = {"specialized_higher_education": " · магистратура",
               "secondary_vocational_education": " · колледж"}
 
 
-def budget(level: Optional[str] = None) -> List[dict]:
+# У филиала свой КЦП и свой конкурс, а название направления совпадает с
+# московским — в общем списке они неотличимы. Проходные там заметно ниже, и
+# без разделения «Математика и Экономика · 150» читается как московская
+# программа, хотя это заочка в Анапском филиале.
+# Города, а не «Анапский»/«Дербентский»: в строке «· Анапский» прилагательное
+# висит без существительного и читается как обрубок.
+_BRANCH_CITY = {"анапский филиал": "Анапа",
+                "дербентский филиал": "Дербент",
+                "покровский филиал": "Покров",
+                "ставропольский филиал": "Ставрополь",
+                "филиал мпгу в г. черняховске": "Черняховск",
+                "сергиево-посадский филиал": "Сергиев Посад"}
+
+
+def is_branch(r: dict) -> bool:
+    return "филиал" in (r.get("unit") or "").lower()
+
+
+def branch_name(r: dict) -> str:
+    unit = (r.get("unit") or "").strip()
+    return _BRANCH_CITY.get(unit.lower(), unit)
+
+
+def branches() -> List[str]:
+    """Названия филиалов, по которым есть проходные."""
+    return sorted({branch_name(r) for r in load()
+                   if r.get("cutoff") and is_branch(r)})
+
+
+def budget(level: Optional[str] = None,
+           with_branches: bool = False) -> List[dict]:
     """Только бюджет: «проходной» люди спрашивают именно про него.
 
     level ограничивает ступень. Смешивать бакалавриат с магистратурой в одном
     рейтинге нельзя: там своя шкала (вступительный экзамен вуза, не ЕГЭ), и
     в «самых доступных» вылезали магистерские 41–45 рядом с бакалаврскими 137.
+
+    Филиалы по умолчанию не показываем: большинство поступает в Москву, а
+    31 список из 99 — филиальские, и они забивали собой «самое доступное».
     """
     return [r for r in load()
             if r.get("kind") == "бюджет" and r.get("cutoff")
-            and (level is None or r.get("level") == level)]
+            and (level is None or r.get("level") == level)
+            and (with_branches or not is_branch(r))]
 
 
 def find(query: str, limit: int = 8) -> List[dict]:
@@ -58,7 +92,7 @@ def find(query: str, limit: int = 8) -> List[dict]:
     m = re.search(r"\d\d\.\d\d\.\d\d", query or "")
     code = m.group(0) if m else None
     scored = []
-    for r in budget():
+    for r in budget(with_branches=True):
         if code and not (r.get("direction") or "").startswith(code):
             continue
         hay = _words(f"{r.get('direction')} {r.get('unit')}")
@@ -83,10 +117,12 @@ def _short(direction: str, maxlen: int = 58) -> str:
 _FORM = {"очная": "", "очно-заочная": " · очно-заочная", "заочная": " · заочная"}
 
 
-def format_entry(r: dict) -> str:
+def format_entry(r: dict, show_branch: bool = False) -> str:
     line = (f"<b>{r['cutoff']}</b> — {_short(r.get('direction'))}"
             f"{_FORM.get(r.get('form'), '')}"
             f"{_LEVEL_TAG.get(r.get('level'), '')}")
+    if show_branch and is_branch(r):
+        line += f" · <b>{branch_name(r)}</b>"
     seats = r.get("seats")
     if seats:
         line += f"\n    мест {seats}"
@@ -108,8 +144,20 @@ def format_results(rows: List[dict], query: str = "") -> str:
     if not rows:
         return (f"{_HEAD}\n\nНичего не нашёл по запросу «{query}». Попробуйте "
                 f"короче: <b>биология</b>, <b>лингвистика</b>, <b>44.03.01</b>.")
+    msk = [r for r in rows if not is_branch(r)]
+    fil = [r for r in rows if is_branch(r)]
     lines = [_HEAD, ""]
-    lines += [f"• {format_entry(r)}" for r in rows]
+    if msk:
+        if fil:
+            lines.append("<b>Москва:</b>")
+        lines += [f"• {format_entry(r)}" for r in msk]
+    if fil:
+        # Филиалы отдельным блоком: у них свой КЦП и свой конкурс, а название
+        # направления такое же, как в Москве.
+        if msk:
+            lines.append("")
+        lines.append("<b>Филиалы:</b>")
+        lines += [f"• {format_entry(r, show_branch=True)}" for r in fil]
     lines += ["", _METHOD]
     return "\n".join(lines)
 
@@ -120,11 +168,14 @@ def format_extremes(n: int = 7) -> str:
     if not rows:
         return f"{_HEAD}\n\nДанных пока нет."
     lines = [_HEAD, "",
-             f"Бюджет, бакалавриат — {len(rows)} списков "
-             f"(магистратура и колледж считаются по своей шкале, ищите по названию).",
+             f"Бюджет, бакалавриат, <b>Москва</b> — {len(rows)} списков.",
              "", "<b>Самые высокие:</b>"]
     lines += [f"• {format_entry(r)}" for r in rows[:n]]
     lines += ["", "<b>Самые доступные:</b>"]
     lines += [f"• {format_entry(r)}" for r in rows[-n:][::-1]]
-    lines += ["", "Напишите направление — покажу по нему.", "", _METHOD]
+    lines += ["", "Напишите направление — покажу по нему.",
+              f"Филиалы ({', '.join(branches())}) и магистратура считаются "
+              f"отдельно: там свой конкурс и своя шкала. Они найдутся по "
+              f"названию направления.",
+              "", _METHOD]
     return "\n".join(lines)
