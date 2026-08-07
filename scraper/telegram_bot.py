@@ -650,11 +650,16 @@ def _check_subs(token: str):
         src_for_sub = own_src or src
         source_moved = bool(own_src) and bool(seen) and own_src > seen
         txt = follow.diff_text(sub["code"], sub.get("last") or {}, entries, meta)
-        if txt is None and source_moved:
+        lists_meta = (meta or {}).get("lists") or {}
+        live = [e for e in entries
+                if not lists.enrollment_done(lists_meta.get(e["list"]) or {})]
+        if txt is None and source_moved and live:
             # Списки пересчитали, а у человека ничего не сдвинулось. Это тоже
             # новость: молчание он читает как «данные не обновлялись». Дифф,
             # если он есть, сам начинается со слов «Списки обновились» —
             # поэтому второе сообщение сверху не шлём.
+            # Но только если хоть где-то ещё идёт конкурс: там, где зачисление
+            # проведено, «списки обновились» — уже не новость, а шум.
             txt = (f"🔔 МПГУ обновил списки ({lists._hhmm_dd_mm(src_for_sub)}) — "
                    f"у вас по коду <b>{sub['code']}</b> без изменений.\n"
                    f"Подробнее: /spisok {sub['code']}")

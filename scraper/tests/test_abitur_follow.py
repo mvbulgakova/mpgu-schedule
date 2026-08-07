@@ -83,3 +83,39 @@ def test_diff_shows_when_the_university_updated_the_lists():
 def test_diff_without_page_updates_has_no_timestamp_line():
     txt = follow.diff_text("123", {"L1": 5}, [_e("L1", 3)], META)
     assert txt is not None and "epk25 обновлены" not in txt
+
+
+# ── После зачисления место в списке больше ничего не значит ───────────────────
+
+def _done_meta():
+    return {"lists": {"G": {"direction": "44.03.01 X", "form": "очная",
+                            "kind": "бюджет", "kcp_epk": 67, "enrolled": 67},
+                      "L": {"direction": "44.03.02 Y", "form": "очная",
+                            "kind": "платное", "kcp_epk": 30, "enrolled": 2}}}
+
+
+def test_no_alarm_about_shuffling_inside_a_finished_list():
+    """2026-08-07: epk25 переписал страницы, и в списке 000000538 сдвинулись
+    60 человек из 2753 — при неизменном составе, неизменных баллах и
+    неизменных согласиях. Вуз просто иначе разложил людей ВНУТРИ равных
+    баллов. Человеку уходило «место 1371 → 1372 ⬇️», хотя мест уже нет.
+    """
+    txt = follow.diff_text("1914288", {"G": 1371},
+                    [{"list": "G", "position": 1372}], _done_meta())
+    assert txt is None
+
+
+def test_a_list_still_in_competition_is_still_reported():
+    txt = follow.diff_text("1914288", {"L": 40}, [{"list": "L", "position": 30}],
+                    _done_meta())
+    assert txt is not None and "40 → " in txt
+
+
+def test_disappearing_from_a_live_list_is_still_reported():
+    txt = follow.diff_text("1914288", {"L": 40}, [], _done_meta())
+    assert txt is not None and "больше нет" in txt
+
+
+def test_disappearing_from_a_finished_list_is_not_alarming():
+    """После зачисления «вас больше нет в этом списке» — пугает и не значит ничего."""
+    assert follow.diff_text("1914288", {"G": 1371}, [], _done_meta()) is None
