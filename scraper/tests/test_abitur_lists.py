@@ -647,10 +647,17 @@ def test_no_would_pass_claim_once_the_places_are_filled():
         assert "приказ" in txt.lower()
 
 
-def test_the_one_who_did_pass_is_told_so():
+def test_the_answer_points_at_gosuslugi_not_at_a_missing_pdf():
+    """Уведомления о включении в приказ пришли раньше самого приказа.
+
+    2026-08-07 около часа ночи люди получили на Госуслугах уведомление, что
+    включены в приказ, — а на mpgu.su приказ ещё не выложили. Отправлять
+    человека ждать PDF, когда ответ у него уже есть, бессмысленно.
+    """
     from scraper.abitur.lists import format_positions_short
-    txt = format_positions_short(_done_meta(), _shard_one(vpp=True), "1914288")
-    assert "ВПП" in txt and "числе зачисленных" in txt
+    txt = format_positions_short(_done_meta(), _shard_one(), "1914288")
+    assert "Госуслуг" in txt
+    assert "прошли бы" not in txt.lower()
 
 
 def test_live_competition_is_still_simulated():
