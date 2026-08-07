@@ -296,6 +296,45 @@ def _general_seats(m: dict, places: int):
     return max(places - quota, 0), quota
 
 
+def enrollment_done(m: dict) -> bool:
+    """Зачисление по этому списку уже проведено — конкурса больше нет.
+
+    Признак со страницы epk25: «Зачислено» сравнялось с КЦП. 2026-08-07 в
+    04:00 так стало на ВСЕХ 99 общих бюджетных списках бакалавриата разом
+    (2155 из 2155), поле «Мест для зачисления» опустело, а отметки ВПП сняли
+    у всех до единого.
+
+    Без этой проверки бот продолжал считать конкурс живым и говорил человеку
+    «прошли бы на Физика и Информатика (~40-е из 67)» по списку, где уже
+    зачислены все 67 и у него самого никакого ВПП нет. Симуляция по КЦП
+    формально считается — но отвечает на вопрос, которого больше не существует.
+    """
+    kcp = m.get("kcp_epk")
+    enrolled = m.get("enrolled")
+    return bool(kcp) and enrolled is not None and enrolled >= kcp
+
+
+def _enrollment_done_note(entries: List[Dict], done_lists: List[dict]) -> str:
+    """Что писать, когда конкурс по спискам человека уже закрыт.
+
+    Категоричного вердикта не выносим: приказ на mpgu.su — единственный
+    официальный документ, а epk25 показал результат раньше него. Наше дело —
+    честно назвать состояние страниц и не выдавать симуляцию за прогноз.
+    """
+    passed = any(e.get("vpp") for e in entries)
+    n = len(done_lists)
+    head = (f"🎓 <b>Зачисление проведено</b> — по {'вашему списку' if n == 1 else 'вашим спискам'} "
+            f"места уже заняты.")
+    if passed:
+        return (f"{head}\nУ вас стоит отметка ВПП — вы в числе зачисленных. "
+                f"Дождитесь приказа на mpgu.su, он и есть официальный документ.")
+    return (f"{head}\nОтметок ВПП epk25 не оставил ни у кого — их снимают, "
+            f"когда конкурс закрыт, поэтому по ним больше ничего не понять. "
+            f"Смотрите приказ о зачислении на mpgu.su: только он отвечает, "
+            f"кто зачислен.\nОстаются места, куда набор ещё идёт, — платные и "
+            f"заочные, и вузы со второй волной.")
+
+
 def _history_for(m: dict) -> Optional[dict]:
     """История проходных программы этого списка ({год: балл}) или None.
 
@@ -449,6 +488,7 @@ def format_positions_short(meta: Optional[dict], shard: Optional[dict],
             "списков")
     lines = [f"🔎 <b>Код {_norm(code)}</b> — {n} {word}:", ""]
     passing: List[tuple] = []
+    done_lists: List[dict] = []
     entries_sorted = sorted(entries, key=lambda e: (e.get("priority_pz") or 99,))
     for e in entries_sorted:
         m = lists_meta_all.get(e["list"], {})
@@ -464,6 +504,12 @@ def format_positions_short(meta: Optional[dict], shard: Optional[dict],
             pp = _places_for(m)
             pp_s = f" · мест {pp}" if pp else ""
             lines.append(f"💳 {pri} · {e['position']}/{m.get('count', '?')}{pp_s} · {name}")
+        elif m.get("general") and enrollment_done(m):
+            # Конкурс закончился: показываем факт, а не симуляцию.
+            done_lists.append(m)
+            mark = "🎓" if e.get("vpp") else "▫️"
+            lines.append(f"{mark} {pri} · зачислено {m.get('enrolled')}/"
+                         f"{m.get('kcp_epk')} — места заняты · {name}")
         elif m.get("general") and places and sim_above is not None:
             sim_place = sim_above + 1
             seats, _q = _general_seats(m, places)
@@ -493,6 +539,8 @@ def format_positions_short(meta: Optional[dict], shard: Optional[dict],
                      f"(~{sim_place}-е из {seats})")
         lines.append(_consent_caveat(entries, lists_meta_all))
         lines.append("Подробнее — «📋 Подробнее».")
+    elif done_lists:
+        lines.append(_enrollment_done_note(entries, done_lists))
     budget = [e for e in entries
               if lists_meta_all.get(e["list"], {}).get("kind") == "бюджет"]
     if budget and not consented:
@@ -522,6 +570,7 @@ def format_positions(meta: Optional[dict], shard: Optional[dict], code: str) -> 
     passing: List[tuple] = []      # (приоритет, направление, sim_place|None)
     any_places = False
     any_sim = False
+    done_lists: List[dict] = []
     consented = any(e.get("consent") for e in entries
                     if lists_meta_all.get(e["list"], {}).get("kind") == "бюджет")
     for e in entries:
@@ -532,7 +581,12 @@ def format_positions(meta: Optional[dict], shard: Optional[dict], code: str) -> 
         if m.get("kind") == "бюджет":
             general = m["general"] if "general" in m else \
                 _is_general_budget(lists_meta_all, e["list"])
-            if general:
+            if general and enrollment_done(m):
+                # Конкурс закрыт — симуляция отвечает на несуществующий вопрос.
+                done_lists.append(m)
+                parts.append(f"зачислено {m.get('enrolled')}/{m.get('kcp_epk')} "
+                             f"— места заняты" + (" · у вас ✓ВПП" if e.get("vpp") else ""))
+            elif general:
                 places = m["places"] if "places" in m else _places_for(m)
                 sim_above = e.get("sim_above")
                 if places and sim_above is not None:
@@ -600,17 +654,19 @@ def format_positions(meta: Optional[dict], shard: Optional[dict], code: str) -> 
         pred = _prediction_line(lists_meta_all.get(plist, {}))
         if pred:
             lines.append(pred)
+    elif done_lists:
+        lines.append(_enrollment_done_note(entries, done_lists))
     elif any_places:
         lines.append("⏳ Пока вы ниже черты во всех бюджетных списках. Но согласий подано "
                      "мало — расклад ещё сильно поменяется; и после приоритетного этапа "
                      "в конкурс вернутся незанятые квотные места.")
-    if any_sim:
+    if any_sim and not done_lists:
         lines.append("ℹ️ Как считается: учитываются только подавшие согласие, и кто "
                      "проходит на свой более высокий приоритет — из конкурса убираются. "
                      "«Мест» — в общем конкурсе сейчас (КЦП минус квоты); незанятые "
                      "квотные вернутся после приоритетного этапа (приказы 3 августа). "
                      "На Госуслугах видно текущее число мест общего конкурса.")
-    elif any_places:
+    elif any_places and not done_lists:
         lines.append("ℹ️ «Мест» — в общем конкурсе (КЦП минус квоты). Незанятые квотные "
                      "места вернутся в общий конкурс после приоритетного этапа (3 августа).")
     # Напоминание про согласие: главная причина «пролететь» на зачислении.

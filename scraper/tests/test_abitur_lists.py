@@ -598,3 +598,64 @@ def test_no_consent_warning_points_to_next_stage_after_deadline(monkeypatch):
     for out in (short, full):
         assert "до <b>5 августа 12:00</b>" not in out
         assert "9 августа" in out
+
+
+# ── Зачисление проведено: конкурса больше нет ─────────────────────────────────
+
+def _done_meta(enrolled=67, kcp=67):
+    """Список, по которому epk25 уже провёл зачисление.
+
+    2026-08-07 04:00: на всех 99 общих бюджетных списках бакалавриата разом
+    «Зачислено» сравнялось с КЦП, поле «Мест для зачисления» опустело, а
+    отметки ВПП сняли у всех до единого.
+    """
+    return {"updated_at": "2026-08-07T06:00:00+03:00", "lists": {"G": {
+        "direction": "44.03.01 Физика и Информатика", "form": "очная",
+        "kind": "бюджет", "general": True, "count": 640, "places": 67,
+        "kcp_epk": kcp, "enrolled": enrolled, "consented": 300,
+        "page_updated_at": "2026-08-07T04:00:00+03:00"}}}
+
+
+def _shard_one(code="1914288", position=264, vpp=False):
+    return {"updated_at": "t", "codes": {code: [
+        {"list": "G", "position": position, "score_total": 225, "consent": True,
+         "priority_pz": 3, "bvi": False, "status": "", "vpp": vpp,
+         "sim_above": 39, "vpp_above": None}]}}
+
+
+def test_enrollment_done_is_detected_from_the_page():
+    from scraper.abitur.lists import enrollment_done
+    assert enrollment_done({"kcp_epk": 67, "enrolled": 67})
+    assert enrollment_done({"kcp_epk": 67, "enrolled": 70})
+    assert not enrollment_done({"kcp_epk": 67, "enrolled": 55})
+    assert not enrollment_done({"kcp_epk": 67})          # поля ещё нет
+    assert not enrollment_done({"enrolled": 0})
+
+
+def test_no_would_pass_claim_once_the_places_are_filled():
+    """Симуляция по КЦП считается и после зачисления — и врёт.
+
+    2026-08-07: человеку без ВПП бот показывал «прошли бы на Физика и
+    Информатика (~40-е из 67)» по списку, где зачислены все 67.
+    """
+    from scraper.abitur.lists import format_positions_short, format_positions
+    meta, shard = _done_meta(), _shard_one()
+    for txt in (format_positions_short(meta, shard, "1914288"),
+                format_positions(meta, shard, "1914288")):
+        assert "прошли бы" not in txt.lower(), txt
+        assert "зачислено 67/67" in txt
+        assert "приказ" in txt.lower()
+
+
+def test_the_one_who_did_pass_is_told_so():
+    from scraper.abitur.lists import format_positions_short
+    txt = format_positions_short(_done_meta(), _shard_one(vpp=True), "1914288")
+    assert "ВПП" in txt and "числе зачисленных" in txt
+
+
+def test_live_competition_is_still_simulated():
+    """Пока места не заняты — всё работает как раньше."""
+    from scraper.abitur.lists import format_positions_short
+    txt = format_positions_short(_done_meta(enrolled=2), _shard_one(), "1914288")
+    assert "прошли бы" in txt.lower()
+    assert "места заняты" not in txt
