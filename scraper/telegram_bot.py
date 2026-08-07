@@ -264,19 +264,19 @@ def _check_orders(token: str):
     нельзя ошибиться дважды, второе такое же сообщение обесценивает первое.
     """
     html = _fetch(orders_watch.INDEX_PAGE, timeout=30).decode("utf-8", "replace")
-    pages = re.findall(
-        r'href="([^"]*svedenija-zachislenii-2026/zachislenie-[^"]+)"', html)
-    pages = [p if p.startswith("http") else "https://mpgu.su" + p for p in pages]
-    pages = list(dict.fromkeys(pages))
+    pages = orders_watch.order_pages(html)
     fresh = orders_watch.new_orders(pages, SEEN_ORDERS)
     if not fresh:
         return
     print(f"check_orders: новых приказов {len(fresh)}: {fresh}", flush=True)
     for page in fresh:
         try:
-            sub_html = _fetch(page, timeout=30).decode("utf-8", "replace")
-            pdfs = re.findall(r'href="([^"]+\.pdf)"', sub_html, re.I)
-            pdfs = list(dict.fromkeys(pdfs))
+            if page.lower().endswith(".pdf"):
+                pdfs = [page]           # приказ выложили файлом, без страницы
+            else:
+                sub_html = _fetch(page, timeout=30).decode("utf-8", "replace")
+                pdfs = list(dict.fromkeys(
+                    re.findall(r'href="([^"]+\.pdf)"', sub_html, re.I)))
             files = []
             for u in pdfs[:4]:      # больше четырёх приложений — уже свалка
                 try:

@@ -10,6 +10,7 @@
 что написать людям.
 """
 import re
+from html import unescape
 from typing import Dict, List, Optional, Set
 
 # Страница со ссылками на приказы конкретных дат.
@@ -24,6 +25,37 @@ ALREADY_PUBLISHED = {
     "https://mpgu.su/postuplenie/svedenija-zachislenii-2026/"
     "zachislenie-03-08-2026-budget/",
 }
+
+
+BASE = "https://mpgu.su"
+_SECTION = "svedenija-zachislenii-2026"
+# Служебные ссылки WordPress внутри того же раздела — не приказы.
+_JUNK = ("/wp-json/", "/feed", "?", "#")
+
+
+def order_pages(index_html: str) -> List[str]:
+    """Ссылки на приказы с индексной страницы раздела.
+
+    Ловим ЛЮБУЮ подстраницу раздела, а не только со слагом «zachislenie-».
+    Слаг — это соглашение вуза, а не гарантия: назови МПГУ страницу иначе
+    («prikaz-…», «osnovnoy-etap»), и вахта промолчала бы ровно в тот момент,
+    ради которого сделана. Плюс сами PDF: приказ могут выложить файлом прямо
+    в разделе, без отдельной страницы.
+    """
+    out = []
+    for raw in re.findall(r'href="([^"]+)"', index_html or ""):
+        url = unescape(raw)
+        low = url.lower()
+        if low.endswith(".pdf"):
+            if "zachisl" in low or "prikaz" in low:
+                out.append(url if url.startswith("http") else BASE + url)
+            continue
+        if _SECTION not in low or any(j in low for j in _JUNK):
+            continue
+        tail = low.split(_SECTION, 1)[1].strip("/")
+        if tail:                       # сам раздел — не приказ
+            out.append(url if url.startswith("http") else BASE + url)
+    return list(dict.fromkeys(out))
 
 
 def order_date(url: str) -> Optional[str]:

@@ -135,3 +135,46 @@ def test_the_service_record_is_not_treated_as_a_subscriber(monkeypatch):
     bot._check_orders("token")
     assert bot._ORDERS_KEY in bot.SUBS          # отметка сохранена
     assert [c for c, _ in sent] == [11]         # но письмо ушло только человеку
+
+
+# ── Слаг страницы — соглашение вуза, а не гарантия ────────────────────────────
+
+def test_a_differently_named_page_is_still_caught():
+    """Назови МПГУ страницу «prikaz-…» — прежний поиск промолчал бы."""
+    html = ('<a href="/postuplenie/svedenija-zachislenii-2026/">раздел</a>'
+            '<a href="/postuplenie/svedenija-zachislenii-2026/'
+            'prikaz-osnovnoy-etap-2026/">приказ</a>')
+    assert OW.order_pages(html) == [
+        "https://mpgu.su/postuplenie/svedenija-zachislenii-2026/"
+        "prikaz-osnovnoy-etap-2026/"]
+
+
+def test_a_pdf_posted_without_a_page_is_caught():
+    """Приказ могут выложить файлом прямо в разделе."""
+    html = ('<a href="https://mpgu.su/wp-content/uploads/2026/08/'
+            'pk26_svedeniya-o-zachislenii_07-08-26.pdf">скачать</a>')
+    assert OW.order_pages(html) == [
+        "https://mpgu.su/wp-content/uploads/2026/08/"
+        "pk26_svedeniya-o-zachislenii_07-08-26.pdf"]
+
+
+def test_the_section_itself_and_wordpress_junk_are_ignored():
+    """Иначе вахта сработала бы на служебных ссылках в первую же минуту."""
+    html = ('<a href="https://mpgu.su/postuplenie/svedenija-zachislenii-2026/">'
+            'раздел</a>'
+            '<a href="https://mpgu.su/wp-json/oembed/1.0/embed?url=https%3A%2F%2F'
+            'mpgu.su%2Fpostuplenie%2Fsvedenija-zachislenii-2026%2F">oembed</a>'
+            '<a href="/postuplenie/bakalavriat/">бакалавриат</a>'
+            '<a href="/wp-content/uploads/2026/08/pravila-priema.pdf">правила</a>')
+    assert OW.order_pages(html) == []
+
+
+def test_the_live_page_still_yields_exactly_the_known_order():
+    """Реальная разметка mpgu.su на 2026-08-07: один приказ, ничего лишнего."""
+    html = ('<a href="https://mpgu.su/postuplenie/svedenija-zachislenii-2026/">'
+            'Сведения о зачислении</a>'
+            '<a href="https://mpgu.su/wp-json/oembed/1.0/embed?url=x">o</a>'
+            '<a href="https://mpgu.su/postuplenie/svedenija-zachislenii-2026/'
+            'zachislenie-03-08-2026-budget/">Зачисление 03.08.2026</a>')
+    assert OW.order_pages(html) == [_OLD]
+    assert OW.new_orders(OW.order_pages(html), set(OW.ALREADY_PUBLISHED)) == []
