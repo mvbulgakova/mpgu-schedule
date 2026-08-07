@@ -323,17 +323,15 @@ def _enrollment_done_note(entries: List[Dict], done_lists: List[dict]) -> str:
     """
     n = len(done_lists)
     return (
-        f"🎓 <b>Зачисление проведено</b> — по {'вашему списку' if n == 1 else 'вашим спискам'} "
-        f"места уже заняты.\n"
-        f"<b>Ответ ищите на Госуслугах.</b> В ночь на 7 августа тем, кто "
-        f"попал в приказ, пришло уведомление о включении в него — это и есть "
-        f"официальный ответ, он появился раньше, чем приказ выложили на "
-        f"mpgu.su.\n"
+        f"🎓 <b>Бюджетное зачисление завершено</b> — по "
+        f"{'вашему списку' if n == 1 else 'вашим спискам'} места заняты.\n"
+        f"<b>Проверьте себя в приказе</b> от 7 августа на mpgu.su: это "
+        f"единственный официальный ответ. Тем, кто в него попал, ночью пришло "
+        f"уведомление на Госуслугах.\n"
         f"По конкурсным спискам сказать, кто зачислен, нельзя: отметки ВПП "
         f"epk25 снял у всех, когда конкурс закрылся, а зачисленных в самих "
-        f"строках он не помечает.\n"
-        f"Если уведомления нет — набор продолжается на платные и заочные "
-        f"места, и в других вузах есть вторая волна.")
+        f"строках он не помечает.\n\n"
+        + paid_stage_note())
 
 
 def _history_for(m: dict) -> Optional[dict]:
@@ -374,6 +372,38 @@ _MSK = dt.timezone(dt.timedelta(hours=3))
 # Правила приёма МПГУ 2026, разд. 6.2 (бюджет БВО/бакалавриат/специалитет).
 _MAIN_CONSENT_DEADLINE = dt.datetime(2026, 8, 5, 12, 0, tzinfo=_MSK)
 _EXTRA_CONSENT_DEADLINE = dt.datetime(2026, 8, 9, 12, 0, tzinfo=_MSK)
+# Приказы основного этапа опубликованы 7 августа. После этого «приказы будут
+# 7 августа» в будущем времени — уже не подсказка, а дезинформация.
+_MAIN_ORDERS_PUBLISHED = dt.datetime(2026, 8, 7, 14, 0, tzinfo=_MSK)
+# Платный приём идёт своим чередом и заканчивается позже бюджетного: договор
+# и оплата первого семестра до 27 августа 18:00, приказ по платникам ОДИН на
+# всех — 29 августа (Правила приёма, раздел 6).
+_PAID_CONTRACT_DEADLINE = dt.datetime(2026, 8, 27, 18, 0, tzinfo=_MSK)
+_PAID_ORDER_DATE = dt.datetime(2026, 8, 29, 0, 0, tzinfo=_MSK)
+
+
+def paid_stage_note(short: bool = False) -> str:
+    """Что сейчас происходит с платными местами.
+
+    Бюджетное зачисление закончилось, и для тех, кто не прошёл, единственный
+    живой путь — платное. Сроки там другие и позже, а из бюджетных текстов
+    этого не видно: человек читает «приказы 7 августа» и решает, что всё.
+    """
+    now = _now_msk()
+    if now >= _PAID_ORDER_DATE:
+        return ("💳 Приказ о зачислении на платные места (29 августа) "
+                "опубликован — смотрите его на mpgu.su.")
+    if now >= _PAID_CONTRACT_DEADLINE:
+        return ("💳 Приём договоров на платные места закрыт "
+                "(27 августа 18:00). Приказ — <b>29 августа</b>.")
+    if short:
+        return ("💳 <b>Идёт зачисление на платные места:</b> договор и оплата "
+                "до <b>27 августа 18:00</b>, приказ <b>29 августа</b>.")
+    return ("💳 <b>Сейчас идёт зачисление на платные места.</b>\n"
+            "Договор и оплата первого семестра — до <b>27 августа 18:00 мск</b>. "
+            "Приказ по платным местам один на всех и выходит <b>29 августа</b>, "
+            "поэтому «ещё не зачислен» до этой даты — это норма, а не отказ.\n"
+            "Обращаться в приёмную комиссию своего института.")
 
 
 def _now_msk() -> dt.datetime:
@@ -425,7 +455,12 @@ def _consent_caveat(entries: List[Dict], lists_meta_all: dict) -> str:
             share = (f" Согласие в этом списке подали {m['consented']} "
                      f"из {m['count']} (~{pct}%).")
             break
-    if _now_msk() >= _MAIN_CONSENT_DEADLINE:
+    now = _now_msk()
+    if now >= _MAIN_ORDERS_PUBLISHED:
+        return ("⚠️ <b>Приказы о зачислении на бюджет опубликованы</b> "
+                "(7 августа)." + share + " Оценка ниже — предварительная и "
+                "к приказу отношения не имеет: официальный ответ только в нём.")
+    if now >= _MAIN_CONSENT_DEADLINE:
         return ("⚠️ <b>Приём согласий на основном этапе закрыт</b> "
                 "(5 августа 12:00)." + share + " Списки ещё пересчитываются, "
                 "пока вуз обрабатывает поданные согласия, так что позиция может "
@@ -542,6 +577,11 @@ def format_positions_short(meta: Optional[dict], shard: Optional[dict],
         lines.append("Подробнее — «📋 Подробнее».")
     elif done_lists:
         lines.append(_enrollment_done_note(entries, done_lists))
+    elif any(lists_meta_all.get(e["list"], {}).get("kind") == "платное"
+             for e in entries) and _now_msk() >= _MAIN_ORDERS_PUBLISHED:
+        # У кого бюджетных списков нет вовсе, done-заметка не покажется, а
+        # сроки по платному он не знает ниоткуда: они позже бюджетных.
+        lines.append(paid_stage_note(short=True))
     budget = [e for e in entries
               if lists_meta_all.get(e["list"], {}).get("kind") == "бюджет"]
     if budget and not consented:
@@ -657,6 +697,9 @@ def format_positions(meta: Optional[dict], shard: Optional[dict], code: str) -> 
             lines.append(pred)
     elif done_lists:
         lines.append(_enrollment_done_note(entries, done_lists))
+    elif any(lists_meta_all.get(e["list"], {}).get("kind") == "платное"
+             for e in entries) and _now_msk() >= _MAIN_ORDERS_PUBLISHED:
+        lines.append(paid_stage_note())
     elif any_places:
         lines.append("⏳ Пока вы ниже черты во всех бюджетных списках. Но согласий подано "
                      "мало — расклад ещё сильно поменяется; и после приоритетного этапа "

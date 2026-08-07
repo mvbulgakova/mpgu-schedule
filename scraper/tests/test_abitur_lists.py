@@ -265,8 +265,13 @@ def test_short_format_is_compact_and_sorted_by_priority(monkeypatch):
 
 
 def test_short_format_has_consent_warning_one_liner(monkeypatch):
+    import datetime as dt
     import scraper.abitur.lists as LM
     monkeypatch.setattr(LM, "_quota_for", lambda m: None)
+    # Дату фиксируем: текст зависит от этапа кампании, и на реальных часах
+    # тест начинал падать сам собой после 5 августа.
+    monkeypatch.setattr(LM, "_now_msk",
+                        lambda: dt.datetime(2026, 8, 1, 10, 0, tzinfo=LM._MSK))
     out = L.format_positions_short(META3, SHARD3, "777")
     assert "5 августа" in out and "огласие" in out
 
@@ -666,3 +671,55 @@ def test_live_competition_is_still_simulated():
     txt = format_positions_short(_done_meta(enrolled=2), _shard_one(), "1914288")
     assert "прошли бы" in txt.lower()
     assert "места заняты" not in txt
+
+
+# ── Платный этап: он идёт дольше бюджетного и по своим срокам ─────────────────
+
+def _at(monkeypatch, day, hour=12):
+    import datetime as dt
+    import scraper.abitur.lists as LM
+    monkeypatch.setattr(LM, "_now_msk",
+                        lambda: dt.datetime(2026, 8, day, hour, tzinfo=LM._MSK))
+
+
+def test_paid_stage_names_contract_and_order_dates(monkeypatch):
+    """После бюджетных приказов единственный живой путь — платное.
+
+    Сроки там другие и позже, а из бюджетных текстов этого не видно: человек
+    читает «приказы 7 августа» и решает, что всё кончилось.
+    """
+    from scraper.abitur.lists import paid_stage_note
+    _at(monkeypatch, 8)
+    txt = paid_stage_note()
+    assert "27 августа" in txt and "29 августа" in txt
+    assert "норма, а не отказ" in txt
+
+
+def test_paid_stage_text_moves_on_after_the_contract_deadline(monkeypatch):
+    from scraper.abitur.lists import paid_stage_note
+    _at(monkeypatch, 28)
+    txt = paid_stage_note()
+    assert "закрыт" in txt and "29 августа" in txt
+    assert "Договор и оплата" not in txt
+
+
+def test_paid_stage_text_after_the_order(monkeypatch):
+    from scraper.abitur.lists import paid_stage_note
+    _at(monkeypatch, 30)
+    assert "опубликован" in paid_stage_note()
+
+
+def test_finished_budget_card_points_at_the_paid_stage(monkeypatch):
+    from scraper.abitur.lists import format_positions_short
+    _at(monkeypatch, 8)
+    txt = format_positions_short(_done_meta(), _shard_one(), "1914288")
+    assert "приказе" in txt and "7 августа" in txt
+    assert "27 августа" in txt and "29 августа" in txt
+
+
+def test_caveat_stops_promising_orders_that_already_happened(monkeypatch):
+    """«Приказы — 7 августа» в будущем времени после 7 августа дезинформирует."""
+    from scraper.abitur.lists import _consent_caveat
+    _at(monkeypatch, 8)
+    txt = _consent_caveat([], {})
+    assert "опубликованы" in txt
