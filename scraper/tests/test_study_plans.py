@@ -49,3 +49,60 @@ def test_match_plan_prefers_specific_and_base_higher(monkeypatch):
     got = SP.match_plan("44.03.01", "очная",
                         "Педагогическое образование, направленность История")
     assert SP.share_url(got).endswith("/B")       # точный профиль + базовое высшее
+
+
+# ── Устаревшие планы не должны попадать в выбор ───────────────────────────────
+
+def test_renumbered_programme_does_not_show_up_twice(monkeypatch):
+    """МПГУ перенумеровал двухпрофильные: 44.03.05 (2023) → 44.03.01 (2026).
+
+    Дедупликация шла по (код, профиль, форма), а код разный — и абитуриент
+    видел две одинаковые с виду строки «Математика и Экономика (очная)»,
+    одна из которых вела на план 2023 года по снятой с набора программе.
+    """
+    plans = [
+        {"code": "44.03.01", "napr": "Педагогическое образование",
+         "profile": "Математика и Экономика", "level": "базовое высшее образование",
+         "form": "очная", "year": "2026", "plan": "https://oc.mpgu.su/s/NEW"},
+        {"code": "44.03.05", "napr": "Педагогическое образование (с двумя профилями)",
+         "profile": "Математика и Экономика", "level": "высшее образование - бакалавриат",
+         "form": "очная", "year": "2023", "plan": "https://oc.mpgu.su/s/OLD"},
+    ]
+    monkeypatch.setattr(SP, "_PLANS", plans)
+    got = SP.find_by_text("математика экономика")
+    assert [p["code"] for p in got] == ["44.03.01"]
+
+
+def test_a_different_level_with_the_same_name_survives(monkeypatch):
+    """«Юриспруденция» есть и в СПО, и в высшем — это разные программы.
+
+    Ступень задаёт средний сегмент кода ФГОС: 02 — СПО, 03 — бакалавриат.
+    """
+    plans = [
+        {"code": "40.03.01", "napr": "Юриспруденция", "profile": "Юриспруденция",
+         "level": "базовое высшее образование", "form": "очная", "year": "2026",
+         "plan": "https://oc.mpgu.su/s/VO"},
+        {"code": "40.02.04", "napr": "Юриспруденция", "profile": "Юриспруденция",
+         "level": "Среднее профессиональное образование", "form": "очная",
+         "year": "2024", "plan": "https://oc.mpgu.su/s/SPO"},
+    ]
+    monkeypatch.setattr(SP, "_PLANS", plans)
+    assert {p["code"] for p in SP.find_by_text("юриспруденция")} == {"40.03.01",
+                                                                     "40.02.04"}
+
+
+def test_stale_year_is_shown_in_the_button(monkeypatch):
+    """Если у программы нет плана текущего набора — год виден сразу."""
+    import scraper.telegram_bot as bot
+    plans = [
+        {"code": "44.03.01", "napr": "X", "profile": "Свежая", "form": "очная",
+         "level": "базовое высшее образование", "year": "2026",
+         "plan": "https://oc.mpgu.su/s/A"},
+        {"code": "44.03.02", "napr": "X", "profile": "Старая", "form": "очная",
+         "level": "высшее образование - бакалавриат", "year": "2024",
+         "plan": "https://oc.mpgu.su/s/B"},
+    ]
+    monkeypatch.setattr(SP, "_PLANS", plans)
+    by_prof = {p["profile"]: bot._plan_label(p) for p in plans}
+    assert "2026" not in by_prof["Свежая"]
+    assert by_prof["Старая"].endswith("(очная, 2024)")

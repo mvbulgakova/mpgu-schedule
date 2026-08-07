@@ -134,8 +134,17 @@ _PLAN_PROMPT = ("Напишите <b>направление или профил�
 
 
 def _plan_label(p: dict) -> str:
-    prof = (p.get("profile") or p.get("napr") or "")[:48]
-    return f"📄 {p['code']} {prof} ({p.get('form', '')})"
+    """Подпись кнопки выбора программы.
+
+    Год показываем, только если план НЕ текущего набора: иначе человек не
+    отличает свежую программу от снятой с набора — в выборе стояли две
+    одинаковые с виду строки «Математика и Экономика (очная)», а вели они
+    на планы 2026 и 2023 годов.
+    """
+    prof = (p.get("profile") or p.get("napr") or "")[:44]
+    year = p.get("year") or ""
+    tail = f", {year}" if year and year != study_plans.latest_year() else ""
+    return f"📄 {p['code']} {prof} ({p.get('form', '')}{tail})"
 
 
 def _plan_search(query: str) -> Reply:

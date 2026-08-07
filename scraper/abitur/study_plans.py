@@ -16,7 +16,7 @@ import json
 import re
 import zipfile
 from pathlib import Path
-from typing import List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple
 
 _PATH = Path(__file__).with_name("study_plans_2026.json")
 _SEM_PATH = Path(__file__).with_name("study_plan_semesters_2026.json")
@@ -95,15 +95,16 @@ def match_plan(code: str, form: str, name: str) -> Optional[dict]:
             continue
         overlap = len(pw & nm)
         if overlap and (pw <= nm or nm <= pw):
-            # ключ: пересечение, специфичность (меньше лишних слов), свежий уровень
-            scored.append((overlap, -len(pw ^ nm), _level_rank(p["level"]), p))
+            # ключ: пересечение, специфичность (меньше лишних слов), свежий
+            # уровень, свежий год приёма
+            scored.append((overlap, -len(pw ^ nm), _level_rank(p["level"]),
+                           p.get("year") or "", p))
     if not scored:
         return None
-    scored.sort(key=lambda t: (t[0], t[1], t[2]), reverse=True)
-    if len(scored) > 1 and scored[0][:2] == scored[1][:2] and \
-            scored[0][2] == scored[1][2]:
+    scored.sort(key=lambda t: t[:4], reverse=True)
+    if len(scored) > 1 and scored[0][:4] == scored[1][:4]:
         return None                      # честно неоднозначно — не угадываем
-    return scored[0][3]
+    return scored[0][4]
 
 
 def _plan_url(plan: dict) -> str:
@@ -131,6 +132,54 @@ def share_url(plan: dict) -> str:
     return _plan_url(plan)
 
 
+def _prof_key(profile: str) -> str:
+    return re.sub(r"\s+", " ", (profile or "").lower()).strip()
+
+
+def _family(plan: dict) -> str:
+    """Ступень образования по коду ФГОС: 44.03.01 → «03».
+
+    Средний сегмент кода задан официально: 02 — СПО, 03 — бакалавриат/базовое
+    высшее, 04 — магистратура, 05 — специалитет, 06 — аспирантура. Сравнивать
+    планы имеет смысл только внутри одной ступени: «Юриспруденция» существует
+    и как 40.02.04 (СПО), и как 40.03.01 (высшее) — это разные программы, а не
+    старая и новая версии одной.
+    """
+    parts = (plan.get("code") or "").split(".")
+    return parts[1] if len(parts) > 1 else ""
+
+
+def current_plans() -> List[dict]:
+    """Планы без устаревших: по каждому профилю оставляем самый свежий год.
+
+    МПГУ перенумеровал двухпрофильные программы — то, что в 2023 году было
+    44.03.05 «высшее образование - бакалавриат», с 2026 идёт как 44.03.01
+    «базовое высшее образование». Старые планы остались в каталоге, и
+    дедупликация по (код, профиль, форма) их не убирала: код-то разный.
+    Абитуриент видел в выборе две одинаковые с виду строки «Математика и
+    Экономика (очная)» и мог открыть план 2023 года по программе, набора на
+    которую больше нет. Так задваивались 24 профиля.
+    """
+    plans = load_plans()
+    newest: Dict[tuple, str] = {}
+    for p in plans:
+        key = (_prof_key(p.get("profile") or ""), p.get("form"), _family(p))
+        year = p.get("year") or ""
+        if year > newest.get(key, ""):
+            newest[key] = year
+    out = []
+    for p in plans:
+        key = (_prof_key(p.get("profile") or ""), p.get("form"), _family(p))
+        if (p.get("year") or "") >= newest[key]:
+            out.append(p)
+    return out
+
+
+def latest_year() -> str:
+    """Самый свежий год приёма в каталоге планов."""
+    return max((p.get("year") or "" for p in load_plans()), default="")
+
+
 def find_by_text(query: str, limit: int = 6) -> List[dict]:
     """Кандидаты планов по свободному тексту (направление/профиль/код).
 
@@ -141,7 +190,7 @@ def find_by_text(query: str, limit: int = 6) -> List[dict]:
     m = re.search(r"\d\d\.\d\d\.\d\d", query or "")
     code = m.group(0) if m else None
     scored = []
-    for p in load_plans():
+    for p in current_plans():
         if code and p["code"] != code:
             continue
         hay = _words(f"{p['napr']} {p['profile']}")
