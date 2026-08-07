@@ -19,13 +19,19 @@ from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Tuple
 
 from scraper.abitur import (campaign, dialog, faq, feedback, follow, llm, lists,
-                            shansy, study_plans)
+                            orders_watch, shansy, study_plans)
 
 RUN_SECONDS = int(os.environ.get("RUN_SECONDS", "3300"))
 MAX_MSG_LEN = 1000
 # Файл подписок «следи за кодом» (переживает рестарты через actions/cache).
 SUBS_PATH = os.environ.get("SUBS_PATH", "")
 SUBS_CHECK_SECONDS = 600
+# Приказ о зачислении — единственный официальный ответ «зачислен ли я», и
+# ждут его буквально ночами. Проверяем чаще, чем позиции: страница лёгкая,
+# а опоздать здесь дороже всего.
+ORDERS_CHECK_SECONDS = int(os.environ.get("ORDERS_CHECK_SECONDS", "180"))
+# Разосланные приказы (в том же файле, что подписки — переживает рестарты).
+SEEN_ORDERS: set = set()
 # Обратная связь: файл-хранилище и chat_id администратора (для /export, /fb_stats).
 FEEDBACK_PATH = os.environ.get("FEEDBACK_PATH", "")
 ADMIN_CHAT_ID = int(os.environ.get("ADMIN_CHAT_ID", "0") or "0")
@@ -219,6 +225,85 @@ def _lookup_code(code: str, detailed: bool = False) -> Reply:
 def _save_subs():
     if SUBS_PATH:
         follow.save(SUBS_PATH, SUBS)
+
+
+_ORDERS_KEY = "__orders__"   # служебная запись в файле подписок, не чат
+
+
+def _load_seen_orders():
+    """Какие приказы уже разосланы. Хранится рядом с подписками.
+
+    Отдельного хранилища не заводим: подписки и так переживают рестарты через
+    actions/cache, а второй такой механизм — второй способ его потерять.
+    Ключ служебный и заведомо не совпадает с chat_id (те — цифры).
+    """
+    rec = SUBS.get(_ORDERS_KEY) or {}
+    SEEN_ORDERS.update(rec.get("sent") or [])
+    SEEN_ORDERS.update(orders_watch.ALREADY_PUBLISHED)
+
+
+def _save_seen_orders():
+    SUBS[_ORDERS_KEY] = {"sent": sorted(SEEN_ORDERS)}
+    _save_subs()
+
+
+def _fetch(url: str, timeout: int = 60) -> bytes:
+    req = urllib.request.Request(url, headers={"User-Agent": "MPGU-Abitur-Bot"})
+    with urllib.request.urlopen(req, timeout=timeout) as r:
+        return r.read()
+
+
+def _check_orders(token: str):
+    """Появился приказ о зачислении — разослать всем подписчикам с файлами.
+
+    Приказ ждут ночами, поэтому рассылаем сразу и всем, не разбирая, кто на
+    что подписан. Защита от повтора — список уже разосланных страниц: сюда
+    нельзя ошибиться дважды, второе такое же сообщение обесценивает первое.
+    """
+    html = _fetch(orders_watch.INDEX_PAGE, timeout=30).decode("utf-8", "replace")
+    pages = re.findall(
+        r'href="([^"]*svedenija-zachislenii-2026/zachislenie-[^"]+)"', html)
+    pages = [p if p.startswith("http") else "https://mpgu.su" + p for p in pages]
+    pages = list(dict.fromkeys(pages))
+    fresh = orders_watch.new_orders(pages, SEEN_ORDERS)
+    if not fresh:
+        return
+    print(f"check_orders: новых приказов {len(fresh)}: {fresh}", flush=True)
+    for page in fresh:
+        try:
+            sub_html = _fetch(page, timeout=30).decode("utf-8", "replace")
+            pdfs = re.findall(r'href="([^"]+\.pdf)"', sub_html, re.I)
+            pdfs = list(dict.fromkeys(pdfs))
+            files = []
+            for u in pdfs[:4]:      # больше четырёх приложений — уже свалка
+                try:
+                    files.append((_fetch(u), orders_watch.pdf_filename(u)))
+                except Exception as e:  # noqa: BLE001
+                    print(f"  не скачался {u}: {e}", flush=True)
+        except Exception as e:  # noqa: BLE001
+            print(f"check_orders: страница {page} не открылась: {e}", flush=True)
+            continue                # отметку НЕ ставим — повторим на следующем круге
+        text = orders_watch.format_notice(page, pdfs)
+        sent = 0
+        for chat in orders_watch.recipients(SUBS):
+            if chat == _ORDERS_KEY:
+                continue
+            try:
+                _send(token, int(chat), Reply(text, []))
+                for data, name in files:
+                    _send_document(token, int(chat), data, name)
+                sent += 1
+                time.sleep(0.15)    # вежливый интервал: лимиты Telegram
+            except Exception as e:  # noqa: BLE001
+                print(f"order notify error {chat}: {e}", flush=True)
+                if "403" in str(e):
+                    SUBS.pop(str(chat), None)
+        # Отмечаем ПОСЛЕ рассылки: упади мы посередине, следующий круг дошлёт
+        # остальным. Повтор части людям лучше, чем молчание для всех.
+        SEEN_ORDERS.add(page)
+        _save_seen_orders()
+        print(f"check_orders: приказ {page} разослан {sent} подписчикам, "
+              f"файлов {len(files)}", flush=True)
 
 
 def _follow_code(chat_id: int, code: str) -> Reply:
@@ -514,6 +599,8 @@ def _check_subs(token: str):
     sent_count = [0]
     changed = False
     for chat, sub in list(SUBS.items()):
+        if chat == _ORDERS_KEY:
+            continue            # служебная запись про разосланные приказы
         # Ориентир — отметка САМОГО epk25, а не время нашего обхода: обход идёт
         # каждые несколько минут и сдвигает updated_at постоянно, а списки вуз
         # пересчитывает куда реже. Людям важно именно это событие.
@@ -758,13 +845,16 @@ def main() -> int:
     _setup_profile(token)
     if SUBS_PATH:
         SUBS.update(follow.load(SUBS_PATH))
-        print(f"Подписок загружено: {len(SUBS)}")
+        print(f"Подписок загружено: {len(SUBS) - (1 if _ORDERS_KEY in SUBS else 0)}")
+    _load_seen_orders()
+    print(f"Приказов уже разослано: {len(SEEN_ORDERS)}", flush=True)
     if FEEDBACK_PATH:
         FEEDBACK.extend(feedback.load(FEEDBACK_PATH))
         print(f"Записей обратной связи: {len(FEEDBACK)}")
     deadline = time.time() + RUN_SECONDS
     offset = None
     last_subs_check = 0.0
+    last_orders_check = 0.0
     print(f"Бот запущен на {RUN_SECONDS}s")
     while time.time() < deadline:
         if time.time() - last_subs_check > SUBS_CHECK_SECONDS:
@@ -773,6 +863,12 @@ def main() -> int:
                 _check_subs(token)
             except Exception as e:
                 print(f"subs check error: {e}")
+        if time.time() - last_orders_check > ORDERS_CHECK_SECONDS:
+            last_orders_check = time.time()
+            try:
+                _check_orders(token)
+            except Exception as e:
+                print(f"orders check error: {e}")
         try:
             resp = _api(token, "getUpdates", offset=offset or "", timeout=30,
                         allowed_updates='["message","callback_query"]')
