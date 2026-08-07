@@ -290,6 +290,9 @@ def route(text: str) -> Tuple[str, str]:
     if cmd in ("/plan", "/uchebnyplan", "/plany", "/discipliny"):
         arg = t[len(t.split()[0]):].strip() if t else ""
         return ("plan", arg)
+    if cmd in ("/prohodnye", "/prohodnoy", "/ballu", "/cutoff"):
+        arg = t[len(t.split()[0]):].strip() if t else ""
+        return ("prohodnye", arg)
     if cmd in ("/follow", "/sledit"):
         arg = t[len(t.split()[0]):].strip() if t else ""
         return ("follow", arg)

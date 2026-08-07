@@ -18,8 +18,8 @@ import urllib.request
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Tuple
 
-from scraper.abitur import (campaign, dialog, faq, feedback, follow, llm, lists,
-                            orders_watch, shansy, study_plans)
+from scraper.abitur import (campaign, cutoffs, dialog, faq, feedback, follow,
+                            llm, lists, orders_watch, shansy, study_plans)
 
 RUN_SECONDS = int(os.environ.get("RUN_SECONDS", "3300"))
 MAX_MSG_LEN = 1000
@@ -52,6 +52,8 @@ FEEDBACK: List[dict] = []
 AWAITING_FEEDBACK: Dict[int, bool] = {}
 # Ожидание названия направления после /plan (учебные планы).
 AWAITING_PLAN: Dict[int, bool] = {}
+# Ожидание названия направления после «Проходные 2026».
+AWAITING_CUTOFF: Dict[int, bool] = {}
 
 
 @dataclass
@@ -86,7 +88,8 @@ def _menu_keyboard() -> List[List[Tuple[str, str]]]:
     rows.append([("🧭 Помочь выбрать направление", "open:vybor")])
     rows.append([("➕ Калькулятор баллов", "open:calc")])
     rows.append([("🧮 Подбор по ЕГЭ", "open:shansy"), ("🔎 Мои списки", "open:spisok")])
-    rows.append([("📄 Учебный план", "open:plan")])
+    rows.append([("📄 Учебный план", "open:plan"),
+                 ("📊 Проходные 2026", "open:cutoff")])
     rows.append([("🔔 Обновление списков", "u:1")])
     return rows
 
@@ -410,6 +413,11 @@ def _handle_message(chat_id: int, text: str) -> Reply:
         AWAITING_PLAN.pop(chat_id, None)
         return _plan_search(text)
 
+    # 6) ожидаем название направления после «Проходные 2026»
+    if AWAITING_CUTOFF.get(chat_id) and text and not text.startswith("/"):
+        AWAITING_CUTOFF.pop(chat_id, None)
+        return Reply(cutoffs.format_results(cutoffs.find(text), text), [])
+
     intent, payload = faq.route(text)
     if intent in ("start", "help"):
         return Reply(_GREETING, _menu_keyboard(), is_menu=True)
@@ -448,6 +456,11 @@ def _handle_message(chat_id: int, text: str) -> Reply:
             return _plan_search(payload)
         AWAITING_PLAN[chat_id] = True
         return Reply(_PLAN_PROMPT, [])
+    if intent == "prohodnye":
+        if payload:
+            return Reply(cutoffs.format_results(cutoffs.find(payload), payload), [])
+        AWAITING_CUTOFF[chat_id] = True
+        return Reply(cutoffs.format_extremes(), [])
     if intent == "otzyv":
         return _otzyv(chat_id, payload)
     if intent == "myid":
@@ -498,7 +511,11 @@ def _handle_callback(chat_id: int, data: str) -> Reply:
         AWAITING_CODE.pop(chat_id, None)
         AWAITING_SCORES.pop(chat_id, None)
         AWAITING_PLAN.pop(chat_id, None)
+        AWAITING_CUTOFF.pop(chat_id, None)
         return Reply("Выберите тему:", _menu_keyboard(), is_menu=True)
+    if data == "open:cutoff":
+        AWAITING_CUTOFF[chat_id] = True
+        return Reply(cutoffs.format_extremes(), [])
     if data == "open:plan":
         AWAITING_PLAN[chat_id] = True
         return Reply(_PLAN_PROMPT, [])
@@ -702,6 +719,7 @@ _BOT_COMMANDS = [
     {"command": "shansy", "description": "подбор программ по баллам ЕГЭ"},
     {"command": "vybor", "description": "консультация по выбору направления"},
     {"command": "plan", "description": "учебный план (дисциплины) по направлению"},
+    {"command": "prohodnye", "description": "проходные баллы 2026 по направлениям"},
     {"command": "bally", "description": "калькулятор доп. баллов"},
     {"command": "sroki", "description": "сроки и ближайшие дедлайны"},
     {"command": "help", "description": "помощь"},
