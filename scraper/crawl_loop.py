@@ -22,6 +22,40 @@ import time
 import traceback
 
 
+def run_loop(step, seconds: int, interval: int) -> int:
+    """Вызывать step() не чаще раза в interval, пока не выйдет seconds.
+
+    Вынесено из main, потому что тем же циклом живёт scraper/dispatch_loop.py:
+    форма («долгий прогон вместо расписания») одна, отличается только то, что
+    делают внутри — обходят сами или поднимают сегментированный обход.
+    """
+    deadline = time.time() + seconds
+    cycle = 0
+    print(f"Цикл запущен на {seconds}s, шаг не чаще чем раз в {interval}s",
+          flush=True)
+    while time.time() < deadline:
+        cycle += 1
+        started = time.time()
+        print(f"\n=== проход {cycle} ===", flush=True)
+        try:
+            step()
+        except Exception:  # noqa: BLE001
+            # Один неудачный проход не повод останавливать обновления на часы.
+            print("Проход упал, продолжаю цикл:", flush=True)
+            traceback.print_exc()
+        spent = time.time() - started
+        left = deadline - time.time()
+        if left <= 0:
+            break
+        nap = max(0.0, min(interval - spent, left))
+        if nap:
+            print(f"Проход занял {spent:.0f}s, сплю {nap:.0f}s "
+                  f"(до конца {left / 60:.0f} мин)", flush=True)
+            time.sleep(nap)
+    print(f"Цикл завершён, проходов: {cycle}", flush=True)
+    return 0
+
+
 def main(argv=None) -> int:
     p = argparse.ArgumentParser()
     p.add_argument("--seconds", type=int,
@@ -33,32 +67,7 @@ def main(argv=None) -> int:
     args = p.parse_args(argv)
 
     from scraper.build_lists_index import main as build_once
-
-    deadline = time.time() + args.seconds
-    cycle = 0
-    print(f"Цикл обновлений запущен на {args.seconds}s, "
-          f"проход не чаще чем раз в {args.interval}s", flush=True)
-    while time.time() < deadline:
-        cycle += 1
-        started = time.time()
-        print(f"\n=== проход {cycle} ===", flush=True)
-        try:
-            build_once()
-        except Exception:  # noqa: BLE001
-            # Один неудачный проход не повод останавливать обновления на часы.
-            print("Проход упал, продолжаю цикл:", flush=True)
-            traceback.print_exc()
-        spent = time.time() - started
-        left = deadline - time.time()
-        if left <= 0:
-            break
-        nap = max(0.0, min(args.interval - spent, left))
-        if nap:
-            print(f"Проход занял {spent:.0f}s, сплю {nap:.0f}s "
-                  f"(до конца {left / 60:.0f} мин)", flush=True)
-            time.sleep(nap)
-    print(f"Цикл завершён, проходов: {cycle}", flush=True)
-    return 0
+    return run_loop(build_once, args.seconds, args.interval)
 
 
 if __name__ == "__main__":
