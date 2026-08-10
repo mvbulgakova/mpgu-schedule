@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-08-10T05:07:48+03:00",
+  "updated_at": "2026-08-10T05:22:22+03:00",
   "codes": {
     "966919": [
       {
@@ -563,6 +563,44 @@
         "vpp": false
       }
     ],
+    "965668": [
+      {
+        "list": "000000398",
+        "position": 110,
+        "score_total": 191,
+        "consent": true,
+        "priority_pz": 2,
+        "bvi": false,
+        "status": "",
+        "vpp": false,
+        "cons_above": 84,
+        "vpp_above": 0,
+        "sim_above": 17
+      },
+      {
+        "list": "000000422",
+        "position": 39,
+        "score_total": 191,
+        "consent": true,
+        "priority_pz": 1,
+        "bvi": false,
+        "status": "",
+        "vpp": false,
+        "cons_above": 21,
+        "vpp_above": 0,
+        "sim_above": 0
+      },
+      {
+        "list": "000000425",
+        "position": 11,
+        "score_total": 191,
+        "consent": false,
+        "priority_pz": 1,
+        "bvi": false,
+        "status": "Участвует в конкурсе",
+        "vpp": false
+      }
+    ],
     "961226": [
       {
         "list": "000000440",
@@ -601,44 +639,6 @@
         "list": "000000379",
         "position": 2,
         "score_total": 257,
-        "consent": false,
-        "priority_pz": 1,
-        "bvi": false,
-        "status": "Участвует в конкурсе",
-        "vpp": false
-      }
-    ],
-    "965668": [
-      {
-        "list": "000000398",
-        "position": 110,
-        "score_total": 191,
-        "consent": true,
-        "priority_pz": 2,
-        "bvi": false,
-        "status": "",
-        "vpp": false,
-        "cons_above": 84,
-        "vpp_above": 0,
-        "sim_above": 17
-      },
-      {
-        "list": "000000422",
-        "position": 39,
-        "score_total": 191,
-        "consent": true,
-        "priority_pz": 1,
-        "bvi": false,
-        "status": "",
-        "vpp": false,
-        "cons_above": 21,
-        "vpp_above": 0,
-        "sim_above": 0
-      },
-      {
-        "list": "000000425",
-        "position": 11,
-        "score_total": 191,
         "consent": false,
         "priority_pz": 1,
         "bvi": false,
@@ -892,19 +892,6 @@
         "sim_above": 0
       },
       {
-        "list": "000000734",
-        "position": 28,
-        "score_total": 287,
-        "consent": true,
-        "priority_pz": 6,
-        "bvi": false,
-        "status": "",
-        "vpp": false,
-        "cons_above": 5,
-        "vpp_above": 0,
-        "sim_above": 0
-      },
-      {
         "list": "000000706",
         "position": 14,
         "score_total": 287,
@@ -914,6 +901,19 @@
         "status": "",
         "vpp": false,
         "cons_above": 3,
+        "vpp_above": 0,
+        "sim_above": 0
+      },
+      {
+        "list": "000000734",
+        "position": 28,
+        "score_total": 287,
+        "consent": true,
+        "priority_pz": 6,
+        "bvi": false,
+        "status": "",
+        "vpp": false,
+        "cons_above": 5,
         "vpp_above": 0,
         "sim_above": 0
       }
@@ -1380,16 +1380,6 @@
         "vpp": false
       },
       {
-        "list": "000000535",
-        "position": 789,
-        "score_total": 226,
-        "consent": false,
-        "priority_pz": 2,
-        "bvi": false,
-        "status": "Участвует в конкурсе",
-        "vpp": false
-      },
-      {
         "list": "000000562",
         "position": 75,
         "score_total": 244,
@@ -1398,6 +1388,16 @@
         "bvi": false,
         "status": "Участвует в конкурсе",
         "vpp": true
+      },
+      {
+        "list": "000000535",
+        "position": 789,
+        "score_total": 226,
+        "consent": false,
+        "priority_pz": 2,
+        "bvi": false,
+        "status": "Участвует в конкурсе",
+        "vpp": false
       },
       {
         "list": "000000584",
@@ -1439,16 +1439,6 @@
         "sim_above": 20
       },
       {
-        "list": "000000587",
-        "position": 508,
-        "score_total": 226,
-        "consent": false,
-        "priority_pz": 5,
-        "bvi": false,
-        "status": "Участвует в конкурсе",
-        "vpp": false
-      },
-      {
         "list": "000000496",
         "position": 1573,
         "score_total": 226,
@@ -1460,6 +1450,16 @@
         "cons_above": 365,
         "vpp_above": 2,
         "sim_above": 2
+      },
+      {
+        "list": "000000587",
+        "position": 508,
+        "score_total": 226,
+        "consent": false,
+        "priority_pz": 5,
+        "bvi": false,
+        "status": "Участвует в конкурсе",
+        "vpp": false
       },
       {
         "list": "000000511",
@@ -1716,6 +1716,19 @@
         "vpp": false
       },
       {
+        "list": "000000690",
+        "position": 205,
+        "score_total": 258,
+        "consent": false,
+        "priority_pz": 3,
+        "bvi": false,
+        "status": "",
+        "vpp": false,
+        "cons_above": 61,
+        "vpp_above": 0,
+        "sim_above": 0
+      },
+      {
         "list": "000000644",
         "position": 388,
         "score_total": 258,
@@ -1737,19 +1750,6 @@
         "bvi": false,
         "status": "Участвует в конкурсе",
         "vpp": false
-      },
-      {
-        "list": "000000690",
-        "position": 205,
-        "score_total": 258,
-        "consent": false,
-        "priority_pz": 3,
-        "bvi": false,
-        "status": "",
-        "vpp": false,
-        "cons_above": 61,
-        "vpp_above": 0,
-        "sim_above": 0
       },
       {
         "list": "000000718",
@@ -1791,21 +1791,21 @@
         "sim_above": 0
       },
       {
-        "list": "000000647",
-        "position": 71,
-        "score_total": 258,
-        "consent": false,
-        "priority_pz": 6,
-        "bvi": false,
-        "status": "Участвует в конкурсе",
-        "vpp": false
-      },
-      {
         "list": "000000721",
         "position": 47,
         "score_total": 258,
         "consent": false,
         "priority_pz": 3,
+        "bvi": false,
+        "status": "Участвует в конкурсе",
+        "vpp": false
+      },
+      {
+        "list": "000000647",
+        "position": 71,
+        "score_total": 258,
+        "consent": false,
+        "priority_pz": 6,
         "bvi": false,
         "status": "Участвует в конкурсе",
         "vpp": false
@@ -1879,19 +1879,6 @@
         "vpp": false
       },
       {
-        "list": "000000672",
-        "position": 76,
-        "score_total": 252,
-        "consent": false,
-        "priority_pz": 4,
-        "bvi": false,
-        "status": "",
-        "vpp": false,
-        "cons_above": 26,
-        "vpp_above": 0,
-        "sim_above": 0
-      },
-      {
         "list": "000000608",
         "position": 237,
         "score_total": 252,
@@ -1901,6 +1888,19 @@
         "status": "",
         "vpp": false,
         "cons_above": 81,
+        "vpp_above": 0,
+        "sim_above": 0
+      },
+      {
+        "list": "000000672",
+        "position": 76,
+        "score_total": 252,
+        "consent": false,
+        "priority_pz": 4,
+        "bvi": false,
+        "status": "",
+        "vpp": false,
+        "cons_above": 26,
         "vpp_above": 0,
         "sim_above": 0
       },
@@ -1998,19 +1998,6 @@
         "sim_above": 2
       },
       {
-        "list": "000000700",
-        "position": 686,
-        "score_total": 252,
-        "consent": false,
-        "priority_pz": 7,
-        "bvi": false,
-        "status": "",
-        "vpp": false,
-        "cons_above": 200,
-        "vpp_above": 0,
-        "sim_above": 2
-      },
-      {
         "list": "000000744",
         "position": 86,
         "score_total": 252,
@@ -2022,6 +2009,19 @@
         "cons_above": 24,
         "vpp_above": 0,
         "sim_above": 0
+      },
+      {
+        "list": "000000700",
+        "position": 686,
+        "score_total": 252,
+        "consent": false,
+        "priority_pz": 7,
+        "bvi": false,
+        "status": "",
+        "vpp": false,
+        "cons_above": 200,
+        "vpp_above": 0,
+        "sim_above": 2
       },
       {
         "list": "000000718",
@@ -2191,16 +2191,6 @@
         "sim_above": 4
       },
       {
-        "list": "000000517",
-        "position": 1445,
-        "score_total": 195,
-        "consent": false,
-        "priority_pz": 1,
-        "bvi": false,
-        "status": "Участвует в конкурсе",
-        "vpp": false
-      },
-      {
         "list": "000000532",
         "position": 2473,
         "score_total": 195,
@@ -2212,6 +2202,16 @@
         "cons_above": 468,
         "vpp_above": 0,
         "sim_above": 6
+      },
+      {
+        "list": "000000517",
+        "position": 1445,
+        "score_total": 195,
+        "consent": false,
+        "priority_pz": 1,
+        "bvi": false,
+        "status": "Участвует в конкурсе",
+        "vpp": false
       },
       {
         "list": "000000573",
@@ -2247,16 +2247,6 @@
         "vpp": false
       },
       {
-        "list": "000000535",
-        "position": 1350,
-        "score_total": 195,
-        "consent": false,
-        "priority_pz": 6,
-        "bvi": false,
-        "status": "Участвует в конкурсе",
-        "vpp": false
-      },
-      {
         "list": "000000520",
         "position": 3123,
         "score_total": 195,
@@ -2268,6 +2258,16 @@
         "cons_above": 621,
         "vpp_above": 0,
         "sim_above": 7
+      },
+      {
+        "list": "000000535",
+        "position": 1350,
+        "score_total": 195,
+        "consent": false,
+        "priority_pz": 6,
+        "bvi": false,
+        "status": "Участвует в конкурсе",
+        "vpp": false
       },
       {
         "list": "000000584",
@@ -2306,6 +2306,19 @@
         "vpp": false
       },
       {
+        "list": "000000496",
+        "position": 2245,
+        "score_total": 195,
+        "consent": true,
+        "priority_pz": 6,
+        "bvi": false,
+        "status": "",
+        "vpp": false,
+        "cons_above": 531,
+        "vpp_above": 2,
+        "sim_above": 2
+      },
+      {
         "list": "000000523",
         "position": 1808,
         "score_total": 195,
@@ -2324,19 +2337,6 @@
         "bvi": false,
         "status": "Участвует в конкурсе",
         "vpp": false
-      },
-      {
-        "list": "000000496",
-        "position": 2245,
-        "score_total": 195,
-        "consent": true,
-        "priority_pz": 6,
-        "bvi": false,
-        "status": "",
-        "vpp": false,
-        "cons_above": 531,
-        "vpp_above": 2,
-        "sim_above": 2
       },
       {
         "list": "000000666",
@@ -2510,16 +2510,6 @@
         "vpp": false
       },
       {
-        "list": "000000728",
-        "position": 104,
-        "score_total": 182,
-        "consent": false,
-        "priority_pz": 9,
-        "bvi": false,
-        "status": "",
-        "vpp": false
-      },
-      {
         "list": "000000608",
         "position": 1011,
         "score_total": 182,
@@ -2531,6 +2521,16 @@
         "cons_above": 217,
         "vpp_above": 0,
         "sim_above": 15
+      },
+      {
+        "list": "000000728",
+        "position": 104,
+        "score_total": 182,
+        "consent": false,
+        "priority_pz": 9,
+        "bvi": false,
+        "status": "",
+        "vpp": false
       },
       {
         "list": "000000461",
@@ -2651,19 +2651,6 @@
         "vpp": false
       },
       {
-        "list": "000000734",
-        "position": 626,
-        "score_total": 182,
-        "consent": false,
-        "priority_pz": 10,
-        "bvi": false,
-        "status": "",
-        "vpp": false,
-        "cons_above": 104,
-        "vpp_above": 0,
-        "sim_above": 13
-      },
-      {
         "list": "000000706",
         "position": 773,
         "score_total": 182,
@@ -2675,6 +2662,19 @@
         "cons_above": 199,
         "vpp_above": 0,
         "sim_above": 20
+      },
+      {
+        "list": "000000734",
+        "position": 626,
+        "score_total": 182,
+        "consent": false,
+        "priority_pz": 10,
+        "bvi": false,
+        "status": "",
+        "vpp": false,
+        "cons_above": 104,
+        "vpp_above": 0,
+        "sim_above": 13
       },
       {
         "list": "000000935",
@@ -3073,16 +3073,6 @@
         "vpp": false
       },
       {
-        "list": "000000587",
-        "position": 1181,
-        "score_total": 165,
-        "consent": false,
-        "priority_pz": 3,
-        "bvi": false,
-        "status": "Участвует в конкурсе",
-        "vpp": false
-      },
-      {
         "list": "000000496",
         "position": 2564,
         "score_total": 165,
@@ -3094,6 +3084,16 @@
         "cons_above": 624,
         "vpp_above": 2,
         "sim_above": 2
+      },
+      {
+        "list": "000000587",
+        "position": 1181,
+        "score_total": 165,
+        "consent": false,
+        "priority_pz": 3,
+        "bvi": false,
+        "status": "Участвует в конкурсе",
+        "vpp": false
       },
       {
         "list": "000000666",
@@ -3121,730 +3121,6 @@
         "score_total": 165,
         "consent": false,
         "priority_pz": 4,
-        "bvi": false,
-        "status": "Участвует в конкурсе",
-        "vpp": false
-      }
-    ],
-    "965349": [
-      {
-        "list": "000000590",
-        "position": 193,
-        "score_total": 250,
-        "consent": true,
-        "priority_pz": 5,
-        "bvi": false,
-        "status": "",
-        "vpp": false,
-        "cons_above": 54,
-        "vpp_above": 0,
-        "sim_above": 0
-      },
-      {
-        "list": "000000620",
-        "position": 133,
-        "score_total": 250,
-        "consent": true,
-        "priority_pz": 2,
-        "bvi": false,
-        "status": "",
-        "vpp": false,
-        "cons_above": 65,
-        "vpp_above": 0,
-        "sim_above": 0
-      },
-      {
-        "list": "000000918",
-        "position": 170,
-        "score_total": 250,
-        "consent": true,
-        "priority_pz": 4,
-        "bvi": false,
-        "status": "",
-        "vpp": false,
-        "cons_above": 60,
-        "vpp_above": 0,
-        "sim_above": 1
-      },
-      {
-        "list": "000000602",
-        "position": 292,
-        "score_total": 250,
-        "consent": true,
-        "priority_pz": 1,
-        "bvi": false,
-        "status": "",
-        "vpp": false,
-        "cons_above": 118,
-        "vpp_above": 0,
-        "sim_above": 0
-      },
-      {
-        "list": "000000616",
-        "position": 142,
-        "score_total": 250,
-        "consent": true,
-        "priority_pz": 3,
-        "bvi": false,
-        "status": "",
-        "vpp": false,
-        "cons_above": 33,
-        "vpp_above": 0,
-        "sim_above": 0
-      }
-    ],
-    "962110": [
-      {
-        "list": "000000590",
-        "position": 403,
-        "score_total": 229,
-        "consent": false,
-        "priority_pz": 4,
-        "bvi": false,
-        "status": "",
-        "vpp": false,
-        "cons_above": 113,
-        "vpp_above": 0,
-        "sim_above": 3
-      },
-      {
-        "list": "000000356",
-        "position": 169,
-        "score_total": 229,
-        "consent": false,
-        "priority_pz": 5,
-        "bvi": false,
-        "status": "",
-        "vpp": false,
-        "cons_above": 84,
-        "vpp_above": 0,
-        "sim_above": 7
-      },
-      {
-        "list": "000000344",
-        "position": 314,
-        "score_total": 229,
-        "consent": false,
-        "priority_pz": 1,
-        "bvi": false,
-        "status": "",
-        "vpp": false,
-        "cons_above": 128,
-        "vpp_above": 0,
-        "sim_above": 2
-      },
-      {
-        "list": "000000616",
-        "position": 293,
-        "score_total": 229,
-        "consent": false,
-        "priority_pz": 3,
-        "bvi": false,
-        "status": "",
-        "vpp": false,
-        "cons_above": 65,
-        "vpp_above": 0,
-        "sim_above": 0
-      },
-      {
-        "list": "000000338",
-        "position": 313,
-        "score_total": 229,
-        "consent": false,
-        "priority_pz": 2,
-        "bvi": false,
-        "status": "",
-        "vpp": false,
-        "cons_above": 135,
-        "vpp_above": 0,
-        "sim_above": 0
-      }
-    ],
-    "963016": [
-      {
-        "list": "000000590",
-        "position": 411,
-        "score_total": 228,
-        "consent": false,
-        "priority_pz": 1,
-        "bvi": false,
-        "status": "",
-        "vpp": false,
-        "cons_above": 113,
-        "vpp_above": 0,
-        "sim_above": 3
-      },
-      {
-        "list": "000000605",
-        "position": 165,
-        "score_total": 228,
-        "consent": false,
-        "priority_pz": 2,
-        "bvi": false,
-        "status": "Участвует в конкурсе",
-        "vpp": false
-      },
-      {
-        "list": "000000620",
-        "position": 294,
-        "score_total": 228,
-        "consent": false,
-        "priority_pz": 2,
-        "bvi": false,
-        "status": "",
-        "vpp": false,
-        "cons_above": 128,
-        "vpp_above": 0,
-        "sim_above": 15
-      },
-      {
-        "list": "000000623",
-        "position": 125,
-        "score_total": 228,
-        "consent": false,
-        "priority_pz": 4,
-        "bvi": false,
-        "status": "Участвует в конкурсе",
-        "vpp": false
-      },
-      {
-        "list": "000000596",
-        "position": 291,
-        "score_total": 228,
-        "consent": false,
-        "priority_pz": 5,
-        "bvi": false,
-        "status": "",
-        "vpp": false,
-        "cons_above": 100,
-        "vpp_above": 0,
-        "sim_above": 7
-      },
-      {
-        "list": "000000332",
-        "position": 208,
-        "score_total": 223,
-        "consent": false,
-        "priority_pz": 4,
-        "bvi": false,
-        "status": "",
-        "vpp": false,
-        "cons_above": 48,
-        "vpp_above": 0,
-        "sim_above": 2
-      },
-      {
-        "list": "000000599",
-        "position": 149,
-        "score_total": 228,
-        "consent": false,
-        "priority_pz": 5,
-        "bvi": false,
-        "status": "Участвует в конкурсе",
-        "vpp": false
-      },
-      {
-        "list": "000000614",
-        "position": 158,
-        "score_total": 228,
-        "consent": false,
-        "priority_pz": 3,
-        "bvi": false,
-        "status": "Участвует в конкурсе",
-        "vpp": false
-      },
-      {
-        "list": "000000335",
-        "position": 65,
-        "score_total": 223,
-        "consent": false,
-        "priority_pz": 6,
-        "bvi": false,
-        "status": "Участвует в конкурсе",
-        "vpp": false
-      },
-      {
-        "list": "000000602",
-        "position": 719,
-        "score_total": 228,
-        "consent": false,
-        "priority_pz": 3,
-        "bvi": false,
-        "status": "",
-        "vpp": false,
-        "cons_above": 271,
-        "vpp_above": 0,
-        "sim_above": 2
-      },
-      {
-        "list": "000001411",
-        "position": 153,
-        "score_total": 228,
-        "consent": false,
-        "priority_pz": 1,
-        "bvi": false,
-        "status": "Участвует в конкурсе",
-        "vpp": false
-      }
-    ],
-    "964748": [
-      {
-        "list": "000000590",
-        "position": 471,
-        "score_total": 223,
-        "consent": false,
-        "priority_pz": 1,
-        "bvi": false,
-        "status": "",
-        "vpp": false,
-        "cons_above": 120,
-        "vpp_above": 0,
-        "sim_above": 3
-      },
-      {
-        "list": "000000605",
-        "position": 202,
-        "score_total": 223,
-        "consent": false,
-        "priority_pz": 4,
-        "bvi": false,
-        "status": "Участвует в конкурсе",
-        "vpp": false
-      },
-      {
-        "list": "000000596",
-        "position": 332,
-        "score_total": 223,
-        "consent": false,
-        "priority_pz": 2,
-        "bvi": false,
-        "status": "",
-        "vpp": false,
-        "cons_above": 107,
-        "vpp_above": 0,
-        "sim_above": 8
-      },
-      {
-        "list": "000000599",
-        "position": 175,
-        "score_total": 223,
-        "consent": false,
-        "priority_pz": 1,
-        "bvi": false,
-        "status": "Участвует в конкурсе",
-        "vpp": false
-      },
-      {
-        "list": "000000614",
-        "position": 186,
-        "score_total": 223,
-        "consent": false,
-        "priority_pz": 3,
-        "bvi": false,
-        "status": "Участвует в конкурсе",
-        "vpp": false
-      },
-      {
-        "list": "000000602",
-        "position": 838,
-        "score_total": 223,
-        "consent": false,
-        "priority_pz": 3,
-        "bvi": false,
-        "status": "",
-        "vpp": false,
-        "cons_above": 304,
-        "vpp_above": 0,
-        "sim_above": 3
-      },
-      {
-        "list": "000000616",
-        "position": 337,
-        "score_total": 223,
-        "consent": false,
-        "priority_pz": 4,
-        "bvi": false,
-        "status": "",
-        "vpp": false,
-        "cons_above": 72,
-        "vpp_above": 0,
-        "sim_above": 2
-      },
-      {
-        "list": "000001411",
-        "position": 185,
-        "score_total": 223,
-        "consent": false,
-        "priority_pz": 2,
-        "bvi": false,
-        "status": "Участвует в конкурсе",
-        "vpp": false
-      }
-    ],
-    "965480": [
-      {
-        "list": "000000590",
-        "position": 725,
-        "score_total": 203,
-        "consent": false,
-        "priority_pz": 7,
-        "bvi": false,
-        "status": "",
-        "vpp": false,
-        "cons_above": 163,
-        "vpp_above": 0,
-        "sim_above": 6
-      },
-      {
-        "list": "000000620",
-        "position": 524,
-        "score_total": 203,
-        "consent": false,
-        "priority_pz": 1,
-        "bvi": false,
-        "status": "",
-        "vpp": false,
-        "cons_above": 182,
-        "vpp_above": 0,
-        "sim_above": 19
-      },
-      {
-        "list": "000000356",
-        "position": 269,
-        "score_total": 203,
-        "consent": false,
-        "priority_pz": 9,
-        "bvi": false,
-        "status": "",
-        "vpp": false,
-        "cons_above": 109,
-        "vpp_above": 0,
-        "sim_above": 17
-      },
-      {
-        "list": "000000596",
-        "position": 519,
-        "score_total": 203,
-        "consent": false,
-        "priority_pz": 6,
-        "bvi": false,
-        "status": "",
-        "vpp": false,
-        "cons_above": 134,
-        "vpp_above": 0,
-        "sim_above": 19
-      },
-      {
-        "list": "000000344",
-        "position": 525,
-        "score_total": 203,
-        "consent": false,
-        "priority_pz": 10,
-        "bvi": false,
-        "status": "",
-        "vpp": false,
-        "cons_above": 183,
-        "vpp_above": 0,
-        "sim_above": 19
-      },
-      {
-        "list": "000000930",
-        "position": 441,
-        "score_total": 203,
-        "consent": false,
-        "priority_pz": 4,
-        "bvi": false,
-        "status": "",
-        "vpp": false,
-        "cons_above": 138,
-        "vpp_above": 0,
-        "sim_above": 6
-      },
-      {
-        "list": "000000320",
-        "position": 346,
-        "score_total": 203,
-        "consent": false,
-        "priority_pz": 3,
-        "bvi": false,
-        "status": "",
-        "vpp": false,
-        "cons_above": 138,
-        "vpp_above": 1,
-        "sim_above": 1
-      },
-      {
-        "list": "000000918",
-        "position": 855,
-        "score_total": 203,
-        "consent": false,
-        "priority_pz": 8,
-        "bvi": false,
-        "status": "",
-        "vpp": false,
-        "cons_above": 245,
-        "vpp_above": 1,
-        "sim_above": 1
-      },
-      {
-        "list": "000000362",
-        "position": 310,
-        "score_total": 203,
-        "consent": false,
-        "priority_pz": 12,
-        "bvi": false,
-        "status": "",
-        "vpp": false,
-        "cons_above": 134,
-        "vpp_above": 0,
-        "sim_above": 8
-      },
-      {
-        "list": "000000602",
-        "position": 1275,
-        "score_total": 203,
-        "consent": false,
-        "priority_pz": 2,
-        "bvi": false,
-        "status": "",
-        "vpp": false,
-        "cons_above": 406,
-        "vpp_above": 0,
-        "sim_above": 14
-      },
-      {
-        "list": "000000616",
-        "position": 510,
-        "score_total": 203,
-        "consent": false,
-        "priority_pz": 5,
-        "bvi": false,
-        "status": "",
-        "vpp": false,
-        "cons_above": 97,
-        "vpp_above": 0,
-        "sim_above": 3
-      },
-      {
-        "list": "000000338",
-        "position": 520,
-        "score_total": 203,
-        "consent": false,
-        "priority_pz": 13,
-        "bvi": false,
-        "status": "",
-        "vpp": false,
-        "cons_above": 189,
-        "vpp_above": 1,
-        "sim_above": 1
-      },
-      {
-        "list": "000000350",
-        "position": 635,
-        "score_total": 203,
-        "consent": false,
-        "priority_pz": 11,
-        "bvi": false,
-        "status": "",
-        "vpp": false,
-        "cons_above": 222,
-        "vpp_above": 0,
-        "sim_above": 6
-      }
-    ],
-    "966062": [
-      {
-        "list": "000000590",
-        "position": 929,
-        "score_total": 187,
-        "consent": true,
-        "priority_pz": 1,
-        "bvi": false,
-        "status": "",
-        "vpp": false,
-        "cons_above": 194,
-        "vpp_above": 0,
-        "sim_above": 16
-      },
-      {
-        "list": "000000596",
-        "position": 658,
-        "score_total": 187,
-        "consent": true,
-        "priority_pz": 2,
-        "bvi": false,
-        "status": "",
-        "vpp": false,
-        "cons_above": 158,
-        "vpp_above": 0,
-        "sim_above": 19
-      },
-      {
-        "list": "000000599",
-        "position": 402,
-        "score_total": 187,
-        "consent": false,
-        "priority_pz": 2,
-        "bvi": false,
-        "status": "Участвует в конкурсе",
-        "vpp": false
-      },
-      {
-        "list": "000000614",
-        "position": 472,
-        "score_total": 187,
-        "consent": false,
-        "priority_pz": 3,
-        "bvi": false,
-        "status": "Участвует в конкурсе",
-        "vpp": false
-      },
-      {
-        "list": "000000616",
-        "position": 649,
-        "score_total": 187,
-        "consent": true,
-        "priority_pz": 3,
-        "bvi": false,
-        "status": "",
-        "vpp": false,
-        "cons_above": 118,
-        "vpp_above": 0,
-        "sim_above": 3
-      },
-      {
-        "list": "000001411",
-        "position": 487,
-        "score_total": 187,
-        "consent": false,
-        "priority_pz": 1,
-        "bvi": false,
-        "status": "Участвует в конкурсе",
-        "vpp": true
-      }
-    ],
-    "963492": [
-      {
-        "list": "000000590",
-        "position": 1258,
-        "score_total": 156,
-        "consent": true,
-        "priority_pz": 3,
-        "bvi": false,
-        "status": "",
-        "vpp": false,
-        "cons_above": 274,
-        "vpp_above": 0,
-        "sim_above": 16
-      },
-      {
-        "list": "000000605",
-        "position": 869,
-        "score_total": 156,
-        "consent": false,
-        "priority_pz": 1,
-        "bvi": false,
-        "status": "Участвует в конкурсе",
-        "vpp": false
-      },
-      {
-        "list": "000000620",
-        "position": 838,
-        "score_total": 156,
-        "consent": true,
-        "priority_pz": 5,
-        "bvi": false,
-        "status": "",
-        "vpp": false,
-        "cons_above": 245,
-        "vpp_above": 0,
-        "sim_above": 19
-      },
-      {
-        "list": "000000623",
-        "position": 478,
-        "score_total": 156,
-        "consent": false,
-        "priority_pz": 5,
-        "bvi": false,
-        "status": "Участвует в конкурсе",
-        "vpp": false
-      },
-      {
-        "list": "000000596",
-        "position": 878,
-        "score_total": 156,
-        "consent": true,
-        "priority_pz": 2,
-        "bvi": false,
-        "status": "",
-        "vpp": false,
-        "cons_above": 219,
-        "vpp_above": 0,
-        "sim_above": 19
-      },
-      {
-        "list": "000000599",
-        "position": 639,
-        "score_total": 156,
-        "consent": false,
-        "priority_pz": 2,
-        "bvi": false,
-        "status": "Участвует в конкурсе",
-        "vpp": true
-      },
-      {
-        "list": "000000916",
-        "position": 311,
-        "score_total": 156,
-        "consent": false,
-        "priority_pz": 6,
-        "bvi": false,
-        "status": "Участвует в конкурсе",
-        "vpp": false
-      },
-      {
-        "list": "000000918",
-        "position": 1363,
-        "score_total": 156,
-        "consent": true,
-        "priority_pz": 4,
-        "bvi": false,
-        "status": "",
-        "vpp": false,
-        "cons_above": 346,
-        "vpp_above": 1,
-        "sim_above": 1
-      },
-      {
-        "list": "000000602",
-        "position": 1998,
-        "score_total": 156,
-        "consent": true,
-        "priority_pz": 1,
-        "bvi": false,
-        "status": "",
-        "vpp": false,
-        "cons_above": 557,
-        "vpp_above": 0,
-        "sim_above": 80
-      },
-      {
-        "list": "000000921",
-        "position": 523,
-        "score_total": 156,
-        "consent": false,
-        "priority_pz": 4,
-        "bvi": false,
-        "status": "Участвует в конкурсе",
-        "vpp": false
-      },
-      {
-        "list": "000001411",
-        "position": 810,
-        "score_total": 156,
-        "consent": false,
-        "priority_pz": 3,
         "bvi": false,
         "status": "Участвует в конкурсе",
         "vpp": false
@@ -3908,19 +3184,6 @@
         "sim_above": 0
       },
       {
-        "list": "000000700",
-        "position": 596,
-        "score_total": 255,
-        "consent": true,
-        "priority_pz": 3,
-        "bvi": false,
-        "status": "",
-        "vpp": false,
-        "cons_above": 175,
-        "vpp_above": 0,
-        "sim_above": 2
-      },
-      {
         "list": "000000744",
         "position": 73,
         "score_total": 255,
@@ -3934,6 +3197,19 @@
         "sim_above": 0
       },
       {
+        "list": "000000700",
+        "position": 596,
+        "score_total": 255,
+        "consent": true,
+        "priority_pz": 3,
+        "bvi": false,
+        "status": "",
+        "vpp": false,
+        "cons_above": 175,
+        "vpp_above": 0,
+        "sim_above": 2
+      },
+      {
         "list": "000000609",
         "position": 4,
         "score_total": 255,
@@ -3944,21 +3220,21 @@
         "vpp": false
       },
       {
-        "list": "000000701",
-        "position": 12,
-        "score_total": 255,
-        "consent": true,
-        "priority_pz": 3,
-        "bvi": false,
-        "status": "",
-        "vpp": false
-      },
-      {
         "list": "000000745",
         "position": 2,
         "score_total": 255,
         "consent": true,
         "priority_pz": 8,
+        "bvi": false,
+        "status": "",
+        "vpp": false
+      },
+      {
+        "list": "000000701",
+        "position": 12,
+        "score_total": 255,
+        "consent": true,
+        "priority_pz": 3,
         "bvi": false,
         "status": "",
         "vpp": false
@@ -4082,15 +3358,15 @@
         "vpp": false
       },
       {
-        "list": "000000734",
-        "position": 169,
+        "list": "000000706",
+        "position": 161,
         "score_total": 255,
         "consent": true,
-        "priority_pz": 7,
+        "priority_pz": 2,
         "bvi": false,
         "status": "",
         "vpp": false,
-        "cons_above": 34,
+        "cons_above": 39,
         "vpp_above": 0,
         "sim_above": 0
       },
@@ -4115,27 +3391,17 @@
         "vpp": false
       },
       {
-        "list": "000000706",
-        "position": 161,
-        "score_total": 255,
-        "consent": true,
-        "priority_pz": 2,
-        "bvi": false,
-        "status": "",
-        "vpp": false,
-        "cons_above": 39,
-        "vpp_above": 0,
-        "sim_above": 0
-      },
-      {
-        "list": "000000735",
-        "position": 6,
+        "list": "000000734",
+        "position": 169,
         "score_total": 255,
         "consent": true,
         "priority_pz": 7,
         "bvi": false,
         "status": "",
-        "vpp": false
+        "vpp": false,
+        "cons_above": 34,
+        "vpp_above": 0,
+        "sim_above": 0
       },
       {
         "list": "000000707",
@@ -4143,6 +3409,16 @@
         "score_total": 255,
         "consent": true,
         "priority_pz": 2,
+        "bvi": false,
+        "status": "",
+        "vpp": false
+      },
+      {
+        "list": "000000735",
+        "position": 6,
+        "score_total": 255,
+        "consent": true,
+        "priority_pz": 7,
         "bvi": false,
         "status": "",
         "vpp": false
@@ -4172,490 +3448,6 @@
         "cons_above": 110,
         "vpp_above": 0,
         "sim_above": 3
-      }
-    ],
-    "963434": [
-      {
-        "list": "000000605",
-        "position": 368,
-        "score_total": 206,
-        "consent": false,
-        "priority_pz": 2,
-        "bvi": false,
-        "status": "Участвует в конкурсе",
-        "vpp": false
-      },
-      {
-        "list": "000000353",
-        "position": 133,
-        "score_total": 211,
-        "consent": false,
-        "priority_pz": 4,
-        "bvi": false,
-        "status": "Участвует в конкурсе",
-        "vpp": false
-      },
-      {
-        "list": "000000788",
-        "position": 1688,
-        "score_total": 211,
-        "consent": false,
-        "priority_pz": 1,
-        "bvi": false,
-        "status": "",
-        "vpp": false,
-        "cons_above": 489,
-        "vpp_above": 2,
-        "sim_above": 2
-      },
-      {
-        "list": "000000791",
-        "position": 526,
-        "score_total": 211,
-        "consent": false,
-        "priority_pz": 1,
-        "bvi": false,
-        "status": "Участвует в конкурсе",
-        "vpp": false
-      },
-      {
-        "list": "000000794",
-        "position": 431,
-        "score_total": 211,
-        "consent": false,
-        "priority_pz": 2,
-        "bvi": false,
-        "status": "",
-        "vpp": false,
-        "cons_above": 155,
-        "vpp_above": 0,
-        "sim_above": 5
-      },
-      {
-        "list": "000000797",
-        "position": 169,
-        "score_total": 211,
-        "consent": false,
-        "priority_pz": 3,
-        "bvi": false,
-        "status": "Участвует в конкурсе",
-        "vpp": false
-      },
-      {
-        "list": "000000350",
-        "position": 544,
-        "score_total": 211,
-        "consent": false,
-        "priority_pz": 3,
-        "bvi": false,
-        "status": "",
-        "vpp": false,
-        "cons_above": 201,
-        "vpp_above": 0,
-        "sim_above": 4
-      }
-    ],
-    "962985": [
-      {
-        "list": "000000605",
-        "position": 408,
-        "score_total": 202,
-        "consent": false,
-        "priority_pz": 1,
-        "bvi": false,
-        "status": "Участвует в конкурсе",
-        "vpp": false
-      },
-      {
-        "list": "000000602",
-        "position": 1304,
-        "score_total": 202,
-        "consent": false,
-        "priority_pz": 1,
-        "bvi": false,
-        "status": "",
-        "vpp": false,
-        "cons_above": 409,
-        "vpp_above": 0,
-        "sim_above": 14
-      }
-    ],
-    "961870": [
-      {
-        "list": "000000605",
-        "position": 464,
-        "score_total": 196,
-        "consent": false,
-        "priority_pz": 1,
-        "bvi": false,
-        "status": "Участвует в конкурсе",
-        "vpp": false
-      }
-    ],
-    "961272": [
-      {
-        "list": "000000605",
-        "position": 910,
-        "score_total": 151,
-        "consent": false,
-        "priority_pz": 1,
-        "bvi": false,
-        "status": "Участвует в конкурсе",
-        "vpp": false
-      },
-      {
-        "list": "000000623",
-        "position": 495,
-        "score_total": 151,
-        "consent": false,
-        "priority_pz": 2,
-        "bvi": false,
-        "status": "Участвует в конкурсе",
-        "vpp": false
-      }
-    ],
-    "964617": [
-      {
-        "list": "000000605",
-        "position": 971,
-        "score_total": 143,
-        "consent": false,
-        "priority_pz": 1,
-        "bvi": false,
-        "status": "Участвует в конкурсе",
-        "vpp": false
-      },
-      {
-        "list": "000000620",
-        "position": 877,
-        "score_total": 143,
-        "consent": false,
-        "priority_pz": 3,
-        "bvi": false,
-        "status": "",
-        "vpp": false,
-        "cons_above": 256,
-        "vpp_above": 0,
-        "sim_above": 19
-      },
-      {
-        "list": "000000623",
-        "position": 530,
-        "score_total": 143,
-        "consent": false,
-        "priority_pz": 4,
-        "bvi": false,
-        "status": "Участвует в конкурсе",
-        "vpp": false
-      },
-      {
-        "list": "000000642",
-        "position": 731,
-        "score_total": 143,
-        "consent": false,
-        "priority_pz": 9,
-        "bvi": false,
-        "status": "Участвует в конкурсе",
-        "vpp": false
-      },
-      {
-        "list": "000000644",
-        "position": 2697,
-        "score_total": 143,
-        "consent": false,
-        "priority_pz": 5,
-        "bvi": false,
-        "status": "",
-        "vpp": false,
-        "cons_above": 649,
-        "vpp_above": 0,
-        "sim_above": 24
-      },
-      {
-        "list": "000000916",
-        "position": 366,
-        "score_total": 143,
-        "consent": false,
-        "priority_pz": 3,
-        "bvi": false,
-        "status": "Участвует в конкурсе",
-        "vpp": false
-      },
-      {
-        "list": "000000550",
-        "position": 1218,
-        "score_total": 143,
-        "consent": false,
-        "priority_pz": 6,
-        "bvi": false,
-        "status": "",
-        "vpp": false,
-        "cons_above": 386,
-        "vpp_above": 1,
-        "sim_above": 1
-      },
-      {
-        "list": "000000918",
-        "position": 1425,
-        "score_total": 143,
-        "consent": false,
-        "priority_pz": 2,
-        "bvi": false,
-        "status": "",
-        "vpp": false,
-        "cons_above": 368,
-        "vpp_above": 1,
-        "sim_above": 1
-      },
-      {
-        "list": "000000538",
-        "position": 2726,
-        "score_total": 143,
-        "consent": false,
-        "priority_pz": 4,
-        "bvi": false,
-        "status": "",
-        "vpp": false,
-        "cons_above": 619,
-        "vpp_above": 0,
-        "sim_above": 16
-      },
-      {
-        "list": "000000602",
-        "position": 2086,
-        "score_total": 143,
-        "consent": false,
-        "priority_pz": 1,
-        "bvi": false,
-        "status": "",
-        "vpp": false,
-        "cons_above": 590,
-        "vpp_above": 0,
-        "sim_above": 80
-      },
-      {
-        "list": "000000664",
-        "position": 1190,
-        "score_total": 143,
-        "consent": false,
-        "priority_pz": 7,
-        "bvi": false,
-        "status": "Участвует в конкурсе",
-        "vpp": false
-      },
-      {
-        "list": "000000647",
-        "position": 1465,
-        "score_total": 143,
-        "consent": false,
-        "priority_pz": 5,
-        "bvi": false,
-        "status": "Участвует в конкурсе",
-        "vpp": false
-      },
-      {
-        "list": "000000921",
-        "position": 600,
-        "score_total": 143,
-        "consent": false,
-        "priority_pz": 2,
-        "bvi": false,
-        "status": "Участвует в конкурсе",
-        "vpp": false
-      },
-      {
-        "list": "000000553",
-        "position": 389,
-        "score_total": 143,
-        "consent": false,
-        "priority_pz": 8,
-        "bvi": false,
-        "status": "Участвует в конкурсе",
-        "vpp": false
-      },
-      {
-        "list": "000000541",
-        "position": 1428,
-        "score_total": 143,
-        "consent": false,
-        "priority_pz": 6,
-        "bvi": false,
-        "status": "Участвует в конкурсе",
-        "vpp": false
-      }
-    ],
-    "968138": [
-      {
-        "list": "000000605",
-        "position": 1065,
-        "score_total": 114,
-        "consent": false,
-        "priority_pz": 4,
-        "bvi": false,
-        "status": "На рассмотрении",
-        "vpp": false
-      },
-      {
-        "list": "000000623",
-        "position": 603,
-        "score_total": 114,
-        "consent": false,
-        "priority_pz": 6,
-        "bvi": false,
-        "status": "На рассмотрении",
-        "vpp": false
-      },
-      {
-        "list": "000000599",
-        "position": 583,
-        "score_total": 162,
-        "consent": false,
-        "priority_pz": 2,
-        "bvi": false,
-        "status": "Участвует в конкурсе",
-        "vpp": false
-      },
-      {
-        "list": "000000916",
-        "position": 418,
-        "score_total": 114,
-        "consent": false,
-        "priority_pz": 3,
-        "bvi": false,
-        "status": "На рассмотрении",
-        "vpp": false
-      },
-      {
-        "list": "000000921",
-        "position": 664,
-        "score_total": 114,
-        "consent": false,
-        "priority_pz": 5,
-        "bvi": false,
-        "status": "На рассмотрении",
-        "vpp": false
-      },
-      {
-        "list": "000001411",
-        "position": 751,
-        "score_total": 162,
-        "consent": false,
-        "priority_pz": 1,
-        "bvi": false,
-        "status": "Участвует в конкурсе",
-        "vpp": false
-      }
-    ],
-    "967579": [
-      {
-        "list": "000000605",
-        "position": 1119,
-        "score_total": 0,
-        "consent": false,
-        "priority_pz": 5,
-        "bvi": false,
-        "status": "На рассмотрении",
-        "vpp": false
-      },
-      {
-        "list": "000000353",
-        "position": 464,
-        "score_total": 0,
-        "consent": false,
-        "priority_pz": 9,
-        "bvi": false,
-        "status": "На рассмотрении",
-        "vpp": false
-      },
-      {
-        "list": "000000623",
-        "position": 752,
-        "score_total": 0,
-        "consent": false,
-        "priority_pz": 6,
-        "bvi": false,
-        "status": "На рассмотрении",
-        "vpp": false
-      },
-      {
-        "list": "000000317",
-        "position": 212,
-        "score_total": 0,
-        "consent": false,
-        "priority_pz": 11,
-        "bvi": false,
-        "status": "На рассмотрении",
-        "vpp": false
-      },
-      {
-        "list": "000000359",
-        "position": 462,
-        "score_total": 0,
-        "consent": false,
-        "priority_pz": 7,
-        "bvi": false,
-        "status": "На рассмотрении",
-        "vpp": false
-      },
-      {
-        "list": "000000916",
-        "position": 461,
-        "score_total": 0,
-        "consent": false,
-        "priority_pz": 4,
-        "bvi": false,
-        "status": "На рассмотрении",
-        "vpp": false
-      },
-      {
-        "list": "000000614",
-        "position": 967,
-        "score_total": 0,
-        "consent": false,
-        "priority_pz": 1,
-        "bvi": false,
-        "status": "На рассмотрении",
-        "vpp": false
-      },
-      {
-        "list": "000000347",
-        "position": 597,
-        "score_total": 0,
-        "consent": false,
-        "priority_pz": 8,
-        "bvi": false,
-        "status": "На рассмотрении",
-        "vpp": false
-      },
-      {
-        "list": "000000921",
-        "position": 712,
-        "score_total": 0,
-        "consent": false,
-        "priority_pz": 3,
-        "bvi": false,
-        "status": "На рассмотрении",
-        "vpp": false
-      },
-      {
-        "list": "000000365",
-        "position": 533,
-        "score_total": 0,
-        "consent": false,
-        "priority_pz": 10,
-        "bvi": false,
-        "status": "На рассмотрении",
-        "vpp": false
-      },
-      {
-        "list": "000001411",
-        "position": 1123,
-        "score_total": 0,
-        "consent": false,
-        "priority_pz": 2,
-        "bvi": false,
-        "status": "На рассмотрении",
-        "vpp": false
       }
     ],
     "964478": [
@@ -4882,6 +3674,73 @@
         "vpp": false
       }
     ],
+    "965349": [
+      {
+        "list": "000000620",
+        "position": 133,
+        "score_total": 250,
+        "consent": true,
+        "priority_pz": 2,
+        "bvi": false,
+        "status": "",
+        "vpp": false,
+        "cons_above": 65,
+        "vpp_above": 0,
+        "sim_above": 0
+      },
+      {
+        "list": "000000590",
+        "position": 193,
+        "score_total": 250,
+        "consent": true,
+        "priority_pz": 5,
+        "bvi": false,
+        "status": "",
+        "vpp": false,
+        "cons_above": 54,
+        "vpp_above": 0,
+        "sim_above": 0
+      },
+      {
+        "list": "000000918",
+        "position": 170,
+        "score_total": 250,
+        "consent": true,
+        "priority_pz": 4,
+        "bvi": false,
+        "status": "",
+        "vpp": false,
+        "cons_above": 60,
+        "vpp_above": 0,
+        "sim_above": 1
+      },
+      {
+        "list": "000000616",
+        "position": 142,
+        "score_total": 250,
+        "consent": true,
+        "priority_pz": 3,
+        "bvi": false,
+        "status": "",
+        "vpp": false,
+        "cons_above": 33,
+        "vpp_above": 0,
+        "sim_above": 0
+      },
+      {
+        "list": "000000602",
+        "position": 292,
+        "score_total": 250,
+        "consent": true,
+        "priority_pz": 1,
+        "bvi": false,
+        "status": "",
+        "vpp": false,
+        "cons_above": 118,
+        "vpp_above": 0,
+        "sim_above": 0
+      }
+    ],
     "962790": [
       {
         "list": "000000620",
@@ -5092,6 +3951,133 @@
         "sim_above": 1
       }
     ],
+    "963016": [
+      {
+        "list": "000000620",
+        "position": 294,
+        "score_total": 228,
+        "consent": false,
+        "priority_pz": 2,
+        "bvi": false,
+        "status": "",
+        "vpp": false,
+        "cons_above": 128,
+        "vpp_above": 0,
+        "sim_above": 15
+      },
+      {
+        "list": "000000605",
+        "position": 165,
+        "score_total": 228,
+        "consent": false,
+        "priority_pz": 2,
+        "bvi": false,
+        "status": "Участвует в конкурсе",
+        "vpp": false
+      },
+      {
+        "list": "000000590",
+        "position": 411,
+        "score_total": 228,
+        "consent": false,
+        "priority_pz": 1,
+        "bvi": false,
+        "status": "",
+        "vpp": false,
+        "cons_above": 113,
+        "vpp_above": 0,
+        "sim_above": 3
+      },
+      {
+        "list": "000000623",
+        "position": 125,
+        "score_total": 228,
+        "consent": false,
+        "priority_pz": 4,
+        "bvi": false,
+        "status": "Участвует в конкурсе",
+        "vpp": false
+      },
+      {
+        "list": "000000596",
+        "position": 291,
+        "score_total": 228,
+        "consent": false,
+        "priority_pz": 5,
+        "bvi": false,
+        "status": "",
+        "vpp": false,
+        "cons_above": 100,
+        "vpp_above": 0,
+        "sim_above": 7
+      },
+      {
+        "list": "000000332",
+        "position": 208,
+        "score_total": 223,
+        "consent": false,
+        "priority_pz": 4,
+        "bvi": false,
+        "status": "",
+        "vpp": false,
+        "cons_above": 48,
+        "vpp_above": 0,
+        "sim_above": 2
+      },
+      {
+        "list": "000000599",
+        "position": 149,
+        "score_total": 228,
+        "consent": false,
+        "priority_pz": 5,
+        "bvi": false,
+        "status": "Участвует в конкурсе",
+        "vpp": false
+      },
+      {
+        "list": "000000614",
+        "position": 158,
+        "score_total": 228,
+        "consent": false,
+        "priority_pz": 3,
+        "bvi": false,
+        "status": "Участвует в конкурсе",
+        "vpp": false
+      },
+      {
+        "list": "000000335",
+        "position": 65,
+        "score_total": 223,
+        "consent": false,
+        "priority_pz": 6,
+        "bvi": false,
+        "status": "Участвует в конкурсе",
+        "vpp": false
+      },
+      {
+        "list": "000000602",
+        "position": 719,
+        "score_total": 228,
+        "consent": false,
+        "priority_pz": 3,
+        "bvi": false,
+        "status": "",
+        "vpp": false,
+        "cons_above": 271,
+        "vpp_above": 0,
+        "sim_above": 2
+      },
+      {
+        "list": "000001411",
+        "position": 153,
+        "score_total": 228,
+        "consent": false,
+        "priority_pz": 1,
+        "bvi": false,
+        "status": "Участвует в конкурсе",
+        "vpp": false
+      }
+    ],
     "966331": [
       {
         "list": "000000620",
@@ -5105,6 +4091,177 @@
         "cons_above": 167,
         "vpp_above": 0,
         "sim_above": 19
+      }
+    ],
+    "965480": [
+      {
+        "list": "000000620",
+        "position": 524,
+        "score_total": 203,
+        "consent": false,
+        "priority_pz": 1,
+        "bvi": false,
+        "status": "",
+        "vpp": false,
+        "cons_above": 182,
+        "vpp_above": 0,
+        "sim_above": 19
+      },
+      {
+        "list": "000000590",
+        "position": 725,
+        "score_total": 203,
+        "consent": false,
+        "priority_pz": 7,
+        "bvi": false,
+        "status": "",
+        "vpp": false,
+        "cons_above": 163,
+        "vpp_above": 0,
+        "sim_above": 6
+      },
+      {
+        "list": "000000356",
+        "position": 269,
+        "score_total": 203,
+        "consent": false,
+        "priority_pz": 9,
+        "bvi": false,
+        "status": "",
+        "vpp": false,
+        "cons_above": 109,
+        "vpp_above": 0,
+        "sim_above": 17
+      },
+      {
+        "list": "000000596",
+        "position": 519,
+        "score_total": 203,
+        "consent": false,
+        "priority_pz": 6,
+        "bvi": false,
+        "status": "",
+        "vpp": false,
+        "cons_above": 134,
+        "vpp_above": 0,
+        "sim_above": 19
+      },
+      {
+        "list": "000000344",
+        "position": 525,
+        "score_total": 203,
+        "consent": false,
+        "priority_pz": 10,
+        "bvi": false,
+        "status": "",
+        "vpp": false,
+        "cons_above": 183,
+        "vpp_above": 0,
+        "sim_above": 19
+      },
+      {
+        "list": "000000930",
+        "position": 441,
+        "score_total": 203,
+        "consent": false,
+        "priority_pz": 4,
+        "bvi": false,
+        "status": "",
+        "vpp": false,
+        "cons_above": 138,
+        "vpp_above": 0,
+        "sim_above": 6
+      },
+      {
+        "list": "000000320",
+        "position": 346,
+        "score_total": 203,
+        "consent": false,
+        "priority_pz": 3,
+        "bvi": false,
+        "status": "",
+        "vpp": false,
+        "cons_above": 138,
+        "vpp_above": 1,
+        "sim_above": 1
+      },
+      {
+        "list": "000000918",
+        "position": 855,
+        "score_total": 203,
+        "consent": false,
+        "priority_pz": 8,
+        "bvi": false,
+        "status": "",
+        "vpp": false,
+        "cons_above": 245,
+        "vpp_above": 1,
+        "sim_above": 1
+      },
+      {
+        "list": "000000362",
+        "position": 310,
+        "score_total": 203,
+        "consent": false,
+        "priority_pz": 12,
+        "bvi": false,
+        "status": "",
+        "vpp": false,
+        "cons_above": 134,
+        "vpp_above": 0,
+        "sim_above": 8
+      },
+      {
+        "list": "000000616",
+        "position": 510,
+        "score_total": 203,
+        "consent": false,
+        "priority_pz": 5,
+        "bvi": false,
+        "status": "",
+        "vpp": false,
+        "cons_above": 97,
+        "vpp_above": 0,
+        "sim_above": 3
+      },
+      {
+        "list": "000000602",
+        "position": 1275,
+        "score_total": 203,
+        "consent": false,
+        "priority_pz": 2,
+        "bvi": false,
+        "status": "",
+        "vpp": false,
+        "cons_above": 406,
+        "vpp_above": 0,
+        "sim_above": 14
+      },
+      {
+        "list": "000000350",
+        "position": 635,
+        "score_total": 203,
+        "consent": false,
+        "priority_pz": 11,
+        "bvi": false,
+        "status": "",
+        "vpp": false,
+        "cons_above": 222,
+        "vpp_above": 0,
+        "sim_above": 6
+      },
+      {
+        "list": "000000338",
+        "position": 520,
+        "score_total": 203,
+        "consent": false,
+        "priority_pz": 13,
+        "bvi": false,
+        "status": "",
+        "vpp": false,
+        "cons_above": 189,
+        "vpp_above": 1,
+        "sim_above": 1
       }
     ],
     "963423": [
@@ -5282,6 +4439,849 @@
         "sim_above": 46
       }
     ],
+    "963492": [
+      {
+        "list": "000000620",
+        "position": 838,
+        "score_total": 156,
+        "consent": true,
+        "priority_pz": 5,
+        "bvi": false,
+        "status": "",
+        "vpp": false,
+        "cons_above": 245,
+        "vpp_above": 0,
+        "sim_above": 19
+      },
+      {
+        "list": "000000605",
+        "position": 869,
+        "score_total": 156,
+        "consent": false,
+        "priority_pz": 1,
+        "bvi": false,
+        "status": "Участвует в конкурсе",
+        "vpp": false
+      },
+      {
+        "list": "000000590",
+        "position": 1258,
+        "score_total": 156,
+        "consent": true,
+        "priority_pz": 3,
+        "bvi": false,
+        "status": "",
+        "vpp": false,
+        "cons_above": 274,
+        "vpp_above": 0,
+        "sim_above": 16
+      },
+      {
+        "list": "000000623",
+        "position": 478,
+        "score_total": 156,
+        "consent": false,
+        "priority_pz": 5,
+        "bvi": false,
+        "status": "Участвует в конкурсе",
+        "vpp": false
+      },
+      {
+        "list": "000000596",
+        "position": 878,
+        "score_total": 156,
+        "consent": true,
+        "priority_pz": 2,
+        "bvi": false,
+        "status": "",
+        "vpp": false,
+        "cons_above": 219,
+        "vpp_above": 0,
+        "sim_above": 19
+      },
+      {
+        "list": "000000599",
+        "position": 639,
+        "score_total": 156,
+        "consent": false,
+        "priority_pz": 2,
+        "bvi": false,
+        "status": "Участвует в конкурсе",
+        "vpp": true
+      },
+      {
+        "list": "000000916",
+        "position": 311,
+        "score_total": 156,
+        "consent": false,
+        "priority_pz": 6,
+        "bvi": false,
+        "status": "Участвует в конкурсе",
+        "vpp": false
+      },
+      {
+        "list": "000000918",
+        "position": 1363,
+        "score_total": 156,
+        "consent": true,
+        "priority_pz": 4,
+        "bvi": false,
+        "status": "",
+        "vpp": false,
+        "cons_above": 346,
+        "vpp_above": 1,
+        "sim_above": 1
+      },
+      {
+        "list": "000000602",
+        "position": 1998,
+        "score_total": 156,
+        "consent": true,
+        "priority_pz": 1,
+        "bvi": false,
+        "status": "",
+        "vpp": false,
+        "cons_above": 557,
+        "vpp_above": 0,
+        "sim_above": 80
+      },
+      {
+        "list": "000000921",
+        "position": 523,
+        "score_total": 156,
+        "consent": false,
+        "priority_pz": 4,
+        "bvi": false,
+        "status": "Участвует в конкурсе",
+        "vpp": false
+      },
+      {
+        "list": "000001411",
+        "position": 810,
+        "score_total": 156,
+        "consent": false,
+        "priority_pz": 3,
+        "bvi": false,
+        "status": "Участвует в конкурсе",
+        "vpp": false
+      }
+    ],
+    "964617": [
+      {
+        "list": "000000620",
+        "position": 877,
+        "score_total": 143,
+        "consent": false,
+        "priority_pz": 3,
+        "bvi": false,
+        "status": "",
+        "vpp": false,
+        "cons_above": 256,
+        "vpp_above": 0,
+        "sim_above": 19
+      },
+      {
+        "list": "000000605",
+        "position": 971,
+        "score_total": 143,
+        "consent": false,
+        "priority_pz": 1,
+        "bvi": false,
+        "status": "Участвует в конкурсе",
+        "vpp": false
+      },
+      {
+        "list": "000000623",
+        "position": 530,
+        "score_total": 143,
+        "consent": false,
+        "priority_pz": 4,
+        "bvi": false,
+        "status": "Участвует в конкурсе",
+        "vpp": false
+      },
+      {
+        "list": "000000642",
+        "position": 731,
+        "score_total": 143,
+        "consent": false,
+        "priority_pz": 9,
+        "bvi": false,
+        "status": "Участвует в конкурсе",
+        "vpp": false
+      },
+      {
+        "list": "000000644",
+        "position": 2697,
+        "score_total": 143,
+        "consent": false,
+        "priority_pz": 5,
+        "bvi": false,
+        "status": "",
+        "vpp": false,
+        "cons_above": 649,
+        "vpp_above": 0,
+        "sim_above": 24
+      },
+      {
+        "list": "000000916",
+        "position": 366,
+        "score_total": 143,
+        "consent": false,
+        "priority_pz": 3,
+        "bvi": false,
+        "status": "Участвует в конкурсе",
+        "vpp": false
+      },
+      {
+        "list": "000000550",
+        "position": 1218,
+        "score_total": 143,
+        "consent": false,
+        "priority_pz": 6,
+        "bvi": false,
+        "status": "",
+        "vpp": false,
+        "cons_above": 386,
+        "vpp_above": 1,
+        "sim_above": 1
+      },
+      {
+        "list": "000000918",
+        "position": 1425,
+        "score_total": 143,
+        "consent": false,
+        "priority_pz": 2,
+        "bvi": false,
+        "status": "",
+        "vpp": false,
+        "cons_above": 368,
+        "vpp_above": 1,
+        "sim_above": 1
+      },
+      {
+        "list": "000000538",
+        "position": 2726,
+        "score_total": 143,
+        "consent": false,
+        "priority_pz": 4,
+        "bvi": false,
+        "status": "",
+        "vpp": false,
+        "cons_above": 619,
+        "vpp_above": 0,
+        "sim_above": 16
+      },
+      {
+        "list": "000000602",
+        "position": 2086,
+        "score_total": 143,
+        "consent": false,
+        "priority_pz": 1,
+        "bvi": false,
+        "status": "",
+        "vpp": false,
+        "cons_above": 590,
+        "vpp_above": 0,
+        "sim_above": 80
+      },
+      {
+        "list": "000000664",
+        "position": 1190,
+        "score_total": 143,
+        "consent": false,
+        "priority_pz": 7,
+        "bvi": false,
+        "status": "Участвует в конкурсе",
+        "vpp": false
+      },
+      {
+        "list": "000000647",
+        "position": 1465,
+        "score_total": 143,
+        "consent": false,
+        "priority_pz": 5,
+        "bvi": false,
+        "status": "Участвует в конкурсе",
+        "vpp": false
+      },
+      {
+        "list": "000000921",
+        "position": 600,
+        "score_total": 143,
+        "consent": false,
+        "priority_pz": 2,
+        "bvi": false,
+        "status": "Участвует в конкурсе",
+        "vpp": false
+      },
+      {
+        "list": "000000553",
+        "position": 389,
+        "score_total": 143,
+        "consent": false,
+        "priority_pz": 8,
+        "bvi": false,
+        "status": "Участвует в конкурсе",
+        "vpp": false
+      },
+      {
+        "list": "000000541",
+        "position": 1428,
+        "score_total": 143,
+        "consent": false,
+        "priority_pz": 6,
+        "bvi": false,
+        "status": "Участвует в конкурсе",
+        "vpp": false
+      }
+    ],
+    "964748": [
+      {
+        "list": "000000605",
+        "position": 202,
+        "score_total": 223,
+        "consent": false,
+        "priority_pz": 4,
+        "bvi": false,
+        "status": "Участвует в конкурсе",
+        "vpp": false
+      },
+      {
+        "list": "000000590",
+        "position": 471,
+        "score_total": 223,
+        "consent": false,
+        "priority_pz": 1,
+        "bvi": false,
+        "status": "",
+        "vpp": false,
+        "cons_above": 120,
+        "vpp_above": 0,
+        "sim_above": 3
+      },
+      {
+        "list": "000000596",
+        "position": 332,
+        "score_total": 223,
+        "consent": false,
+        "priority_pz": 2,
+        "bvi": false,
+        "status": "",
+        "vpp": false,
+        "cons_above": 107,
+        "vpp_above": 0,
+        "sim_above": 8
+      },
+      {
+        "list": "000000599",
+        "position": 175,
+        "score_total": 223,
+        "consent": false,
+        "priority_pz": 1,
+        "bvi": false,
+        "status": "Участвует в конкурсе",
+        "vpp": false
+      },
+      {
+        "list": "000000614",
+        "position": 186,
+        "score_total": 223,
+        "consent": false,
+        "priority_pz": 3,
+        "bvi": false,
+        "status": "Участвует в конкурсе",
+        "vpp": false
+      },
+      {
+        "list": "000000616",
+        "position": 337,
+        "score_total": 223,
+        "consent": false,
+        "priority_pz": 4,
+        "bvi": false,
+        "status": "",
+        "vpp": false,
+        "cons_above": 72,
+        "vpp_above": 0,
+        "sim_above": 2
+      },
+      {
+        "list": "000000602",
+        "position": 838,
+        "score_total": 223,
+        "consent": false,
+        "priority_pz": 3,
+        "bvi": false,
+        "status": "",
+        "vpp": false,
+        "cons_above": 304,
+        "vpp_above": 0,
+        "sim_above": 3
+      },
+      {
+        "list": "000001411",
+        "position": 185,
+        "score_total": 223,
+        "consent": false,
+        "priority_pz": 2,
+        "bvi": false,
+        "status": "Участвует в конкурсе",
+        "vpp": false
+      }
+    ],
+    "963434": [
+      {
+        "list": "000000605",
+        "position": 368,
+        "score_total": 206,
+        "consent": false,
+        "priority_pz": 2,
+        "bvi": false,
+        "status": "Участвует в конкурсе",
+        "vpp": false
+      },
+      {
+        "list": "000000353",
+        "position": 133,
+        "score_total": 211,
+        "consent": false,
+        "priority_pz": 4,
+        "bvi": false,
+        "status": "Участвует в конкурсе",
+        "vpp": false
+      },
+      {
+        "list": "000000788",
+        "position": 1688,
+        "score_total": 211,
+        "consent": false,
+        "priority_pz": 1,
+        "bvi": false,
+        "status": "",
+        "vpp": false,
+        "cons_above": 489,
+        "vpp_above": 2,
+        "sim_above": 2
+      },
+      {
+        "list": "000000791",
+        "position": 526,
+        "score_total": 211,
+        "consent": false,
+        "priority_pz": 1,
+        "bvi": false,
+        "status": "Участвует в конкурсе",
+        "vpp": false
+      },
+      {
+        "list": "000000794",
+        "position": 431,
+        "score_total": 211,
+        "consent": false,
+        "priority_pz": 2,
+        "bvi": false,
+        "status": "",
+        "vpp": false,
+        "cons_above": 155,
+        "vpp_above": 0,
+        "sim_above": 5
+      },
+      {
+        "list": "000000797",
+        "position": 169,
+        "score_total": 211,
+        "consent": false,
+        "priority_pz": 3,
+        "bvi": false,
+        "status": "Участвует в конкурсе",
+        "vpp": false
+      },
+      {
+        "list": "000000350",
+        "position": 544,
+        "score_total": 211,
+        "consent": false,
+        "priority_pz": 3,
+        "bvi": false,
+        "status": "",
+        "vpp": false,
+        "cons_above": 201,
+        "vpp_above": 0,
+        "sim_above": 4
+      }
+    ],
+    "962985": [
+      {
+        "list": "000000605",
+        "position": 408,
+        "score_total": 202,
+        "consent": false,
+        "priority_pz": 1,
+        "bvi": false,
+        "status": "Участвует в конкурсе",
+        "vpp": false
+      },
+      {
+        "list": "000000602",
+        "position": 1304,
+        "score_total": 202,
+        "consent": false,
+        "priority_pz": 1,
+        "bvi": false,
+        "status": "",
+        "vpp": false,
+        "cons_above": 409,
+        "vpp_above": 0,
+        "sim_above": 14
+      }
+    ],
+    "961870": [
+      {
+        "list": "000000605",
+        "position": 464,
+        "score_total": 196,
+        "consent": false,
+        "priority_pz": 1,
+        "bvi": false,
+        "status": "Участвует в конкурсе",
+        "vpp": false
+      }
+    ],
+    "961272": [
+      {
+        "list": "000000605",
+        "position": 910,
+        "score_total": 151,
+        "consent": false,
+        "priority_pz": 1,
+        "bvi": false,
+        "status": "Участвует в конкурсе",
+        "vpp": false
+      },
+      {
+        "list": "000000623",
+        "position": 495,
+        "score_total": 151,
+        "consent": false,
+        "priority_pz": 2,
+        "bvi": false,
+        "status": "Участвует в конкурсе",
+        "vpp": false
+      }
+    ],
+    "968138": [
+      {
+        "list": "000000605",
+        "position": 1065,
+        "score_total": 114,
+        "consent": false,
+        "priority_pz": 4,
+        "bvi": false,
+        "status": "На рассмотрении",
+        "vpp": false
+      },
+      {
+        "list": "000000623",
+        "position": 603,
+        "score_total": 114,
+        "consent": false,
+        "priority_pz": 6,
+        "bvi": false,
+        "status": "На рассмотрении",
+        "vpp": false
+      },
+      {
+        "list": "000000599",
+        "position": 583,
+        "score_total": 162,
+        "consent": false,
+        "priority_pz": 2,
+        "bvi": false,
+        "status": "Участвует в конкурсе",
+        "vpp": false
+      },
+      {
+        "list": "000000916",
+        "position": 418,
+        "score_total": 114,
+        "consent": false,
+        "priority_pz": 3,
+        "bvi": false,
+        "status": "На рассмотрении",
+        "vpp": false
+      },
+      {
+        "list": "000000921",
+        "position": 664,
+        "score_total": 114,
+        "consent": false,
+        "priority_pz": 5,
+        "bvi": false,
+        "status": "На рассмотрении",
+        "vpp": false
+      },
+      {
+        "list": "000001411",
+        "position": 751,
+        "score_total": 162,
+        "consent": false,
+        "priority_pz": 1,
+        "bvi": false,
+        "status": "Участвует в конкурсе",
+        "vpp": false
+      }
+    ],
+    "967579": [
+      {
+        "list": "000000605",
+        "position": 1119,
+        "score_total": 0,
+        "consent": false,
+        "priority_pz": 5,
+        "bvi": false,
+        "status": "На рассмотрении",
+        "vpp": false
+      },
+      {
+        "list": "000000353",
+        "position": 464,
+        "score_total": 0,
+        "consent": false,
+        "priority_pz": 9,
+        "bvi": false,
+        "status": "На рассмотрении",
+        "vpp": false
+      },
+      {
+        "list": "000000623",
+        "position": 752,
+        "score_total": 0,
+        "consent": false,
+        "priority_pz": 6,
+        "bvi": false,
+        "status": "На рассмотрении",
+        "vpp": false
+      },
+      {
+        "list": "000000317",
+        "position": 212,
+        "score_total": 0,
+        "consent": false,
+        "priority_pz": 11,
+        "bvi": false,
+        "status": "На рассмотрении",
+        "vpp": false
+      },
+      {
+        "list": "000000359",
+        "position": 462,
+        "score_total": 0,
+        "consent": false,
+        "priority_pz": 7,
+        "bvi": false,
+        "status": "На рассмотрении",
+        "vpp": false
+      },
+      {
+        "list": "000000916",
+        "position": 461,
+        "score_total": 0,
+        "consent": false,
+        "priority_pz": 4,
+        "bvi": false,
+        "status": "На рассмотрении",
+        "vpp": false
+      },
+      {
+        "list": "000000614",
+        "position": 967,
+        "score_total": 0,
+        "consent": false,
+        "priority_pz": 1,
+        "bvi": false,
+        "status": "На рассмотрении",
+        "vpp": false
+      },
+      {
+        "list": "000000347",
+        "position": 597,
+        "score_total": 0,
+        "consent": false,
+        "priority_pz": 8,
+        "bvi": false,
+        "status": "На рассмотрении",
+        "vpp": false
+      },
+      {
+        "list": "000000921",
+        "position": 712,
+        "score_total": 0,
+        "consent": false,
+        "priority_pz": 3,
+        "bvi": false,
+        "status": "На рассмотрении",
+        "vpp": false
+      },
+      {
+        "list": "000000365",
+        "position": 533,
+        "score_total": 0,
+        "consent": false,
+        "priority_pz": 10,
+        "bvi": false,
+        "status": "На рассмотрении",
+        "vpp": false
+      },
+      {
+        "list": "000001411",
+        "position": 1123,
+        "score_total": 0,
+        "consent": false,
+        "priority_pz": 2,
+        "bvi": false,
+        "status": "На рассмотрении",
+        "vpp": false
+      }
+    ],
+    "962110": [
+      {
+        "list": "000000590",
+        "position": 403,
+        "score_total": 229,
+        "consent": false,
+        "priority_pz": 4,
+        "bvi": false,
+        "status": "",
+        "vpp": false,
+        "cons_above": 113,
+        "vpp_above": 0,
+        "sim_above": 3
+      },
+      {
+        "list": "000000356",
+        "position": 169,
+        "score_total": 229,
+        "consent": false,
+        "priority_pz": 5,
+        "bvi": false,
+        "status": "",
+        "vpp": false,
+        "cons_above": 84,
+        "vpp_above": 0,
+        "sim_above": 7
+      },
+      {
+        "list": "000000344",
+        "position": 314,
+        "score_total": 229,
+        "consent": false,
+        "priority_pz": 1,
+        "bvi": false,
+        "status": "",
+        "vpp": false,
+        "cons_above": 128,
+        "vpp_above": 0,
+        "sim_above": 2
+      },
+      {
+        "list": "000000616",
+        "position": 293,
+        "score_total": 229,
+        "consent": false,
+        "priority_pz": 3,
+        "bvi": false,
+        "status": "",
+        "vpp": false,
+        "cons_above": 65,
+        "vpp_above": 0,
+        "sim_above": 0
+      },
+      {
+        "list": "000000338",
+        "position": 313,
+        "score_total": 229,
+        "consent": false,
+        "priority_pz": 2,
+        "bvi": false,
+        "status": "",
+        "vpp": false,
+        "cons_above": 135,
+        "vpp_above": 0,
+        "sim_above": 0
+      }
+    ],
+    "966062": [
+      {
+        "list": "000000590",
+        "position": 929,
+        "score_total": 187,
+        "consent": true,
+        "priority_pz": 1,
+        "bvi": false,
+        "status": "",
+        "vpp": false,
+        "cons_above": 194,
+        "vpp_above": 0,
+        "sim_above": 16
+      },
+      {
+        "list": "000000596",
+        "position": 658,
+        "score_total": 187,
+        "consent": true,
+        "priority_pz": 2,
+        "bvi": false,
+        "status": "",
+        "vpp": false,
+        "cons_above": 158,
+        "vpp_above": 0,
+        "sim_above": 19
+      },
+      {
+        "list": "000000599",
+        "position": 402,
+        "score_total": 187,
+        "consent": false,
+        "priority_pz": 2,
+        "bvi": false,
+        "status": "Участвует в конкурсе",
+        "vpp": false
+      },
+      {
+        "list": "000000614",
+        "position": 472,
+        "score_total": 187,
+        "consent": false,
+        "priority_pz": 3,
+        "bvi": false,
+        "status": "Участвует в конкурсе",
+        "vpp": false
+      },
+      {
+        "list": "000000616",
+        "position": 649,
+        "score_total": 187,
+        "consent": true,
+        "priority_pz": 3,
+        "bvi": false,
+        "status": "",
+        "vpp": false,
+        "cons_above": 118,
+        "vpp_above": 0,
+        "sim_above": 3
+      },
+      {
+        "list": "000001411",
+        "position": 487,
+        "score_total": 187,
+        "consent": false,
+        "priority_pz": 1,
+        "bvi": false,
+        "status": "Участвует в конкурсе",
+        "vpp": true
+      }
+    ],
     "969773": [
       {
         "list": "000000637",
@@ -5336,19 +5336,6 @@
         "sim_above": 2
       },
       {
-        "list": "000000700",
-        "position": 777,
-        "score_total": 247,
-        "consent": false,
-        "priority_pz": 10,
-        "bvi": false,
-        "status": "",
-        "vpp": false,
-        "cons_above": 219,
-        "vpp_above": 0,
-        "sim_above": 3
-      },
-      {
         "list": "000000744",
         "position": 106,
         "score_total": 247,
@@ -5360,6 +5347,19 @@
         "cons_above": 28,
         "vpp_above": 0,
         "sim_above": 0
+      },
+      {
+        "list": "000000700",
+        "position": 777,
+        "score_total": 247,
+        "consent": false,
+        "priority_pz": 10,
+        "bvi": false,
+        "status": "",
+        "vpp": false,
+        "cons_above": 219,
+        "vpp_above": 0,
+        "sim_above": 3
       },
       {
         "list": "000000502",
@@ -5507,16 +5507,6 @@
         "sim_above": 0
       },
       {
-        "list": "000000696",
-        "position": 63,
-        "score_total": 239,
-        "consent": false,
-        "priority_pz": 6,
-        "bvi": false,
-        "status": "Участвует в конкурсе",
-        "vpp": false
-      },
-      {
         "list": "000000684",
         "position": 464,
         "score_total": 239,
@@ -5528,6 +5518,16 @@
         "cons_above": 136,
         "vpp_above": 0,
         "sim_above": 1
+      },
+      {
+        "list": "000000696",
+        "position": 63,
+        "score_total": 239,
+        "consent": false,
+        "priority_pz": 6,
+        "bvi": false,
+        "status": "Участвует в конкурсе",
+        "vpp": false
       },
       {
         "list": "000000698",
@@ -5645,316 +5645,6 @@
         "vpp": false
       }
     ],
-    "967456": [
-      {
-        "list": "000000756",
-        "position": 33,
-        "score_total": 295,
-        "consent": false,
-        "priority_pz": 1,
-        "bvi": false,
-        "status": "",
-        "vpp": false,
-        "cons_above": 17,
-        "vpp_above": 0,
-        "sim_above": 0
-      },
-      {
-        "list": "000000776",
-        "position": 23,
-        "score_total": 295,
-        "consent": false,
-        "priority_pz": 3,
-        "bvi": false,
-        "status": "",
-        "vpp": false,
-        "cons_above": 16,
-        "vpp_above": 0,
-        "sim_above": 0
-      },
-      {
-        "list": "000000767",
-        "position": 26,
-        "score_total": 295,
-        "consent": false,
-        "priority_pz": 2,
-        "bvi": false,
-        "status": "",
-        "vpp": false,
-        "cons_above": 21,
-        "vpp_above": 0,
-        "sim_above": 0
-      }
-    ],
-    "965074": [
-      {
-        "list": "000000696",
-        "position": 403,
-        "score_total": 181,
-        "consent": false,
-        "priority_pz": 3,
-        "bvi": false,
-        "status": "Участвует в конкурсе",
-        "vpp": false
-      },
-      {
-        "list": "000000698",
-        "position": 294,
-        "score_total": 181,
-        "consent": false,
-        "priority_pz": 4,
-        "bvi": false,
-        "status": "Участвует в конкурсе",
-        "vpp": false
-      },
-      {
-        "list": "000000655",
-        "position": 664,
-        "score_total": 181,
-        "consent": false,
-        "priority_pz": 2,
-        "bvi": false,
-        "status": "Участвует в конкурсе",
-        "vpp": false
-      },
-      {
-        "list": "000000693",
-        "position": 435,
-        "score_total": 181,
-        "consent": false,
-        "priority_pz": 1,
-        "bvi": false,
-        "status": "Участвует в конкурсе",
-        "vpp": true
-      }
-    ],
-    "965459": [
-      {
-        "list": "000000787",
-        "position": 28,
-        "score_total": 228,
-        "consent": true,
-        "priority_pz": 1,
-        "bvi": false,
-        "status": "",
-        "vpp": false
-      },
-      {
-        "list": "000000353",
-        "position": 388,
-        "score_total": 149,
-        "consent": false,
-        "priority_pz": 9,
-        "bvi": false,
-        "status": "На рассмотрении",
-        "vpp": false
-      },
-      {
-        "list": "000000788",
-        "position": 1195,
-        "score_total": 228,
-        "consent": true,
-        "priority_pz": 7,
-        "bvi": false,
-        "status": "",
-        "vpp": false,
-        "cons_above": 371,
-        "vpp_above": 2,
-        "sim_above": 2
-      },
-      {
-        "list": "000000929",
-        "position": 2,
-        "score_total": 249,
-        "consent": true,
-        "priority_pz": 5,
-        "bvi": false,
-        "status": "",
-        "vpp": false
-      },
-      {
-        "list": "000000462",
-        "position": 191,
-        "score_total": 228,
-        "consent": true,
-        "priority_pz": 3,
-        "bvi": false,
-        "status": "",
-        "vpp": false,
-        "cons_above": 55,
-        "vpp_above": 0,
-        "sim_above": 0
-      },
-      {
-        "list": "000000446",
-        "position": 328,
-        "score_total": 228,
-        "consent": false,
-        "priority_pz": 5,
-        "bvi": false,
-        "status": "Участвует в конкурсе",
-        "vpp": false
-      },
-      {
-        "list": "000000791",
-        "position": 328,
-        "score_total": 228,
-        "consent": false,
-        "priority_pz": 6,
-        "bvi": false,
-        "status": "Участвует в конкурсе",
-        "vpp": false
-      },
-      {
-        "list": "000000930",
-        "position": 234,
-        "score_total": 228,
-        "consent": true,
-        "priority_pz": 4,
-        "bvi": false,
-        "status": "",
-        "vpp": false,
-        "cons_above": 85,
-        "vpp_above": 0,
-        "sim_above": 0
-      },
-      {
-        "list": "000000613",
-        "position": 59,
-        "score_total": 228,
-        "consent": true,
-        "priority_pz": 6,
-        "bvi": false,
-        "status": "",
-        "vpp": false
-      },
-      {
-        "list": "000000793",
-        "position": 95,
-        "score_total": 228,
-        "consent": true,
-        "priority_pz": 7,
-        "bvi": false,
-        "status": "",
-        "vpp": false
-      },
-      {
-        "list": "000000916",
-        "position": 344,
-        "score_total": 149,
-        "consent": false,
-        "priority_pz": 8,
-        "bvi": false,
-        "status": "На рассмотрении",
-        "vpp": false
-      },
-      {
-        "list": "000000465",
-        "position": 53,
-        "score_total": 228,
-        "consent": false,
-        "priority_pz": 4,
-        "bvi": false,
-        "status": "Участвует в конкурсе",
-        "vpp": false
-      },
-      {
-        "list": "000000782",
-        "position": 321,
-        "score_total": 228,
-        "consent": true,
-        "priority_pz": 1,
-        "bvi": false,
-        "status": "",
-        "vpp": false,
-        "cons_above": 137,
-        "vpp_above": 2,
-        "sim_above": 2
-      },
-      {
-        "list": "000000794",
-        "position": 276,
-        "score_total": 228,
-        "consent": true,
-        "priority_pz": 2,
-        "bvi": false,
-        "status": "",
-        "vpp": false,
-        "cons_above": 111,
-        "vpp_above": 0,
-        "sim_above": 1
-      },
-      {
-        "list": "000000467",
-        "position": 16,
-        "score_total": 228,
-        "consent": true,
-        "priority_pz": 3,
-        "bvi": false,
-        "status": "",
-        "vpp": false
-      },
-      {
-        "list": "000000933",
-        "position": 71,
-        "score_total": 228,
-        "consent": false,
-        "priority_pz": 3,
-        "bvi": false,
-        "status": "Участвует в конкурсе",
-        "vpp": false
-      },
-      {
-        "list": "000000797",
-        "position": 104,
-        "score_total": 228,
-        "consent": false,
-        "priority_pz": 2,
-        "bvi": false,
-        "status": "Участвует в конкурсе",
-        "vpp": false
-      },
-      {
-        "list": "000000935",
-        "position": 24,
-        "score_total": 228,
-        "consent": true,
-        "priority_pz": 4,
-        "bvi": false,
-        "status": "",
-        "vpp": false
-      },
-      {
-        "list": "000000921",
-        "position": 566,
-        "score_total": 149,
-        "consent": false,
-        "priority_pz": 7,
-        "bvi": false,
-        "status": "На рассмотрении",
-        "vpp": false
-      },
-      {
-        "list": "000000799",
-        "position": 21,
-        "score_total": 228,
-        "consent": true,
-        "priority_pz": 2,
-        "bvi": false,
-        "status": "",
-        "vpp": false
-      },
-      {
-        "list": "000000785",
-        "position": 106,
-        "score_total": 228,
-        "consent": false,
-        "priority_pz": 1,
-        "bvi": false,
-        "status": "Участвует в конкурсе",
-        "vpp": false
-      }
-    ],
     "964345": [
       {
         "list": "000000684",
@@ -6006,16 +5696,6 @@
         "sim_above": 14
       },
       {
-        "list": "000000587",
-        "position": 347,
-        "score_total": 238,
-        "consent": false,
-        "priority_pz": 1,
-        "bvi": false,
-        "status": "Участвует в конкурсе",
-        "vpp": false
-      },
-      {
         "list": "000000496",
         "position": 1216,
         "score_total": 238,
@@ -6027,6 +5707,16 @@
         "cons_above": 294,
         "vpp_above": 2,
         "sim_above": 2
+      },
+      {
+        "list": "000000587",
+        "position": 347,
+        "score_total": 238,
+        "consent": false,
+        "priority_pz": 1,
+        "bvi": false,
+        "status": "Участвует в конкурсе",
+        "vpp": false
       }
     ],
     "967602": [
@@ -6111,16 +5801,6 @@
         "sim_above": 2
       },
       {
-        "list": "000000517",
-        "position": 923,
-        "score_total": 222,
-        "consent": false,
-        "priority_pz": 1,
-        "bvi": false,
-        "status": "На рассмотрении",
-        "vpp": false
-      },
-      {
         "list": "000000532",
         "position": 1866,
         "score_total": 222,
@@ -6132,6 +5812,16 @@
         "cons_above": 334,
         "vpp_above": 0,
         "sim_above": 6
+      },
+      {
+        "list": "000000517",
+        "position": 923,
+        "score_total": 222,
+        "consent": false,
+        "priority_pz": 1,
+        "bvi": false,
+        "status": "На рассмотрении",
+        "vpp": false
       },
       {
         "list": "000000520",
@@ -6357,6 +6047,316 @@
         "sim_above": 4
       }
     ],
+    "967456": [
+      {
+        "list": "000000756",
+        "position": 33,
+        "score_total": 295,
+        "consent": false,
+        "priority_pz": 1,
+        "bvi": false,
+        "status": "",
+        "vpp": false,
+        "cons_above": 17,
+        "vpp_above": 0,
+        "sim_above": 0
+      },
+      {
+        "list": "000000776",
+        "position": 23,
+        "score_total": 295,
+        "consent": false,
+        "priority_pz": 3,
+        "bvi": false,
+        "status": "",
+        "vpp": false,
+        "cons_above": 16,
+        "vpp_above": 0,
+        "sim_above": 0
+      },
+      {
+        "list": "000000767",
+        "position": 26,
+        "score_total": 295,
+        "consent": false,
+        "priority_pz": 2,
+        "bvi": false,
+        "status": "",
+        "vpp": false,
+        "cons_above": 21,
+        "vpp_above": 0,
+        "sim_above": 0
+      }
+    ],
+    "965459": [
+      {
+        "list": "000000787",
+        "position": 28,
+        "score_total": 228,
+        "consent": true,
+        "priority_pz": 1,
+        "bvi": false,
+        "status": "",
+        "vpp": false
+      },
+      {
+        "list": "000000353",
+        "position": 388,
+        "score_total": 149,
+        "consent": false,
+        "priority_pz": 9,
+        "bvi": false,
+        "status": "На рассмотрении",
+        "vpp": false
+      },
+      {
+        "list": "000000788",
+        "position": 1195,
+        "score_total": 228,
+        "consent": true,
+        "priority_pz": 7,
+        "bvi": false,
+        "status": "",
+        "vpp": false,
+        "cons_above": 371,
+        "vpp_above": 2,
+        "sim_above": 2
+      },
+      {
+        "list": "000000929",
+        "position": 2,
+        "score_total": 249,
+        "consent": true,
+        "priority_pz": 5,
+        "bvi": false,
+        "status": "",
+        "vpp": false
+      },
+      {
+        "list": "000000462",
+        "position": 191,
+        "score_total": 228,
+        "consent": true,
+        "priority_pz": 3,
+        "bvi": false,
+        "status": "",
+        "vpp": false,
+        "cons_above": 55,
+        "vpp_above": 0,
+        "sim_above": 0
+      },
+      {
+        "list": "000000446",
+        "position": 328,
+        "score_total": 228,
+        "consent": false,
+        "priority_pz": 5,
+        "bvi": false,
+        "status": "Участвует в конкурсе",
+        "vpp": false
+      },
+      {
+        "list": "000000791",
+        "position": 328,
+        "score_total": 228,
+        "consent": false,
+        "priority_pz": 6,
+        "bvi": false,
+        "status": "Участвует в конкурсе",
+        "vpp": false
+      },
+      {
+        "list": "000000930",
+        "position": 234,
+        "score_total": 228,
+        "consent": true,
+        "priority_pz": 4,
+        "bvi": false,
+        "status": "",
+        "vpp": false,
+        "cons_above": 85,
+        "vpp_above": 0,
+        "sim_above": 0
+      },
+      {
+        "list": "000000613",
+        "position": 59,
+        "score_total": 228,
+        "consent": true,
+        "priority_pz": 6,
+        "bvi": false,
+        "status": "",
+        "vpp": false
+      },
+      {
+        "list": "000000793",
+        "position": 95,
+        "score_total": 228,
+        "consent": true,
+        "priority_pz": 7,
+        "bvi": false,
+        "status": "",
+        "vpp": false
+      },
+      {
+        "list": "000000916",
+        "position": 344,
+        "score_total": 149,
+        "consent": false,
+        "priority_pz": 8,
+        "bvi": false,
+        "status": "На рассмотрении",
+        "vpp": false
+      },
+      {
+        "list": "000000465",
+        "position": 53,
+        "score_total": 228,
+        "consent": false,
+        "priority_pz": 4,
+        "bvi": false,
+        "status": "Участвует в конкурсе",
+        "vpp": false
+      },
+      {
+        "list": "000000782",
+        "position": 321,
+        "score_total": 228,
+        "consent": true,
+        "priority_pz": 1,
+        "bvi": false,
+        "status": "",
+        "vpp": false,
+        "cons_above": 137,
+        "vpp_above": 2,
+        "sim_above": 2
+      },
+      {
+        "list": "000000794",
+        "position": 276,
+        "score_total": 228,
+        "consent": true,
+        "priority_pz": 2,
+        "bvi": false,
+        "status": "",
+        "vpp": false,
+        "cons_above": 111,
+        "vpp_above": 0,
+        "sim_above": 1
+      },
+      {
+        "list": "000000467",
+        "position": 16,
+        "score_total": 228,
+        "consent": true,
+        "priority_pz": 3,
+        "bvi": false,
+        "status": "",
+        "vpp": false
+      },
+      {
+        "list": "000000933",
+        "position": 71,
+        "score_total": 228,
+        "consent": false,
+        "priority_pz": 3,
+        "bvi": false,
+        "status": "Участвует в конкурсе",
+        "vpp": false
+      },
+      {
+        "list": "000000935",
+        "position": 24,
+        "score_total": 228,
+        "consent": true,
+        "priority_pz": 4,
+        "bvi": false,
+        "status": "",
+        "vpp": false
+      },
+      {
+        "list": "000000797",
+        "position": 104,
+        "score_total": 228,
+        "consent": false,
+        "priority_pz": 2,
+        "bvi": false,
+        "status": "Участвует в конкурсе",
+        "vpp": false
+      },
+      {
+        "list": "000000921",
+        "position": 566,
+        "score_total": 149,
+        "consent": false,
+        "priority_pz": 7,
+        "bvi": false,
+        "status": "На рассмотрении",
+        "vpp": false
+      },
+      {
+        "list": "000000799",
+        "position": 21,
+        "score_total": 228,
+        "consent": true,
+        "priority_pz": 2,
+        "bvi": false,
+        "status": "",
+        "vpp": false
+      },
+      {
+        "list": "000000785",
+        "position": 106,
+        "score_total": 228,
+        "consent": false,
+        "priority_pz": 1,
+        "bvi": false,
+        "status": "Участвует в конкурсе",
+        "vpp": false
+      }
+    ],
+    "965074": [
+      {
+        "list": "000000696",
+        "position": 403,
+        "score_total": 181,
+        "consent": false,
+        "priority_pz": 3,
+        "bvi": false,
+        "status": "Участвует в конкурсе",
+        "vpp": false
+      },
+      {
+        "list": "000000655",
+        "position": 664,
+        "score_total": 181,
+        "consent": false,
+        "priority_pz": 2,
+        "bvi": false,
+        "status": "Участвует в конкурсе",
+        "vpp": false
+      },
+      {
+        "list": "000000698",
+        "position": 294,
+        "score_total": 181,
+        "consent": false,
+        "priority_pz": 4,
+        "bvi": false,
+        "status": "Участвует в конкурсе",
+        "vpp": false
+      },
+      {
+        "list": "000000693",
+        "position": 435,
+        "score_total": 181,
+        "consent": false,
+        "priority_pz": 1,
+        "bvi": false,
+        "status": "Участвует в конкурсе",
+        "vpp": true
+      }
+    ],
     "964861": [
       {
         "list": "000000970",
@@ -6521,6 +6521,46 @@
         "sim_above": 2
       }
     ],
+    "960896": [
+      {
+        "list": "000001002",
+        "position": 5,
+        "score_total": 269,
+        "consent": true,
+        "priority_pz": 1,
+        "bvi": false,
+        "status": "",
+        "vpp": false,
+        "cons_above": 4,
+        "vpp_above": 0,
+        "sim_above": 0
+      }
+    ],
+    "969093": [
+      {
+        "list": "000001002",
+        "position": 43,
+        "score_total": 222,
+        "consent": false,
+        "priority_pz": 1,
+        "bvi": false,
+        "status": "",
+        "vpp": false,
+        "cons_above": 39,
+        "vpp_above": 0,
+        "sim_above": 11
+      },
+      {
+        "list": "000001005",
+        "position": 24,
+        "score_total": 222,
+        "consent": false,
+        "priority_pz": 1,
+        "bvi": false,
+        "status": "На рассмотрении",
+        "vpp": false
+      }
+    ],
     "964559": [
       {
         "list": "000000910",
@@ -6560,46 +6600,6 @@
         "cons_above": 152,
         "vpp_above": 1,
         "sim_above": 1
-      }
-    ],
-    "960896": [
-      {
-        "list": "000001002",
-        "position": 5,
-        "score_total": 269,
-        "consent": true,
-        "priority_pz": 1,
-        "bvi": false,
-        "status": "",
-        "vpp": false,
-        "cons_above": 4,
-        "vpp_above": 0,
-        "sim_above": 0
-      }
-    ],
-    "969093": [
-      {
-        "list": "000001002",
-        "position": 43,
-        "score_total": 222,
-        "consent": false,
-        "priority_pz": 1,
-        "bvi": false,
-        "status": "",
-        "vpp": false,
-        "cons_above": 39,
-        "vpp_above": 0,
-        "sim_above": 11
-      },
-      {
-        "list": "000001005",
-        "position": 24,
-        "score_total": 222,
-        "consent": false,
-        "priority_pz": 1,
-        "bvi": false,
-        "status": "На рассмотрении",
-        "vpp": false
       }
     ],
     "964332": [
@@ -6790,16 +6790,6 @@
         "vpp": false
       },
       {
-        "list": "000000703",
-        "position": 1179,
-        "score_total": 114,
-        "consent": false,
-        "priority_pz": 2,
-        "bvi": false,
-        "status": "На рассмотрении",
-        "vpp": false
-      },
-      {
         "list": "000000732",
         "position": 420,
         "score_total": 153,
@@ -6807,6 +6797,16 @@
         "priority_pz": 12,
         "bvi": false,
         "status": "Участвует в конкурсе",
+        "vpp": false
+      },
+      {
+        "list": "000000703",
+        "position": 1179,
+        "score_total": 114,
+        "consent": false,
+        "priority_pz": 2,
+        "bvi": false,
+        "status": "На рассмотрении",
         "vpp": false
       },
       {
@@ -6836,6 +6836,16 @@
         "sim_above": 24
       },
       {
+        "list": "000000721",
+        "position": 578,
+        "score_total": 114,
+        "consent": false,
+        "priority_pz": 11,
+        "bvi": false,
+        "status": "На рассмотрении",
+        "vpp": false
+      },
+      {
         "list": "000000734",
         "position": 694,
         "score_total": 153,
@@ -6849,26 +6859,6 @@
         "sim_above": 13
       },
       {
-        "list": "000000721",
-        "position": 578,
-        "score_total": 114,
-        "consent": false,
-        "priority_pz": 11,
-        "bvi": false,
-        "status": "На рассмотрении",
-        "vpp": false
-      },
-      {
-        "list": "000000587",
-        "position": 1246,
-        "score_total": 153,
-        "consent": false,
-        "priority_pz": 5,
-        "bvi": false,
-        "status": "Участвует в конкурсе",
-        "vpp": false
-      },
-      {
         "list": "000000496",
         "position": 2610,
         "score_total": 153,
@@ -6880,6 +6870,16 @@
         "cons_above": 643,
         "vpp_above": 2,
         "sim_above": 2
+      },
+      {
+        "list": "000000587",
+        "position": 1246,
+        "score_total": 153,
+        "consent": false,
+        "priority_pz": 5,
+        "bvi": false,
+        "status": "Участвует в конкурсе",
+        "vpp": false
       },
       {
         "list": "000000511",
@@ -6902,16 +6902,6 @@
         "vpp": false
       },
       {
-        "list": "000000709",
-        "position": 549,
-        "score_total": 114,
-        "consent": false,
-        "priority_pz": 9,
-        "bvi": false,
-        "status": "На рассмотрении",
-        "vpp": false
-      },
-      {
         "list": "000000737",
         "position": 409,
         "score_total": 153,
@@ -6919,6 +6909,16 @@
         "priority_pz": 13,
         "bvi": false,
         "status": "Участвует в конкурсе",
+        "vpp": false
+      },
+      {
+        "list": "000000709",
+        "position": 549,
+        "score_total": 114,
+        "consent": false,
+        "priority_pz": 9,
+        "bvi": false,
+        "status": "На рассмотрении",
         "vpp": false
       }
     ],
@@ -7166,6 +7166,225 @@
         "vpp": false
       }
     ],
+    "968969": [
+      {
+        "list": "000000544",
+        "position": 18,
+        "score_total": 285,
+        "consent": false,
+        "priority_pz": 2,
+        "bvi": false,
+        "status": "",
+        "vpp": false,
+        "cons_above": 0,
+        "vpp_above": 0,
+        "sim_above": 0
+      },
+      {
+        "list": "000000576",
+        "position": 1,
+        "score_total": 285,
+        "consent": false,
+        "priority_pz": 1,
+        "bvi": false,
+        "status": "Участвует в конкурсе",
+        "vpp": false
+      },
+      {
+        "list": "000000904",
+        "position": 11,
+        "score_total": 285,
+        "consent": false,
+        "priority_pz": 1,
+        "bvi": false,
+        "status": "",
+        "vpp": false,
+        "cons_above": 1,
+        "vpp_above": 0,
+        "sim_above": 0
+      }
+    ],
+    "967709": [
+      {
+        "list": "000000544",
+        "position": 42,
+        "score_total": 274,
+        "consent": false,
+        "priority_pz": 1,
+        "bvi": false,
+        "status": "",
+        "vpp": false,
+        "cons_above": 5,
+        "vpp_above": 0,
+        "sim_above": 0
+      }
+    ],
+    "961317": [
+      {
+        "list": "000000544",
+        "position": 66,
+        "score_total": 267,
+        "consent": false,
+        "priority_pz": 1,
+        "bvi": false,
+        "status": "",
+        "vpp": false,
+        "cons_above": 10,
+        "vpp_above": 0,
+        "sim_above": 0
+      },
+      {
+        "list": "000000576",
+        "position": 3,
+        "score_total": 267,
+        "consent": false,
+        "priority_pz": 1,
+        "bvi": false,
+        "status": "Участвует в конкурсе",
+        "vpp": false
+      },
+      {
+        "list": "000000904",
+        "position": 41,
+        "score_total": 267,
+        "consent": false,
+        "priority_pz": 2,
+        "bvi": false,
+        "status": "",
+        "vpp": false,
+        "cons_above": 5,
+        "vpp_above": 0,
+        "sim_above": 0
+      }
+    ],
+    "966752": [
+      {
+        "list": "000000544",
+        "position": 400,
+        "score_total": 204,
+        "consent": true,
+        "priority_pz": 1,
+        "bvi": false,
+        "status": "",
+        "vpp": false,
+        "cons_above": 83,
+        "vpp_above": 0,
+        "sim_above": 12
+      },
+      {
+        "list": "000000547",
+        "position": 100,
+        "score_total": 204,
+        "consent": false,
+        "priority_pz": 1,
+        "bvi": false,
+        "status": "Участвует в конкурсе",
+        "vpp": false
+      },
+      {
+        "list": "000000576",
+        "position": 59,
+        "score_total": 204,
+        "consent": false,
+        "priority_pz": 2,
+        "bvi": false,
+        "status": "Участвует в конкурсе",
+        "vpp": false
+      }
+    ],
+    "961236": [
+      {
+        "list": "000000556",
+        "position": 34,
+        "score_total": 271,
+        "consent": true,
+        "priority_pz": 7,
+        "bvi": false,
+        "status": "",
+        "vpp": false,
+        "cons_above": 14,
+        "vpp_above": 0,
+        "sim_above": 0
+      },
+      {
+        "list": "000000788",
+        "position": 169,
+        "score_total": 271,
+        "consent": true,
+        "priority_pz": 4,
+        "bvi": false,
+        "status": "",
+        "vpp": false,
+        "cons_above": 54,
+        "vpp_above": 0,
+        "sim_above": 0
+      },
+      {
+        "list": "000000344",
+        "position": 32,
+        "score_total": 272,
+        "consent": true,
+        "priority_pz": 1,
+        "bvi": false,
+        "status": "",
+        "vpp": false,
+        "cons_above": 9,
+        "vpp_above": 0,
+        "sim_above": 0
+      },
+      {
+        "list": "000000550",
+        "position": 51,
+        "score_total": 271,
+        "consent": true,
+        "priority_pz": 6,
+        "bvi": false,
+        "status": "",
+        "vpp": false,
+        "cons_above": 17,
+        "vpp_above": 0,
+        "sim_above": 0
+      },
+      {
+        "list": "000000918",
+        "position": 39,
+        "score_total": 272,
+        "consent": true,
+        "priority_pz": 5,
+        "bvi": false,
+        "status": "",
+        "vpp": false,
+        "cons_above": 8,
+        "vpp_above": 0,
+        "sim_above": 0
+      },
+      {
+        "list": "000000602",
+        "position": 59,
+        "score_total": 272,
+        "consent": true,
+        "priority_pz": 3,
+        "bvi": false,
+        "status": "",
+        "vpp": false,
+        "cons_above": 17,
+        "vpp_above": 0,
+        "sim_above": 0
+      },
+      {
+        "list": "000000338",
+        "position": 36,
+        "score_total": 272,
+        "consent": true,
+        "priority_pz": 2,
+        "bvi": false,
+        "status": "",
+        "vpp": false,
+        "cons_above": 12,
+        "vpp_above": 0,
+        "sim_above": 0
+      }
+    ],
     "967547": [
       {
         "list": "000000499",
@@ -7282,16 +7501,6 @@
         "sim_above": 0
       },
       {
-        "list": "000000523",
-        "position": 450,
-        "score_total": 254,
-        "consent": false,
-        "priority_pz": 2,
-        "bvi": false,
-        "status": "Участвует в конкурсе",
-        "vpp": false
-      },
-      {
         "list": "000000496",
         "position": 781,
         "score_total": 254,
@@ -7303,6 +7512,16 @@
         "cons_above": 180,
         "vpp_above": 2,
         "sim_above": 2
+      },
+      {
+        "list": "000000523",
+        "position": 450,
+        "score_total": 254,
+        "consent": false,
+        "priority_pz": 2,
+        "bvi": false,
+        "status": "Участвует в конкурсе",
+        "vpp": false
       },
       {
         "list": "000000541",
@@ -7379,16 +7598,6 @@
         "sim_above": 14
       },
       {
-        "list": "000000517",
-        "position": 918,
-        "score_total": 223,
-        "consent": false,
-        "priority_pz": 3,
-        "bvi": false,
-        "status": "Участвует в конкурсе",
-        "vpp": false
-      },
-      {
         "list": "000000532",
         "position": 1859,
         "score_total": 223,
@@ -7400,6 +7609,16 @@
         "cons_above": 333,
         "vpp_above": 0,
         "sim_above": 6
+      },
+      {
+        "list": "000000517",
+        "position": 918,
+        "score_total": 223,
+        "consent": false,
+        "priority_pz": 3,
+        "bvi": false,
+        "status": "Участвует в конкурсе",
+        "vpp": false
       },
       {
         "list": "000000573",
@@ -7432,16 +7651,6 @@
         "vpp": false
       },
       {
-        "list": "000000535",
-        "position": 851,
-        "score_total": 223,
-        "consent": false,
-        "priority_pz": 8,
-        "bvi": false,
-        "status": "Участвует в конкурсе",
-        "vpp": false
-      },
-      {
         "list": "000000520",
         "position": 2391,
         "score_total": 223,
@@ -7453,6 +7662,16 @@
         "cons_above": 453,
         "vpp_above": 0,
         "sim_above": 7
+      },
+      {
+        "list": "000000535",
+        "position": 851,
+        "score_total": 223,
+        "consent": false,
+        "priority_pz": 8,
+        "bvi": false,
+        "status": "Участвует в конкурсе",
+        "vpp": false
       },
       {
         "list": "000000644",
@@ -7527,6 +7746,19 @@
         "vpp": false
       },
       {
+        "list": "000000496",
+        "position": 1671,
+        "score_total": 223,
+        "consent": true,
+        "priority_pz": 4,
+        "bvi": false,
+        "status": "",
+        "vpp": false,
+        "cons_above": 381,
+        "vpp_above": 2,
+        "sim_above": 2
+      },
+      {
         "list": "000000523",
         "position": 1146,
         "score_total": 223,
@@ -7545,19 +7777,6 @@
         "bvi": false,
         "status": "Участвует в конкурсе",
         "vpp": false
-      },
-      {
-        "list": "000000496",
-        "position": 1671,
-        "score_total": 223,
-        "consent": true,
-        "priority_pz": 4,
-        "bvi": false,
-        "status": "",
-        "vpp": false,
-        "cons_above": 381,
-        "vpp_above": 2,
-        "sim_above": 2
       },
       {
         "list": "000000541",
@@ -7807,16 +8026,6 @@
         "sim_above": 13
       },
       {
-        "list": "000000587",
-        "position": 856,
-        "score_total": 199,
-        "consent": false,
-        "priority_pz": 9,
-        "bvi": false,
-        "status": "Участвует в конкурсе",
-        "vpp": false
-      },
-      {
         "list": "000000496",
         "position": 2195,
         "score_total": 199,
@@ -7828,6 +8037,16 @@
         "cons_above": 516,
         "vpp_above": 2,
         "sim_above": 2
+      },
+      {
+        "list": "000000587",
+        "position": 856,
+        "score_total": 199,
+        "consent": false,
+        "priority_pz": 9,
+        "bvi": false,
+        "status": "Участвует в конкурсе",
+        "vpp": false
       },
       {
         "list": "000000511",
@@ -8048,225 +8267,6 @@
         "vpp": false
       }
     ],
-    "961236": [
-      {
-        "list": "000000556",
-        "position": 34,
-        "score_total": 271,
-        "consent": true,
-        "priority_pz": 7,
-        "bvi": false,
-        "status": "",
-        "vpp": false,
-        "cons_above": 14,
-        "vpp_above": 0,
-        "sim_above": 0
-      },
-      {
-        "list": "000000788",
-        "position": 169,
-        "score_total": 271,
-        "consent": true,
-        "priority_pz": 4,
-        "bvi": false,
-        "status": "",
-        "vpp": false,
-        "cons_above": 54,
-        "vpp_above": 0,
-        "sim_above": 0
-      },
-      {
-        "list": "000000344",
-        "position": 32,
-        "score_total": 272,
-        "consent": true,
-        "priority_pz": 1,
-        "bvi": false,
-        "status": "",
-        "vpp": false,
-        "cons_above": 9,
-        "vpp_above": 0,
-        "sim_above": 0
-      },
-      {
-        "list": "000000550",
-        "position": 51,
-        "score_total": 271,
-        "consent": true,
-        "priority_pz": 6,
-        "bvi": false,
-        "status": "",
-        "vpp": false,
-        "cons_above": 17,
-        "vpp_above": 0,
-        "sim_above": 0
-      },
-      {
-        "list": "000000918",
-        "position": 39,
-        "score_total": 272,
-        "consent": true,
-        "priority_pz": 5,
-        "bvi": false,
-        "status": "",
-        "vpp": false,
-        "cons_above": 8,
-        "vpp_above": 0,
-        "sim_above": 0
-      },
-      {
-        "list": "000000602",
-        "position": 59,
-        "score_total": 272,
-        "consent": true,
-        "priority_pz": 3,
-        "bvi": false,
-        "status": "",
-        "vpp": false,
-        "cons_above": 17,
-        "vpp_above": 0,
-        "sim_above": 0
-      },
-      {
-        "list": "000000338",
-        "position": 36,
-        "score_total": 272,
-        "consent": true,
-        "priority_pz": 2,
-        "bvi": false,
-        "status": "",
-        "vpp": false,
-        "cons_above": 12,
-        "vpp_above": 0,
-        "sim_above": 0
-      }
-    ],
-    "968969": [
-      {
-        "list": "000000544",
-        "position": 18,
-        "score_total": 285,
-        "consent": false,
-        "priority_pz": 2,
-        "bvi": false,
-        "status": "",
-        "vpp": false,
-        "cons_above": 0,
-        "vpp_above": 0,
-        "sim_above": 0
-      },
-      {
-        "list": "000000576",
-        "position": 1,
-        "score_total": 285,
-        "consent": false,
-        "priority_pz": 1,
-        "bvi": false,
-        "status": "Участвует в конкурсе",
-        "vpp": false
-      },
-      {
-        "list": "000000904",
-        "position": 11,
-        "score_total": 285,
-        "consent": false,
-        "priority_pz": 1,
-        "bvi": false,
-        "status": "",
-        "vpp": false,
-        "cons_above": 1,
-        "vpp_above": 0,
-        "sim_above": 0
-      }
-    ],
-    "967709": [
-      {
-        "list": "000000544",
-        "position": 42,
-        "score_total": 274,
-        "consent": false,
-        "priority_pz": 1,
-        "bvi": false,
-        "status": "",
-        "vpp": false,
-        "cons_above": 5,
-        "vpp_above": 0,
-        "sim_above": 0
-      }
-    ],
-    "961317": [
-      {
-        "list": "000000544",
-        "position": 66,
-        "score_total": 267,
-        "consent": false,
-        "priority_pz": 1,
-        "bvi": false,
-        "status": "",
-        "vpp": false,
-        "cons_above": 10,
-        "vpp_above": 0,
-        "sim_above": 0
-      },
-      {
-        "list": "000000576",
-        "position": 3,
-        "score_total": 267,
-        "consent": false,
-        "priority_pz": 1,
-        "bvi": false,
-        "status": "Участвует в конкурсе",
-        "vpp": false
-      },
-      {
-        "list": "000000904",
-        "position": 41,
-        "score_total": 267,
-        "consent": false,
-        "priority_pz": 2,
-        "bvi": false,
-        "status": "",
-        "vpp": false,
-        "cons_above": 5,
-        "vpp_above": 0,
-        "sim_above": 0
-      }
-    ],
-    "966752": [
-      {
-        "list": "000000544",
-        "position": 400,
-        "score_total": 204,
-        "consent": true,
-        "priority_pz": 1,
-        "bvi": false,
-        "status": "",
-        "vpp": false,
-        "cons_above": 83,
-        "vpp_above": 0,
-        "sim_above": 12
-      },
-      {
-        "list": "000000547",
-        "position": 100,
-        "score_total": 204,
-        "consent": false,
-        "priority_pz": 1,
-        "bvi": false,
-        "status": "Участвует в конкурсе",
-        "vpp": false
-      },
-      {
-        "list": "000000576",
-        "position": 59,
-        "score_total": 204,
-        "consent": false,
-        "priority_pz": 2,
-        "bvi": false,
-        "status": "Участвует в конкурсе",
-        "vpp": false
-      }
-    ],
     "968704": [
       {
         "list": "000000514",
@@ -8426,16 +8426,6 @@
         "vpp": false
       },
       {
-        "list": "000000517",
-        "position": 217,
-        "score_total": 262,
-        "consent": false,
-        "priority_pz": 5,
-        "bvi": false,
-        "status": "Участвует в конкурсе",
-        "vpp": false
-      },
-      {
         "list": "000000532",
         "position": 659,
         "score_total": 262,
@@ -8447,6 +8437,16 @@
         "cons_above": 117,
         "vpp_above": 0,
         "sim_above": 1
+      },
+      {
+        "list": "000000517",
+        "position": 217,
+        "score_total": 262,
+        "consent": false,
+        "priority_pz": 5,
+        "bvi": false,
+        "status": "Участвует в конкурсе",
+        "vpp": false
       },
       {
         "list": "000000573",
@@ -8469,16 +8469,6 @@
         "vpp": false
       },
       {
-        "list": "000000535",
-        "position": 208,
-        "score_total": 262,
-        "consent": false,
-        "priority_pz": 1,
-        "bvi": false,
-        "status": "Участвует в конкурсе",
-        "vpp": false
-      },
-      {
         "list": "000000627",
         "position": 26,
         "score_total": 85,
@@ -8486,6 +8476,16 @@
         "priority_pz": 6,
         "bvi": false,
         "status": "На рассмотрении",
+        "vpp": false
+      },
+      {
+        "list": "000000535",
+        "position": 208,
+        "score_total": 262,
+        "consent": false,
+        "priority_pz": 1,
+        "bvi": false,
+        "status": "Участвует в конкурсе",
         "vpp": false
       },
       {
@@ -8525,16 +8525,6 @@
         "vpp": false
       },
       {
-        "list": "000000709",
-        "position": 378,
-        "score_total": 175,
-        "consent": false,
-        "priority_pz": 3,
-        "bvi": false,
-        "status": "На рассмотрении",
-        "vpp": false
-      },
-      {
         "list": "000000737",
         "position": 32,
         "score_total": 262,
@@ -8542,6 +8532,16 @@
         "priority_pz": 8,
         "bvi": false,
         "status": "Участвует в конкурсе",
+        "vpp": false
+      },
+      {
+        "list": "000000709",
+        "position": 378,
+        "score_total": 175,
+        "consent": false,
+        "priority_pz": 3,
+        "bvi": false,
+        "status": "На рассмотрении",
         "vpp": false
       },
       {
@@ -8786,16 +8786,6 @@
         "sim_above": 0
       },
       {
-        "list": "000000523",
-        "position": 572,
-        "score_total": 247,
-        "consent": false,
-        "priority_pz": 3,
-        "bvi": false,
-        "status": "Участвует в конкурсе",
-        "vpp": false
-      },
-      {
         "list": "000000496",
         "position": 973,
         "score_total": 247,
@@ -8807,6 +8797,16 @@
         "cons_above": 226,
         "vpp_above": 2,
         "sim_above": 2
+      },
+      {
+        "list": "000000523",
+        "position": 572,
+        "score_total": 247,
+        "consent": false,
+        "priority_pz": 3,
+        "bvi": false,
+        "status": "Участвует в конкурсе",
+        "vpp": false
       },
       {
         "list": "000000567",
@@ -8847,16 +8847,6 @@
         "sim_above": 14
       },
       {
-        "list": "000000517",
-        "position": 901,
-        "score_total": 223,
-        "consent": false,
-        "priority_pz": 2,
-        "bvi": false,
-        "status": "Участвует в конкурсе",
-        "vpp": false
-      },
-      {
         "list": "000000532",
         "position": 1843,
         "score_total": 223,
@@ -8868,6 +8858,16 @@
         "cons_above": 332,
         "vpp_above": 0,
         "sim_above": 6
+      },
+      {
+        "list": "000000517",
+        "position": 901,
+        "score_total": 223,
+        "consent": false,
+        "priority_pz": 2,
+        "bvi": false,
+        "status": "Участвует в конкурсе",
+        "vpp": false
       },
       {
         "list": "000000573",
@@ -8900,16 +8900,6 @@
         "vpp": false
       },
       {
-        "list": "000000535",
-        "position": 838,
-        "score_total": 223,
-        "consent": false,
-        "priority_pz": 4,
-        "bvi": false,
-        "status": "Участвует в конкурсе",
-        "vpp": false
-      },
-      {
         "list": "000000520",
         "position": 2374,
         "score_total": 223,
@@ -8921,6 +8911,16 @@
         "cons_above": 449,
         "vpp_above": 0,
         "sim_above": 7
+      },
+      {
+        "list": "000000535",
+        "position": 838,
+        "score_total": 223,
+        "consent": false,
+        "priority_pz": 4,
+        "bvi": false,
+        "status": "Участвует в конкурсе",
+        "vpp": false
       },
       {
         "list": "000000537",
@@ -9014,6 +9014,16 @@
         "vpp": false
       },
       {
+        "list": "000000789",
+        "position": 50,
+        "score_total": 198,
+        "consent": true,
+        "priority_pz": 1,
+        "bvi": false,
+        "status": "",
+        "vpp": false
+      },
+      {
         "list": "000000700",
         "position": 1876,
         "score_total": 198,
@@ -9025,16 +9035,6 @@
         "cons_above": 464,
         "vpp_above": 0,
         "sim_above": 36
-      },
-      {
-        "list": "000000789",
-        "position": 50,
-        "score_total": 198,
-        "consent": true,
-        "priority_pz": 1,
-        "bvi": false,
-        "status": "",
-        "vpp": false
       },
       {
         "list": "000000701",
@@ -9101,36 +9101,6 @@
         "bvi": false,
         "status": "",
         "vpp": false
-      }
-    ],
-    "969373": [
-      {
-        "list": "000000638",
-        "position": 139,
-        "score_total": 232,
-        "consent": true,
-        "priority_pz": 1,
-        "bvi": false,
-        "status": "",
-        "vpp": false,
-        "cons_above": 57,
-        "vpp_above": 0,
-        "sim_above": 0
-      }
-    ],
-    "966832": [
-      {
-        "list": "000000638",
-        "position": 359,
-        "score_total": 181,
-        "consent": false,
-        "priority_pz": 1,
-        "bvi": false,
-        "status": "",
-        "vpp": false,
-        "cons_above": 117,
-        "vpp_above": 1,
-        "sim_above": 1
       }
     ],
     "967467": [
@@ -9252,16 +9222,6 @@
         "vpp": false
       },
       {
-        "list": "000000535",
-        "position": 16,
-        "score_total": 291,
-        "consent": false,
-        "priority_pz": 3,
-        "bvi": false,
-        "status": "Участвует в конкурсе",
-        "vpp": false
-      },
-      {
         "list": "000000562",
         "position": 7,
         "score_total": 293,
@@ -9283,6 +9243,16 @@
         "cons_above": 24,
         "vpp_above": 0,
         "sim_above": 0
+      },
+      {
+        "list": "000000535",
+        "position": 16,
+        "score_total": 291,
+        "consent": false,
+        "priority_pz": 3,
+        "bvi": false,
+        "status": "Участвует в конкурсе",
+        "vpp": false
       },
       {
         "list": "000000644",
@@ -9463,21 +9433,21 @@
         "vpp": false
       },
       {
-        "list": "000000535",
-        "position": 242,
-        "score_total": 260,
-        "consent": false,
-        "priority_pz": 3,
-        "bvi": false,
-        "status": "Участвует в конкурсе",
-        "vpp": false
-      },
-      {
         "list": "000000562",
         "position": 25,
         "score_total": 269,
         "consent": false,
         "priority_pz": 1,
+        "bvi": false,
+        "status": "Участвует в конкурсе",
+        "vpp": false
+      },
+      {
+        "list": "000000535",
+        "position": 242,
+        "score_total": 260,
+        "consent": false,
+        "priority_pz": 3,
         "bvi": false,
         "status": "Участвует в конкурсе",
         "vpp": false
@@ -9740,111 +9710,34 @@
         "vpp": false
       }
     ],
-    "962338": [
+    "969373": [
       {
-        "list": "000000698",
-        "position": 231,
-        "score_total": 195,
-        "consent": false,
-        "priority_pz": 3,
+        "list": "000000638",
+        "position": 139,
+        "score_total": 232,
+        "consent": true,
+        "priority_pz": 1,
         "bvi": false,
-        "status": "Участвует в конкурсе",
-        "vpp": false
-      },
+        "status": "",
+        "vpp": false,
+        "cons_above": 57,
+        "vpp_above": 0,
+        "sim_above": 0
+      }
+    ],
+    "966832": [
       {
-        "list": "000000642",
-        "position": 322,
-        "score_total": 198,
-        "consent": false,
-        "priority_pz": 4,
-        "bvi": false,
-        "status": "Участвует в конкурсе",
-        "vpp": false
-      },
-      {
-        "list": "000000538",
-        "position": 2096,
-        "score_total": 198,
+        "list": "000000638",
+        "position": 359,
+        "score_total": 181,
         "consent": false,
         "priority_pz": 1,
         "bvi": false,
         "status": "",
         "vpp": false,
-        "cons_above": 476,
-        "vpp_above": 0,
-        "sim_above": 16
-      },
-      {
-        "list": "000000664",
-        "position": 495,
-        "score_total": 198,
-        "consent": false,
-        "priority_pz": 2,
-        "bvi": false,
-        "status": "Участвует в конкурсе",
-        "vpp": false
-      },
-      {
-        "list": "000000666",
-        "position": 458,
-        "score_total": 198,
-        "consent": false,
-        "priority_pz": 1,
-        "bvi": false,
-        "status": "Участвует в конкурсе",
-        "vpp": false
-      },
-      {
-        "list": "000000541",
-        "position": 818,
-        "score_total": 198,
-        "consent": false,
-        "priority_pz": 5,
-        "bvi": false,
-        "status": "Участвует в конкурсе",
-        "vpp": false
-      }
-    ],
-    "962592": [
-      {
-        "list": "000000698",
-        "position": 553,
-        "score_total": 0,
-        "consent": false,
-        "priority_pz": 2,
-        "bvi": false,
-        "status": "На рассмотрении",
-        "vpp": false
-      },
-      {
-        "list": "000000341",
-        "position": 535,
-        "score_total": 0,
-        "consent": false,
-        "priority_pz": 1,
-        "bvi": false,
-        "status": "На рассмотрении",
-        "vpp": false
-      },
-      {
-        "list": "000000359",
-        "position": 461,
-        "score_total": 0,
-        "consent": false,
-        "priority_pz": 3,
-        "bvi": false,
-        "status": "На рассмотрении",
-        "vpp": false
-      },
-      {
-        "list": "000000347",
-        "position": 596,
-        "score_total": 0,
-        "consent": false,
-        "priority_pz": 4,
-        "bvi": false,
-        "status": "На рассмотрении",
-        "vpp": false
+        "cons_above": 117,
+        "vpp_above": 1,
+        "sim_above": 1
       }
     ],
     "967574": [
@@ -9985,6 +9878,113 @@
         "vpp": false
       }
     ],
+    "962338": [
+      {
+        "list": "000000698",
+        "position": 231,
+        "score_total": 195,
+        "consent": false,
+        "priority_pz": 3,
+        "bvi": false,
+        "status": "Участвует в конкурсе",
+        "vpp": false
+      },
+      {
+        "list": "000000642",
+        "position": 322,
+        "score_total": 198,
+        "consent": false,
+        "priority_pz": 4,
+        "bvi": false,
+        "status": "Участвует в конкурсе",
+        "vpp": false
+      },
+      {
+        "list": "000000538",
+        "position": 2096,
+        "score_total": 198,
+        "consent": false,
+        "priority_pz": 1,
+        "bvi": false,
+        "status": "",
+        "vpp": false,
+        "cons_above": 476,
+        "vpp_above": 0,
+        "sim_above": 16
+      },
+      {
+        "list": "000000664",
+        "position": 495,
+        "score_total": 198,
+        "consent": false,
+        "priority_pz": 2,
+        "bvi": false,
+        "status": "Участвует в конкурсе",
+        "vpp": false
+      },
+      {
+        "list": "000000666",
+        "position": 458,
+        "score_total": 198,
+        "consent": false,
+        "priority_pz": 1,
+        "bvi": false,
+        "status": "Участвует в конкурсе",
+        "vpp": false
+      },
+      {
+        "list": "000000541",
+        "position": 818,
+        "score_total": 198,
+        "consent": false,
+        "priority_pz": 5,
+        "bvi": false,
+        "status": "Участвует в конкурсе",
+        "vpp": false
+      }
+    ],
+    "962592": [
+      {
+        "list": "000000698",
+        "position": 553,
+        "score_total": 0,
+        "consent": false,
+        "priority_pz": 2,
+        "bvi": false,
+        "status": "На рассмотрении",
+        "vpp": false
+      },
+      {
+        "list": "000000341",
+        "position": 535,
+        "score_total": 0,
+        "consent": false,
+        "priority_pz": 1,
+        "bvi": false,
+        "status": "На рассмотрении",
+        "vpp": false
+      },
+      {
+        "list": "000000359",
+        "position": 461,
+        "score_total": 0,
+        "consent": false,
+        "priority_pz": 3,
+        "bvi": false,
+        "status": "На рассмотрении",
+        "vpp": false
+      },
+      {
+        "list": "000000347",
+        "position": 596,
+        "score_total": 0,
+        "consent": false,
+        "priority_pz": 4,
+        "bvi": false,
+        "status": "На рассмотрении",
+        "vpp": false
+      }
+    ],
     "967876": [
       {
         "list": "000000712",
@@ -10011,48 +10011,6 @@
         "cons_above": 3,
         "vpp_above": 0,
         "sim_above": 0
-      }
-    ],
-    "966403": [
-      {
-        "list": "000000849",
-        "position": 76,
-        "score_total": 161,
-        "consent": false,
-        "priority_pz": 4,
-        "bvi": false,
-        "status": "Участвует в конкурсе",
-        "vpp": false
-      },
-      {
-        "list": "000000842",
-        "position": 80,
-        "score_total": 161,
-        "consent": false,
-        "priority_pz": 2,
-        "bvi": false,
-        "status": "Участвует в конкурсе",
-        "vpp": false
-      },
-      {
-        "list": "000000844",
-        "position": 102,
-        "score_total": 161,
-        "consent": false,
-        "priority_pz": 1,
-        "bvi": false,
-        "status": "Участвует в конкурсе",
-        "vpp": false
-      },
-      {
-        "list": "000000861",
-        "position": 75,
-        "score_total": 110,
-        "consent": false,
-        "priority_pz": 3,
-        "bvi": false,
-        "status": "На рассмотрении",
-        "vpp": false
       }
     ],
     "964770": [
@@ -10221,6 +10179,48 @@
         "vpp": false
       }
     ],
+    "966403": [
+      {
+        "list": "000000849",
+        "position": 76,
+        "score_total": 161,
+        "consent": false,
+        "priority_pz": 4,
+        "bvi": false,
+        "status": "Участвует в конкурсе",
+        "vpp": false
+      },
+      {
+        "list": "000000842",
+        "position": 80,
+        "score_total": 161,
+        "consent": false,
+        "priority_pz": 2,
+        "bvi": false,
+        "status": "Участвует в конкурсе",
+        "vpp": false
+      },
+      {
+        "list": "000000844",
+        "position": 102,
+        "score_total": 161,
+        "consent": false,
+        "priority_pz": 1,
+        "bvi": false,
+        "status": "Участвует в конкурсе",
+        "vpp": false
+      },
+      {
+        "list": "000000861",
+        "position": 75,
+        "score_total": 110,
+        "consent": false,
+        "priority_pz": 3,
+        "bvi": false,
+        "status": "На рассмотрении",
+        "vpp": false
+      }
+    ],
     "965333": [
       {
         "list": "000000941",
@@ -10271,36 +10271,6 @@
         "sim_above": 3
       }
     ],
-    "965246": [
-      {
-        "list": "000000190",
-        "position": 25,
-        "score_total": 78,
-        "consent": true,
-        "priority_pz": 1,
-        "bvi": false,
-        "status": "На рассмотрении",
-        "vpp": true,
-        "cons_above": 13,
-        "vpp_above": 12,
-        "sim_above": 12
-      }
-    ],
-    "966174": [
-      {
-        "list": "000000190",
-        "position": 202,
-        "score_total": 0,
-        "consent": true,
-        "priority_pz": 1,
-        "bvi": false,
-        "status": "На рассмотрении",
-        "vpp": false,
-        "cons_above": 54,
-        "vpp_above": 18,
-        "sim_above": 37
-      }
-    ],
     "965525": [
       {
         "list": "000000230",
@@ -10340,6 +10310,36 @@
         "cons_above": 21,
         "vpp_above": 6,
         "sim_above": 7
+      }
+    ],
+    "965246": [
+      {
+        "list": "000000190",
+        "position": 25,
+        "score_total": 78,
+        "consent": true,
+        "priority_pz": 1,
+        "bvi": false,
+        "status": "На рассмотрении",
+        "vpp": true,
+        "cons_above": 13,
+        "vpp_above": 12,
+        "sim_above": 12
+      }
+    ],
+    "966174": [
+      {
+        "list": "000000190",
+        "position": 202,
+        "score_total": 0,
+        "consent": true,
+        "priority_pz": 1,
+        "bvi": false,
+        "status": "На рассмотрении",
+        "vpp": false,
+        "cons_above": 54,
+        "vpp_above": 18,
+        "sim_above": 37
       }
     ],
     "966827": [
@@ -10382,16 +10382,6 @@
         "sim_above": 22
       },
       {
-        "list": "000000347",
-        "position": 469,
-        "score_total": 155,
-        "consent": false,
-        "priority_pz": 2,
-        "bvi": false,
-        "status": "Участвует в конкурсе",
-        "vpp": false
-      },
-      {
         "list": "000000362",
         "position": 525,
         "score_total": 155,
@@ -10403,6 +10393,16 @@
         "cons_above": 189,
         "vpp_above": 0,
         "sim_above": 8
+      },
+      {
+        "list": "000000347",
+        "position": 469,
+        "score_total": 155,
+        "consent": false,
+        "priority_pz": 2,
+        "bvi": false,
+        "status": "Участвует в конкурсе",
+        "vpp": false
       },
       {
         "list": "000000338",
@@ -10453,306 +10453,6 @@
         "sim_above": 20
       }
     ],
-    "966964": [
-      {
-        "list": "000000623",
-        "position": 249,
-        "score_total": 201,
-        "consent": false,
-        "priority_pz": 6,
-        "bvi": false,
-        "status": "Участвует в конкурсе",
-        "vpp": false
-      },
-      {
-        "list": "000000715",
-        "position": 285,
-        "score_total": 182,
-        "consent": false,
-        "priority_pz": 7,
-        "bvi": false,
-        "status": "Участвует в конкурсе",
-        "vpp": false
-      },
-      {
-        "list": "000000675",
-        "position": 108,
-        "score_total": 196,
-        "consent": false,
-        "priority_pz": 1,
-        "bvi": false,
-        "status": "Участвует в конкурсе",
-        "vpp": false
-      },
-      {
-        "list": "000000359",
-        "position": 321,
-        "score_total": 125,
-        "consent": false,
-        "priority_pz": 4,
-        "bvi": false,
-        "status": "На рассмотрении",
-        "vpp": false
-      },
-      {
-        "list": "000000737",
-        "position": 466,
-        "score_total": 106,
-        "consent": false,
-        "priority_pz": 5,
-        "bvi": false,
-        "status": "На рассмотрении",
-        "vpp": false
-      },
-      {
-        "list": "000000785",
-        "position": 233,
-        "score_total": 201,
-        "consent": false,
-        "priority_pz": 2,
-        "bvi": false,
-        "status": "Участвует в конкурсе",
-        "vpp": false
-      },
-      {
-        "list": "000000953",
-        "position": 142,
-        "score_total": 123,
-        "consent": false,
-        "priority_pz": 3,
-        "bvi": false,
-        "status": "На рассмотрении",
-        "vpp": false
-      }
-    ],
-    "967181": [
-      {
-        "list": "000000623",
-        "position": 623,
-        "score_total": 91,
-        "consent": false,
-        "priority_pz": 8,
-        "bvi": false,
-        "status": "На рассмотрении",
-        "vpp": false
-      },
-      {
-        "list": "000000762",
-        "position": 198,
-        "score_total": 44,
-        "consent": false,
-        "priority_pz": 5,
-        "bvi": false,
-        "status": "На рассмотрении",
-        "vpp": false
-      },
-      {
-        "list": "000000359",
-        "position": 355,
-        "score_total": 91,
-        "consent": false,
-        "priority_pz": 6,
-        "bvi": false,
-        "status": "На рассмотрении",
-        "vpp": false
-      },
-      {
-        "list": "000000599",
-        "position": 890,
-        "score_total": 91,
-        "consent": false,
-        "priority_pz": 4,
-        "bvi": false,
-        "status": "На рассмотрении",
-        "vpp": false
-      },
-      {
-        "list": "000000933",
-        "position": 440,
-        "score_total": 91,
-        "consent": false,
-        "priority_pz": 2,
-        "bvi": false,
-        "status": "На рассмотрении",
-        "vpp": false
-      },
-      {
-        "list": "000000797",
-        "position": 557,
-        "score_total": 91,
-        "consent": false,
-        "priority_pz": 1,
-        "bvi": false,
-        "status": "На рассмотрении",
-        "vpp": false
-      },
-      {
-        "list": "000000365",
-        "position": 458,
-        "score_total": 91,
-        "consent": false,
-        "priority_pz": 7,
-        "bvi": false,
-        "status": "На рассмотрении",
-        "vpp": false
-      },
-      {
-        "list": "000000785",
-        "position": 561,
-        "score_total": 91,
-        "consent": false,
-        "priority_pz": 3,
-        "bvi": false,
-        "status": "На рассмотрении",
-        "vpp": false
-      }
-    ],
-    "960594": [
-      {
-        "list": "000000623",
-        "position": 751,
-        "score_total": 0,
-        "consent": false,
-        "priority_pz": 1,
-        "bvi": false,
-        "status": "На рассмотрении",
-        "vpp": false
-      }
-    ],
-    "961735": [
-      {
-        "list": "000000672",
-        "position": 113,
-        "score_total": 243,
-        "consent": true,
-        "priority_pz": 3,
-        "bvi": false,
-        "status": "",
-        "vpp": false,
-        "cons_above": 37,
-        "vpp_above": 0,
-        "sim_above": 0
-      },
-      {
-        "list": "000000690",
-        "position": 389,
-        "score_total": 243,
-        "consent": true,
-        "priority_pz": 5,
-        "bvi": false,
-        "status": "",
-        "vpp": false,
-        "cons_above": 115,
-        "vpp_above": 0,
-        "sim_above": 0
-      },
-      {
-        "list": "000000718",
-        "position": 470,
-        "score_total": 243,
-        "consent": true,
-        "priority_pz": 4,
-        "bvi": false,
-        "status": "",
-        "vpp": false,
-        "cons_above": 129,
-        "vpp_above": 0,
-        "sim_above": 0
-      },
-      {
-        "list": "000000678",
-        "position": 87,
-        "score_total": 243,
-        "consent": true,
-        "priority_pz": 1,
-        "bvi": false,
-        "status": "",
-        "vpp": false,
-        "cons_above": 24,
-        "vpp_above": 0,
-        "sim_above": 0
-      },
-      {
-        "list": "000000652",
-        "position": 702,
-        "score_total": 243,
-        "consent": true,
-        "priority_pz": 2,
-        "bvi": false,
-        "status": "",
-        "vpp": false,
-        "cons_above": 226,
-        "vpp_above": 0,
-        "sim_above": 1
-      }
-    ],
-    "966681": [
-      {
-        "list": "000000672",
-        "position": 274,
-        "score_total": 209,
-        "consent": false,
-        "priority_pz": 5,
-        "bvi": false,
-        "status": "",
-        "vpp": false,
-        "cons_above": 86,
-        "vpp_above": 0,
-        "sim_above": 2
-      },
-      {
-        "list": "000000462",
-        "position": 310,
-        "score_total": 209,
-        "consent": false,
-        "priority_pz": 3,
-        "bvi": false,
-        "status": "",
-        "vpp": false,
-        "cons_above": 87,
-        "vpp_above": 1,
-        "sim_above": 1
-      },
-      {
-        "list": "000000678",
-        "position": 262,
-        "score_total": 209,
-        "consent": false,
-        "priority_pz": 4,
-        "bvi": false,
-        "status": "",
-        "vpp": false,
-        "cons_above": 76,
-        "vpp_above": 0,
-        "sim_above": 5
-      },
-      {
-        "list": "000000750",
-        "position": 122,
-        "score_total": 209,
-        "consent": false,
-        "priority_pz": 2,
-        "bvi": false,
-        "status": "",
-        "vpp": false,
-        "cons_above": 36,
-        "vpp_above": 0,
-        "sim_above": 0
-      },
-      {
-        "list": "000000950",
-        "position": 152,
-        "score_total": 204,
-        "consent": false,
-        "priority_pz": 1,
-        "bvi": false,
-        "status": "",
-        "vpp": false,
-        "cons_above": 52,
-        "vpp_above": 1,
-        "sim_above": 1
-      }
-    ],
     "968237": [
       {
         "list": "000000608",
@@ -10768,19 +10468,6 @@
         "sim_above": 19
       },
       {
-        "list": "000000700",
-        "position": 2223,
-        "score_total": 167,
-        "consent": false,
-        "priority_pz": 7,
-        "bvi": false,
-        "status": "",
-        "vpp": false,
-        "cons_above": 566,
-        "vpp_above": 0,
-        "sim_above": 36
-      },
-      {
         "list": "000000744",
         "position": 476,
         "score_total": 167,
@@ -10792,6 +10479,19 @@
         "cons_above": 106,
         "vpp_above": 0,
         "sim_above": 9
+      },
+      {
+        "list": "000000700",
+        "position": 2223,
+        "score_total": 167,
+        "consent": false,
+        "priority_pz": 7,
+        "bvi": false,
+        "status": "",
+        "vpp": false,
+        "cons_above": 566,
+        "vpp_above": 0,
+        "sim_above": 36
       },
       {
         "list": "000000729",
@@ -10976,6 +10676,328 @@
         "vpp": false
       }
     ],
+    "961735": [
+      {
+        "list": "000000672",
+        "position": 113,
+        "score_total": 243,
+        "consent": true,
+        "priority_pz": 3,
+        "bvi": false,
+        "status": "",
+        "vpp": false,
+        "cons_above": 37,
+        "vpp_above": 0,
+        "sim_above": 0
+      },
+      {
+        "list": "000000690",
+        "position": 389,
+        "score_total": 243,
+        "consent": true,
+        "priority_pz": 5,
+        "bvi": false,
+        "status": "",
+        "vpp": false,
+        "cons_above": 115,
+        "vpp_above": 0,
+        "sim_above": 0
+      },
+      {
+        "list": "000000718",
+        "position": 470,
+        "score_total": 243,
+        "consent": true,
+        "priority_pz": 4,
+        "bvi": false,
+        "status": "",
+        "vpp": false,
+        "cons_above": 129,
+        "vpp_above": 0,
+        "sim_above": 0
+      },
+      {
+        "list": "000000678",
+        "position": 87,
+        "score_total": 243,
+        "consent": true,
+        "priority_pz": 1,
+        "bvi": false,
+        "status": "",
+        "vpp": false,
+        "cons_above": 24,
+        "vpp_above": 0,
+        "sim_above": 0
+      },
+      {
+        "list": "000000652",
+        "position": 702,
+        "score_total": 243,
+        "consent": true,
+        "priority_pz": 2,
+        "bvi": false,
+        "status": "",
+        "vpp": false,
+        "cons_above": 226,
+        "vpp_above": 0,
+        "sim_above": 1
+      }
+    ],
+    "966681": [
+      {
+        "list": "000000672",
+        "position": 274,
+        "score_total": 209,
+        "consent": false,
+        "priority_pz": 5,
+        "bvi": false,
+        "status": "",
+        "vpp": false,
+        "cons_above": 86,
+        "vpp_above": 0,
+        "sim_above": 2
+      },
+      {
+        "list": "000000462",
+        "position": 310,
+        "score_total": 209,
+        "consent": false,
+        "priority_pz": 3,
+        "bvi": false,
+        "status": "",
+        "vpp": false,
+        "cons_above": 87,
+        "vpp_above": 1,
+        "sim_above": 1
+      },
+      {
+        "list": "000000678",
+        "position": 262,
+        "score_total": 209,
+        "consent": false,
+        "priority_pz": 4,
+        "bvi": false,
+        "status": "",
+        "vpp": false,
+        "cons_above": 76,
+        "vpp_above": 0,
+        "sim_above": 5
+      },
+      {
+        "list": "000000750",
+        "position": 122,
+        "score_total": 209,
+        "consent": false,
+        "priority_pz": 2,
+        "bvi": false,
+        "status": "",
+        "vpp": false,
+        "cons_above": 36,
+        "vpp_above": 0,
+        "sim_above": 0
+      },
+      {
+        "list": "000000950",
+        "position": 152,
+        "score_total": 204,
+        "consent": false,
+        "priority_pz": 1,
+        "bvi": false,
+        "status": "",
+        "vpp": false,
+        "cons_above": 52,
+        "vpp_above": 1,
+        "sim_above": 1
+      }
+    ],
+    "966964": [
+      {
+        "list": "000000623",
+        "position": 249,
+        "score_total": 201,
+        "consent": false,
+        "priority_pz": 6,
+        "bvi": false,
+        "status": "Участвует в конкурсе",
+        "vpp": false
+      },
+      {
+        "list": "000000715",
+        "position": 285,
+        "score_total": 182,
+        "consent": false,
+        "priority_pz": 7,
+        "bvi": false,
+        "status": "Участвует в конкурсе",
+        "vpp": false
+      },
+      {
+        "list": "000000675",
+        "position": 108,
+        "score_total": 196,
+        "consent": false,
+        "priority_pz": 1,
+        "bvi": false,
+        "status": "Участвует в конкурсе",
+        "vpp": false
+      },
+      {
+        "list": "000000359",
+        "position": 321,
+        "score_total": 125,
+        "consent": false,
+        "priority_pz": 4,
+        "bvi": false,
+        "status": "На рассмотрении",
+        "vpp": false
+      },
+      {
+        "list": "000000737",
+        "position": 466,
+        "score_total": 106,
+        "consent": false,
+        "priority_pz": 5,
+        "bvi": false,
+        "status": "На рассмотрении",
+        "vpp": false
+      },
+      {
+        "list": "000000785",
+        "position": 233,
+        "score_total": 201,
+        "consent": false,
+        "priority_pz": 2,
+        "bvi": false,
+        "status": "Участвует в конкурсе",
+        "vpp": false
+      },
+      {
+        "list": "000000953",
+        "position": 142,
+        "score_total": 123,
+        "consent": false,
+        "priority_pz": 3,
+        "bvi": false,
+        "status": "На рассмотрении",
+        "vpp": false
+      }
+    ],
+    "967181": [
+      {
+        "list": "000000623",
+        "position": 623,
+        "score_total": 91,
+        "consent": false,
+        "priority_pz": 8,
+        "bvi": false,
+        "status": "На рассмотрении",
+        "vpp": false
+      },
+      {
+        "list": "000000762",
+        "position": 198,
+        "score_total": 44,
+        "consent": false,
+        "priority_pz": 5,
+        "bvi": false,
+        "status": "На рассмотрении",
+        "vpp": false
+      },
+      {
+        "list": "000000359",
+        "position": 355,
+        "score_total": 91,
+        "consent": false,
+        "priority_pz": 6,
+        "bvi": false,
+        "status": "На рассмотрении",
+        "vpp": false
+      },
+      {
+        "list": "000000599",
+        "position": 890,
+        "score_total": 91,
+        "consent": false,
+        "priority_pz": 4,
+        "bvi": false,
+        "status": "На рассмотрении",
+        "vpp": false
+      },
+      {
+        "list": "000000933",
+        "position": 440,
+        "score_total": 91,
+        "consent": false,
+        "priority_pz": 2,
+        "bvi": false,
+        "status": "На рассмотрении",
+        "vpp": false
+      },
+      {
+        "list": "000000797",
+        "position": 557,
+        "score_total": 91,
+        "consent": false,
+        "priority_pz": 1,
+        "bvi": false,
+        "status": "На рассмотрении",
+        "vpp": false
+      },
+      {
+        "list": "000000365",
+        "position": 458,
+        "score_total": 91,
+        "consent": false,
+        "priority_pz": 7,
+        "bvi": false,
+        "status": "На рассмотрении",
+        "vpp": false
+      },
+      {
+        "list": "000000785",
+        "position": 561,
+        "score_total": 91,
+        "consent": false,
+        "priority_pz": 3,
+        "bvi": false,
+        "status": "На рассмотрении",
+        "vpp": false
+      }
+    ],
+    "960594": [
+      {
+        "list": "000000623",
+        "position": 751,
+        "score_total": 0,
+        "consent": false,
+        "priority_pz": 1,
+        "bvi": false,
+        "status": "На рассмотрении",
+        "vpp": false
+      }
+    ],
+    "962446": [
+      {
+        "list": "000000820",
+        "position": 12,
+        "score_total": 246,
+        "consent": false,
+        "priority_pz": 1,
+        "bvi": false,
+        "status": "На рассмотрении",
+        "vpp": false
+      },
+      {
+        "list": "000000814",
+        "position": 42,
+        "score_total": 77,
+        "consent": false,
+        "priority_pz": 2,
+        "bvi": false,
+        "status": "На рассмотрении",
+        "vpp": false
+      }
+    ],
     "968155": [
       {
         "list": "000000700",
@@ -11069,28 +11091,6 @@
         "cons_above": 188,
         "vpp_above": 0,
         "sim_above": 10
-      }
-    ],
-    "962446": [
-      {
-        "list": "000000820",
-        "position": 12,
-        "score_total": 246,
-        "consent": false,
-        "priority_pz": 1,
-        "bvi": false,
-        "status": "На рассмотрении",
-        "vpp": false
-      },
-      {
-        "list": "000000814",
-        "position": 42,
-        "score_total": 77,
-        "consent": false,
-        "priority_pz": 2,
-        "bvi": false,
-        "status": "На рассмотрении",
-        "vpp": false
       }
     ],
     "965442": [
@@ -11994,6 +11994,49 @@
         "vpp": false
       }
     ],
+    "960547": [
+      {
+        "list": "000000690",
+        "position": 34,
+        "score_total": 280,
+        "consent": false,
+        "priority_pz": 2,
+        "bvi": false,
+        "status": "",
+        "vpp": false,
+        "cons_above": 10,
+        "vpp_above": 0,
+        "sim_above": 0
+      },
+      {
+        "list": "000000652",
+        "position": 66,
+        "score_total": 280,
+        "consent": false,
+        "priority_pz": 1,
+        "bvi": false,
+        "status": "",
+        "vpp": false,
+        "cons_above": 20,
+        "vpp_above": 0,
+        "sim_above": 0
+      }
+    ],
+    "961328": [
+      {
+        "list": "000000690",
+        "position": 292,
+        "score_total": 250,
+        "consent": false,
+        "priority_pz": 1,
+        "bvi": false,
+        "status": "",
+        "vpp": false,
+        "cons_above": 93,
+        "vpp_above": 0,
+        "sim_above": 0
+      }
+    ],
     "965263": [
       {
         "list": "000000644",
@@ -12164,49 +12207,6 @@
         "cons_above": 82,
         "vpp_above": 0,
         "sim_above": 1
-      }
-    ],
-    "960547": [
-      {
-        "list": "000000690",
-        "position": 34,
-        "score_total": 280,
-        "consent": false,
-        "priority_pz": 2,
-        "bvi": false,
-        "status": "",
-        "vpp": false,
-        "cons_above": 10,
-        "vpp_above": 0,
-        "sim_above": 0
-      },
-      {
-        "list": "000000652",
-        "position": 66,
-        "score_total": 280,
-        "consent": false,
-        "priority_pz": 1,
-        "bvi": false,
-        "status": "",
-        "vpp": false,
-        "cons_above": 20,
-        "vpp_above": 0,
-        "sim_above": 0
-      }
-    ],
-    "961328": [
-      {
-        "list": "000000690",
-        "position": 292,
-        "score_total": 250,
-        "consent": false,
-        "priority_pz": 1,
-        "bvi": false,
-        "status": "",
-        "vpp": false,
-        "cons_above": 93,
-        "vpp_above": 0,
-        "sim_above": 0
       }
     ],
     "965893": [
@@ -12470,21 +12470,6 @@
         "sim_above": 13
       }
     ],
-    "963052": [
-      {
-        "list": "000000782",
-        "position": 377,
-        "score_total": 224,
-        "consent": false,
-        "priority_pz": 1,
-        "bvi": false,
-        "status": "",
-        "vpp": false,
-        "cons_above": 157,
-        "vpp_above": 2,
-        "sim_above": 2
-      }
-    ],
     "967429": [
       {
         "list": "000000842",
@@ -12505,6 +12490,21 @@
         "bvi": false,
         "status": "Участвует в конкурсе",
         "vpp": false
+      }
+    ],
+    "963052": [
+      {
+        "list": "000000782",
+        "position": 377,
+        "score_total": 224,
+        "consent": false,
+        "priority_pz": 1,
+        "bvi": false,
+        "status": "",
+        "vpp": false,
+        "cons_above": 157,
+        "vpp_above": 2,
+        "sim_above": 2
       }
     ],
     "961082": [
@@ -12659,21 +12659,6 @@
         "vpp": false
       }
     ],
-    "968674": [
-      {
-        "list": "000000734",
-        "position": 635,
-        "score_total": 178,
-        "consent": false,
-        "priority_pz": 1,
-        "bvi": false,
-        "status": "",
-        "vpp": false,
-        "cons_above": 104,
-        "vpp_above": 0,
-        "sim_above": 13
-      }
-    ],
     "966712": [
       {
         "list": "000000706",
@@ -12715,6 +12700,21 @@
         "cons_above": 47,
         "vpp_above": 0,
         "sim_above": 0
+      }
+    ],
+    "968674": [
+      {
+        "list": "000000734",
+        "position": 635,
+        "score_total": 178,
+        "consent": false,
+        "priority_pz": 1,
+        "bvi": false,
+        "status": "",
+        "vpp": false,
+        "cons_above": 104,
+        "vpp_above": 0,
+        "sim_above": 13
       }
     ],
     "965587": [
@@ -12891,18 +12891,6 @@
         "vpp": true
       }
     ],
-    "962634": [
-      {
-        "list": "000000785",
-        "position": 660,
-        "score_total": 0,
-        "consent": false,
-        "priority_pz": 1,
-        "bvi": false,
-        "status": "На рассмотрении",
-        "vpp": false
-      }
-    ],
     "964787": [
       {
         "list": "000000894",
@@ -12916,6 +12904,18 @@
         "cons_above": 13,
         "vpp_above": 0,
         "sim_above": 0
+      }
+    ],
+    "962634": [
+      {
+        "list": "000000785",
+        "position": 660,
+        "score_total": 0,
+        "consent": false,
+        "priority_pz": 1,
+        "bvi": false,
+        "status": "На рассмотрении",
+        "vpp": false
       }
     ],
     "968802": [
