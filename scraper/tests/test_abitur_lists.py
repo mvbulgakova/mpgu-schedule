@@ -49,8 +49,15 @@ def test_format_positions_survives_missing_meta():
     assert "000000672" in out  # fallback на код списка
 
 
-def test_consent_warning_when_no_consent_on_budget():
-    # в бюджетном списке согласие не отмечено → предупреждаем про 5 августа
+def test_consent_warning_when_no_consent_on_budget(monkeypatch):
+    """В бюджетном списке согласие не отмечено → зовём подать до 5 августа.
+
+    Дату фиксируем: после 5 августа 12:00 текст по делу становится другим
+    («этап закрыт»), и на реальных часах тест падал сам собой.
+    """
+    import datetime as _d
+    monkeypatch.setattr(L, "_now_msk",
+                        lambda: _d.datetime(2026, 8, 1, 10, 0, tzinfo=L._MSK))
     out = L.format_positions(META, SHARD, "1281839")
     assert "согласие" in out.lower()
     assert "5 августа" in out
@@ -723,3 +730,27 @@ def test_caveat_stops_promising_orders_that_already_happened(monkeypatch):
     _at(monkeypatch, 8)
     txt = _consent_caveat([], {})
     assert "опубликованы" in txt
+
+
+def test_masters_paid_dates_differ_from_bachelors(monkeypatch):
+    """У магистратуры свои сроки платного этапа — на день-два позже.
+
+    Сроки приёма, п. 6.4 против 6.7: бакалавриат — договор до 27 августа
+    18:00, приказ 29 августа; магистратура и специализированное высшее —
+    до 28 августа 18:00, приказ 31 августа. Показать магистранту
+    бакалаврские даты значит назвать не ту дату там, где дата решает всё.
+    """
+    from scraper.abitur.lists import paid_stage_note
+    _at(monkeypatch, 20)
+    bak = paid_stage_note(short=True)
+    mag = paid_stage_note(short=True, level="specialized_higher_education")
+    assert "27 августа" in bak and "29 августа" in bak
+    assert "28 августа" in mag and "31 августа" in mag
+
+
+def test_masters_paid_stage_is_still_open_when_bachelors_closed(monkeypatch):
+    """28 августа у бакалавров приём закрыт, у магистров ещё идёт."""
+    from scraper.abitur.lists import paid_stage_note
+    _at(monkeypatch, 28, hour=9)
+    assert "закрыт" in paid_stage_note()
+    assert "Договор и оплата" in paid_stage_note(level="magistracy")

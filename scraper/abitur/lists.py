@@ -314,6 +314,15 @@ def enrollment_done(m: dict) -> bool:
     return bool(kcp) and enrolled is not None and enrolled >= kcp
 
 
+def _level_of(entries: List[Dict], lists_meta: dict) -> Optional[str]:
+    """Ступень по спискам человека — от неё зависят сроки платного этапа."""
+    for e in entries:
+        lvl = (lists_meta.get(e["list"]) or {}).get("level")
+        if lvl:
+            return lvl
+    return None
+
+
 def _enrollment_done_note(entries: List[Dict], done_lists: List[dict]) -> str:
     """Что писать, когда конкурс по спискам человека уже закрыт.
 
@@ -322,6 +331,7 @@ def _enrollment_done_note(entries: List[Dict], done_lists: List[dict]) -> str:
     честно назвать состояние страниц и не выдавать симуляцию за прогноз.
     """
     n = len(done_lists)
+    level = (done_lists[0] or {}).get("level") if done_lists else None
     return (
         f"🎓 <b>Бюджетное зачисление завершено</b> — по "
         f"{'вашему списку' if n == 1 else 'вашим спискам'} места заняты.\n"
@@ -331,7 +341,7 @@ def _enrollment_done_note(entries: List[Dict], done_lists: List[dict]) -> str:
         f"По конкурсным спискам сказать, кто зачислен, нельзя: отметки ВПП "
         f"epk25 снял у всех, когда конкурс закрылся, а зачисленных в самих "
         f"строках он не помечает.\n\n"
-        + paid_stage_note())
+        + paid_stage_note(level=level))
 
 
 def _history_for(m: dict) -> Optional[dict]:
@@ -380,30 +390,43 @@ _MAIN_ORDERS_PUBLISHED = dt.datetime(2026, 8, 7, 14, 0, tzinfo=_MSK)
 # всех — 29 августа (Правила приёма, раздел 6).
 _PAID_CONTRACT_DEADLINE = dt.datetime(2026, 8, 27, 18, 0, tzinfo=_MSK)
 _PAID_ORDER_DATE = dt.datetime(2026, 8, 29, 0, 0, tzinfo=_MSK)
+# У магистратуры и специализированного высшего СВОИ сроки, на день-два позже
+# (Сроки приёма, п. 6.7): договор до 28 августа 18:00, приказ 31 августа.
+# Показать магистранту бакалаврские 27/29 — значит назвать не ту дату в
+# единственном месте, где дата решает всё.
+_MAG_LEVELS = {"specialized_higher_education", "magistracy"}
+_PAID_CONTRACT_DEADLINE_MAG = dt.datetime(2026, 8, 28, 18, 0, tzinfo=_MSK)
+_PAID_ORDER_DATE_MAG = dt.datetime(2026, 8, 31, 0, 0, tzinfo=_MSK)
 
 
-def paid_stage_note(short: bool = False) -> str:
+def paid_stage_note(short: bool = False, level: Optional[str] = None) -> str:
     """Что сейчас происходит с платными местами.
 
-    Бюджетное зачисление закончилось, и для тех, кто не прошёл, единственный
-    живой путь — платное. Сроки там другие и позже, а из бюджетных текстов
-    этого не видно: человек читает «приказы 7 августа» и решает, что всё.
+    Бюджетное зачисление на бакалавриате закончилось, и для тех, кто не
+    прошёл, единственный живой путь — платное. Сроки там другие и позже, а из
+    бюджетных текстов этого не видно: человек читает «приказы 7 августа» и
+    решает, что всё.
     """
+    mag = level in _MAG_LEVELS
+    deadline = _PAID_CONTRACT_DEADLINE_MAG if mag else _PAID_CONTRACT_DEADLINE
+    order = _PAID_ORDER_DATE_MAG if mag else _PAID_ORDER_DATE
+    d_txt = "28 августа 18:00" if mag else "27 августа 18:00"
+    o_txt = "31 августа" if mag else "29 августа"
     now = _now_msk()
-    if now >= _PAID_ORDER_DATE:
-        return ("💳 Приказ о зачислении на платные места (29 августа) "
-                "опубликован — смотрите его на mpgu.su.")
-    if now >= _PAID_CONTRACT_DEADLINE:
-        return ("💳 Приём договоров на платные места закрыт "
-                "(27 августа 18:00). Приказ — <b>29 августа</b>.")
+    if now >= order:
+        return (f"💳 Приказ о зачислении на платные места ({o_txt}) "
+                f"опубликован — смотрите его на mpgu.su.")
+    if now >= deadline:
+        return (f"💳 Приём договоров на платные места закрыт ({d_txt}). "
+                f"Приказ — <b>{o_txt}</b>.")
     if short:
-        return ("💳 <b>Идёт зачисление на платные места:</b> договор и оплата "
-                "до <b>27 августа 18:00</b>, приказ <b>29 августа</b>.")
-    return ("💳 <b>Сейчас идёт зачисление на платные места.</b>\n"
-            "Договор и оплата первого семестра — до <b>27 августа 18:00 мск</b>. "
-            "Приказ по платным местам один на всех и выходит <b>29 августа</b>, "
-            "поэтому «ещё не зачислен» до этой даты — это норма, а не отказ.\n"
-            "Обращаться в приёмную комиссию своего института.")
+        return (f"💳 <b>Идёт зачисление на платные места:</b> договор и оплата "
+                f"до <b>{d_txt}</b>, приказ <b>{o_txt}</b>.")
+    return (f"💳 <b>Сейчас идёт зачисление на платные места.</b>\n"
+            f"Договор и оплата первого семестра — до <b>{d_txt} мск</b>. "
+            f"Приказ по платным местам один на всех и выходит <b>{o_txt}</b>, "
+            f"поэтому «ещё не зачислен» до этой даты — это норма, а не отказ.\n"
+            f"Обращаться в приёмную комиссию своего института.")
 
 
 def _now_msk() -> dt.datetime:
@@ -581,7 +604,7 @@ def format_positions_short(meta: Optional[dict], shard: Optional[dict],
              for e in entries) and _now_msk() >= _MAIN_ORDERS_PUBLISHED:
         # У кого бюджетных списков нет вовсе, done-заметка не покажется, а
         # сроки по платному он не знает ниоткуда: они позже бюджетных.
-        lines.append(paid_stage_note(short=True))
+        lines.append(paid_stage_note(short=True, level=_level_of(entries, lists_meta_all)))
     budget = [e for e in entries
               if lists_meta_all.get(e["list"], {}).get("kind") == "бюджет"]
     if budget and not consented:
@@ -699,7 +722,7 @@ def format_positions(meta: Optional[dict], shard: Optional[dict], code: str) -> 
         lines.append(_enrollment_done_note(entries, done_lists))
     elif any(lists_meta_all.get(e["list"], {}).get("kind") == "платное"
              for e in entries) and _now_msk() >= _MAIN_ORDERS_PUBLISHED:
-        lines.append(paid_stage_note())
+        lines.append(paid_stage_note(level=_level_of(entries, lists_meta_all)))
     elif any_places:
         lines.append("⏳ Пока вы ниже черты во всех бюджетных списках. Но согласий подано "
                      "мало — расклад ещё сильно поменяется; и после приоритетного этапа "

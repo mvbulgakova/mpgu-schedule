@@ -119,9 +119,20 @@ def test_countdown_empty_when_stage_over():
     assert faq.countdown("base:budget:ege", now=now) == ""
 
 
-def test_dates_step_final_includes_countdown():
-    # dates_step должен дописывать countdown к финальному тексту
+def test_dates_step_final_includes_countdown(monkeypatch):
+    """dates_step должен дописывать countdown к финальному тексту.
+
+    Дату фиксируем: обратный отсчёт по определению пуст, когда все сроки
+    маршрута прошли, и на реальных часах тест начинал падать сам собой —
+    просто оттого, что кампания дошла до конца.
+    """
+    import datetime as _d
+    real = _d.datetime
+    class _Frozen(_d.datetime):
+        @classmethod
+        def now(cls, tz=None):
+            return real(2026, 7, 17, 12, 0, tzinfo=tz)
+    monkeypatch.setattr(faq.dt, "datetime", _Frozen)
     text, kb = faq.dates_step("base:budget:ege")
     assert kb == []
-    # к 2026-07-17 (текущая кампания) в тексте есть блок «⏳»
     assert "⏳" in text
