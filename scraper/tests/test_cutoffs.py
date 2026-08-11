@@ -12,25 +12,37 @@ from scraper.abitur import cutoffs
 
 
 def _rows():
+    """Схема приказа: вид конкурса, зачисленные, из них БВИ."""
     return [
-        {"list": "1", "direction": "45.03.02 Лингвистика. Теория и методика",
-         "form": "очная", "kind": "бюджет", "level": "basic_higher_education",
-         "unit": "Институт иностранных языков", "seats": 5, "vpp": 5, "bvi": 0,
-         "cutoff": 290, "exact": True},
-        {"list": "2", "direction": "44.03.01 Педагогическое образование. Математика и Экономика",
-         "form": "очная", "kind": "бюджет", "level": "basic_higher_education",
-         "unit": "ИМИ", "seats": 16, "vpp": 14, "bvi": 0,
-         "cutoff": 150, "exact": False},
-        {"list": "3", "direction": "45.04.02 Лингвистика. Теория и практика перевода",
-         "form": "очная", "kind": "бюджет", "level": "specialized_higher_education",
-         "unit": "ИИЯ", "seats": 20, "vpp": 3, "bvi": 0, "cutoff": 56, "exact": False},
-        {"list": "4", "direction": "44.03.01 Педагогическое образование. Химия",
-         "form": "очная", "kind": "платное", "level": "basic_higher_education",
-         "unit": "ИБХ", "seats": 100, "vpp": 2, "bvi": 0, "cutoff": 120, "exact": False},
-        {"list": "5", "direction": "44.03.01 Педагогическое образование. Математика и Экономика",
-         "form": "заочная", "kind": "бюджет", "level": "basic_higher_education",
-         "unit": "Анапский филиал", "seats": 16, "vpp": 14, "bvi": 0,
-         "cutoff": 137, "exact": False},
+        {"direction": "45.03.02 Лингвистика. Теория и методика", "form": "очная",
+         "kind": "бюджет", "competition": "общий конкурс",
+         "level": "basic_higher_education", "unit": "Институт иностранных языков",
+         "enrolled": 5, "bvi": 0, "counted": 5, "cutoff": 290, "exact": True},
+        {"direction": "44.03.01 Педагогическое образование. Математика и Экономика",
+         "form": "очная", "kind": "бюджет", "competition": "общий конкурс",
+         "level": "basic_higher_education", "unit": "ИМИ",
+         "enrolled": 16, "bvi": 0, "counted": 16, "cutoff": 150, "exact": True},
+        {"direction": "45.04.02 Лингвистика. Теория и практика перевода",
+         "form": "очная", "kind": "бюджет", "competition": "общий конкурс",
+         "level": "specialized_higher_education", "unit": "ИИЯ",
+         "enrolled": 20, "bvi": 0, "counted": 20, "cutoff": 56, "exact": True},
+        {"direction": "44.03.01 Педагогическое образование. Химия", "form": "очная",
+         "kind": "платное", "competition": "общий конкурс",
+         "level": "basic_higher_education", "unit": "ИБХ",
+         "enrolled": 100, "bvi": 0, "counted": 2, "cutoff": 120, "exact": False},
+        {"direction": "44.03.01 Педагогическое образование. Математика и Экономика",
+         "form": "заочная", "kind": "бюджет", "competition": "общий конкурс",
+         "level": "basic_higher_education", "unit": "Анапский филиал",
+         "enrolled": 16, "bvi": 0, "counted": 14, "cutoff": 137, "exact": True},
+        # та же программа, но по квоте: свои места и совсем другой порог
+        {"direction": "44.03.01 Педагогическое образование. Математика и Экономика",
+         "form": "очная", "kind": "бюджет", "competition": "отдельная квота",
+         "level": "basic_higher_education", "unit": "ИМИ",
+         "enrolled": 4, "bvi": 2, "counted": 2, "cutoff": 63, "exact": True},
+        {"direction": "44.03.01 Педагогическое образование. Математика и Экономика",
+         "form": "очная", "kind": "бюджет", "competition": "особая квота",
+         "level": "basic_higher_education", "unit": "ИМИ",
+         "enrolled": 3, "bvi": 0, "counted": 3, "cutoff": 129, "exact": True},
     ]
 
 
@@ -41,7 +53,8 @@ def _wire(monkeypatch):
 def test_only_budget_lists_count_as_cutoffs(monkeypatch):
     """«Проходной» люди спрашивают про бюджет; платные места — другой разговор."""
     _wire(monkeypatch)
-    assert {r["list"] for r in cutoffs.budget(with_branches=True)} == {"1", "2", "3", "5"}
+    kinds = {r["kind"] for r in cutoffs.budget(with_branches=True)}
+    assert kinds == {"бюджет"}
 
 
 def test_bachelor_ranking_does_not_mix_in_masters(monkeypatch):
@@ -54,7 +67,6 @@ def test_bachelor_ranking_does_not_mix_in_masters(monkeypatch):
     txt = cutoffs.format_extremes(2)
     assert "Теория и практика перевода" not in txt   # магистерская — не здесь
     assert "56" not in txt                            # и её балл тоже
-    assert "бакалавриат, <b>Москва</b> — 2 списков" in txt   # только бакалавриат
     assert "290" in txt and "150" in txt
 
 
@@ -72,16 +84,37 @@ def test_masters_are_labelled_when_they_show_up_in_search(monkeypatch):
     assert "магистратура" in txt
 
 
-def test_unreliable_number_is_marked(monkeypatch):
-    """Где отметок ВПП меньше, чем мест, проходной — верхняя оценка."""
+def test_quotas_are_shown_apart_from_the_general_competition(monkeypatch):
+    """У квоты свои места и свой порог: 63 против 150 на той же программе.
+
+    В одном столбце это читается как один конкурс — человек решает, что
+    прошёл бы со своими 70 баллами.
+    """
     _wire(monkeypatch)
     txt = cutoffs.format_results(cutoffs.find("математика экономика"))
-    assert "приблизительная" in txt
+    for title in ("Общий конкурс", "Особая квота", "Отдельная квота"):
+        assert f"<b>{title}</b>" in txt, title
+    assert txt.index("Общий конкурс") < txt.index("Отдельная квота")
+
+
+def test_quotas_stay_out_of_the_main_ranking(monkeypatch):
+    """Иначе «самое доступное направление МПГУ» — это квотные 63 балла."""
+    _wire(monkeypatch)
+    assert {r["competition"] for r in cutoffs.budget()} == {"общий конкурс"}
+    assert "63" not in cutoffs.format_extremes(3)
+
+
+def test_bvi_enrollees_are_named_and_not_counted(monkeypatch):
+    """БВИ проходят вне конкурса: в порог их брать нельзя, но сказать надо."""
+    _wire(monkeypatch)
+    txt = cutoffs.format_results(cutoffs.find("математика экономика"))
+    assert "2 по БВИ" in txt and "не взяты" in txt
 
 
 def test_search_by_code(monkeypatch):
     _wire(monkeypatch)
-    assert {r["list"] for r in cutoffs.find("45.03.02")} == {"1"}
+    got = cutoffs.find("45.03.02")
+    assert [r["direction"] for r in got] == ["45.03.02 Лингвистика. Теория и методика"]
 
 
 def test_nothing_found_suggests_how_to_ask(monkeypatch):
@@ -136,7 +169,7 @@ def test_branches_are_out_of_the_moscow_ranking(monkeypatch):
     «самые доступные направления МПГУ».
     """
     _wire(monkeypatch)
-    assert {r["list"] for r in cutoffs.budget()} == {"1", "2", "3"}
+    assert all(not cutoffs.is_branch(r) for r in cutoffs.budget())
     txt = cutoffs.format_extremes(2)
     assert "Москва" in txt
     assert "137" not in txt          # филиальский балл в московский рейтинг не лезет
@@ -145,8 +178,8 @@ def test_branches_are_out_of_the_moscow_ranking(monkeypatch):
 def test_search_shows_moscow_and_branches_in_separate_blocks(monkeypatch):
     _wire(monkeypatch)
     txt = cutoffs.format_results(cutoffs.find("математика экономика"))
-    assert "<b>Москва:</b>" in txt and "<b>Филиалы:</b>" in txt
-    assert txt.index("<b>Москва:</b>") < txt.index("<b>Филиалы:</b>")
+    assert "Москва:" in txt and "Филиалы:" in txt
+    assert txt.index("Москва:") < txt.index("Филиалы:")
 
 
 def test_branch_entry_names_the_city(monkeypatch):

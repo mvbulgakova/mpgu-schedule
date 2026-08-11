@@ -1,8 +1,8 @@
 """Проходные баллы 2026: поиск по направлению и вывод для бота.
 
-Данные готовит scraper/build_cutoffs.py по официальным отметкам ВПП epk25 —
-там же описано, почему считать «балл N-го по силе» нельзя и откуда берётся
-последний снимок с отметками.
+Данные готовит scraper/build_cutoffs.py по ПРИКАЗАМ о зачислении: проходной —
+минимальный балл среди реально зачисленных. Виды конкурса раздельно: у общего
+конкурса, особой и отдельной квоты свои места и свои пороги.
 
 Читаем готовый JSON: бот живёт в GitHub Actions без доступа к истории
 data-ветки, а цифры после зачисления больше не меняются.
@@ -69,20 +69,28 @@ def branches() -> List[str]:
                    if r.get("cutoff") and is_branch(r)})
 
 
-def budget(level: Optional[str] = None,
-           with_branches: bool = False) -> List[dict]:
+GENERAL = "общий конкурс"
+QUOTAS = ("особая квота", "отдельная квота", "целевая квота")
+
+
+def budget(level: Optional[str] = None, with_branches: bool = False,
+           competition: Optional[str] = GENERAL) -> List[dict]:
     """Только бюджет: «проходной» люди спрашивают именно про него.
 
+    competition отделяет общий конкурс от квот. Смешивать их нельзя: у квоты
+    свои места и свой конкурс, пороги там совсем другие (2026: в отдельной
+    квоте есть 50 и 63 против общего минимума 137). None — все виды сразу.
+
     level ограничивает ступень. Смешивать бакалавриат с магистратурой в одном
-    рейтинге нельзя: там своя шкала (вступительный экзамен вуза, не ЕГЭ), и
-    в «самых доступных» вылезали магистерские 41–45 рядом с бакалаврскими 137.
+    рейтинге нельзя: там своя шкала (вступительный экзамен вуза, не ЕГЭ).
 
     Филиалы по умолчанию не показываем: большинство поступает в Москву, а
-    31 список из 99 — филиальские, и они забивали собой «самое доступное».
+    треть групп — филиальские, и они забивали собой «самое доступное».
     """
     return [r for r in load()
             if r.get("kind") == "бюджет" and r.get("cutoff")
             and (level is None or r.get("level") == level)
+            and (competition is None or r.get("competition") == competition)
             and (with_branches or not is_branch(r))]
 
 
@@ -92,7 +100,7 @@ def find(query: str, limit: int = 8) -> List[dict]:
     m = re.search(r"\d\d\.\d\d\.\d\d", query or "")
     code = m.group(0) if m else None
     scored = []
-    for r in budget(with_branches=True):
+    for r in budget(with_branches=True, competition=None):
         if code and not (r.get("direction") or "").startswith(code):
             continue
         hay = _words(f"{r.get('direction')} {r.get('unit')}")
@@ -123,43 +131,61 @@ def format_entry(r: dict, show_branch: bool = False) -> str:
             f"{_LEVEL_TAG.get(r.get('level'), '')}")
     if show_branch and is_branch(r):
         line += f" · <b>{branch_name(r)}</b>"
-    seats = r.get("seats")
-    if seats:
-        line += f"\n    мест {seats}"
+    enrolled = r.get("enrolled")
+    if enrolled:
+        line += f"\n    зачислено {enrolled}"
         if r.get("bvi"):
-            line += f", из них по БВИ {r['bvi']}"
+            # БВИ в проходной не считаем: они прошли вне конкурса.
+            line += f" (из них {r['bvi']} по БВИ — в расчёт не взяты)"
     if not r.get("exact"):
         line += " · цифра приблизительная"
     return line
 
 
-_HEAD = "📊 <b>Проходные баллы 2026</b> (предварительно)"
+_HEAD = "📊 <b>Проходные баллы 2026</b>"
 
-_METHOD = ("<i>Считано по отметкам ВПП на epk25 — это пометка вуза «сейчас "
-           "проходит». Проходной = самый низкий балл среди отмеченных. "
-           "Официальный ответ даёт приказ.</i>")
+_METHOD = ("<i>Считано по приказам о зачислении: проходной — самый низкий балл "
+           "среди зачисленных. Зачисленные по БВИ не в счёт, они шли вне "
+           "конкурса.</i>")
+
+_COMP_TITLE = {"общий конкурс": "Общий конкурс",
+               "особая квота": "Особая квота",
+               "отдельная квота": "Отдельная квота",
+               "целевая квота": "Целевая квота"}
 
 
 def format_results(rows: List[dict], query: str = "") -> str:
     if not rows:
         return (f"{_HEAD}\n\nНичего не нашёл по запросу «{query}». Попробуйте "
                 f"короче: <b>биология</b>, <b>лингвистика</b>, <b>44.03.01</b>.")
-    msk = [r for r in rows if not is_branch(r)]
-    fil = [r for r in rows if is_branch(r)]
-    lines = [_HEAD, ""]
-    if msk:
-        if fil:
-            lines.append("<b>Москва:</b>")
-        lines += [f"• {format_entry(r)}" for r in msk]
-    if fil:
-        # Филиалы отдельным блоком: у них свой КЦП и свой конкурс, а название
-        # направления такое же, как в Москве.
+    lines = [_HEAD]
+    # Сначала общий конкурс, потом квоты — у них разные места и разные пороги,
+    # в одном столбце они читаются как один конкурс и вводят в заблуждение.
+    for comp in (GENERAL,) + QUOTAS:
+        part = [r for r in rows if r.get("competition") == comp]
+        if not part:
+            continue
+        lines += ["", f"<b>{_COMP_TITLE.get(comp, comp)}</b>"]
+        msk = [r for r in part if not is_branch(r)]
+        fil = [r for r in part if is_branch(r)]
         if msk:
-            lines.append("")
-        lines.append("<b>Филиалы:</b>")
-        lines += [f"• {format_entry(r, show_branch=True)}" for r in fil]
+            if fil:
+                lines.append("Москва:")
+            lines += [f"• {format_entry(r)}" for r in msk]
+        if fil:
+            # Филиалы отдельно: свой КЦП и свой конкурс при том же названии.
+            lines.append("Филиалы:")
+            lines += [f"• {format_entry(r, show_branch=True)}" for r in fil]
     lines += ["", _METHOD]
     return "\n".join(lines)
+
+
+def _plural(n: int) -> str:
+    if n % 10 == 1 and n % 100 != 11:
+        return "направление"
+    if n % 10 in (2, 3, 4) and n % 100 not in (12, 13, 14):
+        return "направления"
+    return "направлений"
 
 
 def format_extremes(n: int = 7) -> str:
@@ -168,14 +194,15 @@ def format_extremes(n: int = 7) -> str:
     if not rows:
         return f"{_HEAD}\n\nДанных пока нет."
     lines = [_HEAD, "",
-             f"Бюджет, бакалавриат, <b>Москва</b> — {len(rows)} списков.",
+             f"Бюджет, бакалавриат, общий конкурс, <b>Москва</b> — "
+             f"{len(rows)} {_plural(len(rows))}.",
              "", "<b>Самые высокие:</b>"]
     lines += [f"• {format_entry(r)}" for r in rows[:n]]
     lines += ["", "<b>Самые доступные:</b>"]
     lines += [f"• {format_entry(r)}" for r in rows[-n:][::-1]]
-    lines += ["", "Напишите направление — покажу по нему.",
-              f"Филиалы ({', '.join(branches())}) и магистратура считаются "
-              f"отдельно: там свой конкурс и своя шкала. Они найдутся по "
-              f"названию направления.",
+    lines += ["", "Напишите направление — покажу по нему, вместе с квотами.",
+              f"Квоты (особая, отдельная), филиалы ({', '.join(branches())}) и "
+              f"магистратура считаются отдельно: там свои места и свой конкурс. "
+              f"Всё это найдётся по названию направления.",
               "", _METHOD]
     return "\n".join(lines)
