@@ -192,3 +192,37 @@ def test_branch_entry_names_the_city(monkeypatch):
 def test_overview_tells_where_the_branches_went(monkeypatch):
     _wire(monkeypatch)
     assert "Анапа" in cutoffs.format_extremes(1)
+
+
+def test_stages_of_the_same_competition_merge_into_one_row():
+    """Этапы идут по очереди, и по одному направлению выходит два приказа.
+
+    Без слияния бот показывал бы программу дважды с разными цифрами.
+    Проходной — по всем зачисленным: на дополнительном этапе добирают тех,
+    кто ниже (2026: 23 группы, 41 человек, порог падал на 4–24 балла).
+    """
+    from scraper.build_cutoffs import merge_stages
+    base = {"direction": "44.03.01 X. Физическая культура", "form": "заочная",
+            "unit": "ИФКСЗ", "competition": "общий конкурс", "kind": "бюджет",
+            "level": "basic_higher_education", "exact": True}
+    got = merge_stages([
+        {**base, "enrolled": 23, "bvi": 0, "counted": 23, "cutoff": 191,
+         "top": 260, "source": "приказ 07.08.2026"},
+        {**base, "enrolled": 3, "bvi": 0, "counted": 3, "cutoff": 186,
+         "top": 200, "source": "приказ 11.08.2026"},
+    ])
+    assert len(got) == 1
+    assert got[0]["cutoff"] == 186 and got[0]["enrolled"] == 26
+    assert "07.08" in got[0]["source"] and "11.08" in got[0]["source"]
+
+
+def test_different_competitions_never_merge():
+    """Общий конкурс и квота на одной программе — разные места и пороги."""
+    from scraper.build_cutoffs import merge_stages
+    base = {"direction": "44.03.01 X. Y", "form": "очная", "unit": "ИМИ",
+            "kind": "бюджет", "level": "basic_higher_education", "exact": True,
+            "enrolled": 5, "bvi": 0, "counted": 5, "top": 300,
+            "source": "приказ 07.08.2026"}
+    got = merge_stages([{**base, "competition": "общий конкурс", "cutoff": 150},
+                        {**base, "competition": "отдельная квота", "cutoff": 63}])
+    assert len(got) == 2

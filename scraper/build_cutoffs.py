@@ -104,6 +104,32 @@ def rows_from_order(data: bytes, source: str) -> List[dict]:
     return out
 
 
+def merge_stages(rows: List[dict]) -> List[dict]:
+    """Слить один и тот же конкурс из разных приказов в одну запись.
+
+    Этапы зачисления идут по очереди: основной 7 августа, дополнительный
+    11-го. По одному направлению выходит два приказа, и без слияния бот
+    показывал бы одну программу дважды с разными цифрами. Проходной — по
+    ВСЕМ зачисленным: на дополнительном этапе добирают тех, кто ниже, и
+    порог опускается (2026: 23 группы, 41 человек).
+    """
+    merged: Dict[tuple, dict] = {}
+    for r in rows:
+        key = (r["direction"], r["form"], r["unit"], r["competition"])
+        cur = merged.get(key)
+        if cur is None:
+            merged[key] = dict(r)
+            continue
+        cur["enrolled"] += r["enrolled"]
+        cur["bvi"] += r["bvi"]
+        cur["counted"] += r["counted"]
+        cur["cutoff"] = min(cur["cutoff"], r["cutoff"])
+        cur["top"] = max(cur["top"], r["top"])
+        if r["source"] not in cur["source"]:
+            cur["source"] = f"{cur['source']}, {r['source']}"
+    return list(merged.values())
+
+
 def main() -> int:
     index = _get(OW.INDEX_PAGE).decode("utf-8", "replace")
     pdfs: Dict[str, str] = {}
@@ -121,7 +147,7 @@ def main() -> int:
         print(f"{name}: групп {len(got)}, зачислено "
               f"{sum(r['enrolled'] for r in got)}, БВИ {sum(r['bvi'] for r in got)}")
         rows.extend(got)
-    rows = [r for r in rows if r["counted"]]
+    rows = merge_stages([r for r in rows if r["counted"]])
     doc = {"source": "приказы о зачислении МПГУ 2026 (mpgu.su)", "lists": rows}
     OUT.write_text(json.dumps(doc, ensure_ascii=False, indent=1), encoding="utf-8")
     print(f"ГОТОВО: групп с проходным {len(rows)} → {OUT}")
