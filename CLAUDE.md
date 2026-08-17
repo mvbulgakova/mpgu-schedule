@@ -45,6 +45,15 @@ Two families:
   `meta/index.json`. Code/config changes go on the feature branch; data
   changes go on `data`.
 - **App:** `app/` is the Android client that consumes the `data` branch.
+- **CI branches are split, and it is not obvious.** The repo's default branch
+  is `claude/migrate-mpgu-schedule-jj5gV`, not `main`. GitHub takes the
+  *workflow file* (its `cron`, `timeout-minutes`, `workflow_dispatch` inputs)
+  from the default branch, while each job checks out `ref: main` for the code
+  it runs. So a change under `scraper/` takes effect as soon as it is on
+  `main`, but a change under `.github/workflows/` does nothing until it is
+  also pushed to the default branch — silently, with green-looking runs on
+  the old definition. Check both when a workflow change seems to have no
+  effect.
 
 ## Non-negotiables
 
@@ -53,3 +62,14 @@ Two families:
 - Never trust a group count — diff parsed-unique against current data and
   explain every LOSE/GAIN before publishing (`verifying-schedule-completeness`).
 - Keep `meta/index.json` counts equal to the actual files on disk.
+- **Investigating a row means dumping the WHOLE row, every column, before
+  reasoning about it** — never a hand-picked subset of fields you think
+  matter. Print the header and the cells together and check they line up: on
+  epk25 the competitive-list header is two `<TR>`s with `ROWSPAN=2` and a
+  `COLSPAN=3` over «Количество баллов за каждое ВИ», so a naive
+  `zip(headers, cells)` silently shifts everything right of it (14 headers vs
+  16 cells) and you end up reading ИД as ПП. Verify with an arithmetic check
+  the row must satisfy (ВИ1+ВИ2+ВИ3 = «Сумма баллов за ВИ»; + ИД = «Сумма
+  конкурсных баллов»). Columns the parser ignores still matter to a
+  diagnosis: ОВП, ПП and the two trailing unnamed columns exist and are only
+  ever visible if you dump everything.
