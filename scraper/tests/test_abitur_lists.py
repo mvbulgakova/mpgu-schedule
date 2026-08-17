@@ -834,3 +834,42 @@ def test_magistracy_extra_stage_after_its_own_deadline(monkeypatch):
     _at(monkeypatch, 25)
     txt = _no_consent_warning(short=False, level="magistracy")
     assert "26 августа 12:00" in txt and "25 августа" in txt
+
+
+def test_paid_line_shows_places_from_the_page():
+    """«12 из 139» без числа мест — цифра без смысла.
+
+    Мест на платном мы знаем со страницы epk25: в графе «Контрольные цифры
+    приёма» платного списка стоит число платных мест (проверено на живых
+    000000209 и 000000210 — 250 и 200). Матчинг по каталогу для платных не
+    срабатывал ни разу, поэтому «мест N» не показывалось никогда.
+    """
+    from scraper.abitur.lists import format_positions_short, paid_places
+    assert paid_places({"kcp_epk": 250}) == 250
+    meta = {"updated_at": "2026-08-17T16:00:00+03:00", "lists": {"P": {
+        "direction": "37.04.01 Психология. Психологическое консультирование",
+        "form": "очно-заочная", "kind": "платное", "count": 139,
+        "kcp_epk": 200, "level": "specialized_higher_education"}}}
+    shard = {"updated_at": "t", "codes": {"777": [
+        {"list": "P", "position": 12, "score_total": 86, "consent": False,
+         "priority_pz": 1, "bvi": False, "status": "", "vpp": False}]}}
+    txt = format_positions_short(meta, shard, "777")
+    assert "12 из 139" in txt and "мест 200" in txt
+
+
+def test_no_consent_rank_is_invented_for_paid_lists():
+    """На платные места согласие не подают — заключают договор.
+
+    Из 276 платных списков согласия есть только у 20, а в одном шарде из 4174
+    платных строк отметка стоит у двух. Показывать там «место по согласиям»
+    значило бы выдумать число.
+    """
+    from scraper.abitur.lists import format_positions_short
+    meta = {"updated_at": "2026-08-17T16:00:00+03:00", "lists": {"P": {
+        "direction": "37.04.01 Психология", "form": "очная", "kind": "платное",
+        "count": 139, "kcp_epk": 200}}}
+    shard = {"updated_at": "t", "codes": {"777": [
+        {"list": "P", "position": 12, "score_total": 86, "consent": False,
+         "priority_pz": 1, "bvi": False, "status": "", "vpp": False}]}}
+    txt = format_positions_short(meta, shard, "777")
+    assert "по согласиям" not in txt

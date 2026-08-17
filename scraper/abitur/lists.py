@@ -194,6 +194,24 @@ def _match_programs(direction: str, form: str, paid: bool,
     return [p for p, w in ws if not any(w < w2 for _, w2 in ws)]
 
 
+def paid_places(m: dict) -> Optional[int]:
+    """Сколько платных мест по этому списку.
+
+    Берём цифру со страницы epk25 (kcp_epk) — на платном списке в графе
+    «Контрольные цифры приёма» стоит именно число платных мест (проверено на
+    живых страницах 000000209 и 000000210: 250 и 200). Матчинг по каталогу
+    (_places_for) для платных не срабатывает ни для одного из 276 списков,
+    поэтому строка «мест N» не показывалась никогда, и «12 из 139» читалось
+    как число без смысла.
+
+    «Место по согласиям», как у бюджета, на платном показать нельзя: согласий
+    там почти нет — из 276 платных списков они есть только у 20, а в шарде из
+    4174 платных строк согласие отмечено у двух. На платные места не подают
+    согласие, а заключают договор.
+    """
+    return m.get("kcp_epk") or _places_for(m)
+
+
 def _places_for(m: dict) -> Optional[int]:
     """Места программы для списка epk25; None, если матч ненадёжен.
 
@@ -595,7 +613,7 @@ def format_positions_short(meta: Optional[dict], shard: Optional[dict],
         places = m.get("places")
         sim_above = e.get("sim_above")
         if m.get("kind") == "платное":
-            pp = _places_for(m)
+            pp = paid_places(m)
             pp_s = f" · мест {pp}" if pp else ""
             lines.append(f"💳 {pri} · {e['position']} из {m.get('count', '?')}"
                          f"{pp_s} · {name}")
@@ -734,9 +752,9 @@ def format_positions(meta: Optional[dict], shard: Optional[dict], code: str) -> 
                 else:
                     parts.append(label)
         elif m.get("kind") == "платное":
-            pp = _places_for(m)
+            pp = paid_places(m)
             if pp:
-                parts.append(f"мест (РФ): {pp}")
+                parts.append(f"платных мест: {pp}")
         parts.append(f"баллы {e.get('score_total')}")
         if e.get("priority_pz") is not None:
             parts.append(f"приоритет {e['priority_pz']}")
