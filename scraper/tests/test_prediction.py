@@ -35,24 +35,24 @@ def test_recent_caps_at_three_years():
 
 
 def test_format_full_block_has_all_signals():
-    out = P.format_prediction({"2024": 242, "2025": 244}, sim=230, cap=270, seats=18)
+    out = P.format_prediction({"2024": 242, "2025": 244}, sim=230, cap=270, seats=18, deadline="5 августа")
     assert "Примерный проходной-2026: ориентир ~242–244" in out
     assert "2024: 242, 2025: 244" in out
-    assert "от ~230" in out and "5 августа" in out
+    assert "от ~230" in out and "5 августа" in out  # дедлайн передан явно
     assert "топ-18" in out and "~270" in out
     assert "не гарантия" in out
 
 
 def test_format_low_sim_shows_qualitative_note_not_absurd_number():
     # много мест, мало согласий → sim≈4; не показываем «от ~4» рядом с историей 240+
-    out = P.format_prediction({"2024": 242, "2025": 244}, sim=4, cap=250, seats=80)
+    out = P.format_prediction({"2024": 242, "2025": 244}, sim=4, cap=250, seats=80, deadline="5 августа")
     assert "от ~4" not in out
     assert "согласий пока подано мало" in out
     assert "ориентир ~242–244" in out          # диапазон по-прежнему из истории
 
 
 def test_format_no_history_shows_live_only():
-    out = P.format_prediction(None, sim=210, cap=270, seats=18)
+    out = P.format_prediction(None, sim=210, cap=270, seats=18, deadline="5 августа")
     assert "истории нет" in out
     assert "от ~210" in out and "~270" in out
     assert "ориентир" not in out               # диапазон не выдумываем
@@ -60,18 +60,18 @@ def test_format_no_history_shows_live_only():
 
 def test_format_old_only_history_flagged_no_range():
     out = P.format_prediction({"2015": 121, "2018": 200, "2019": 209},
-                              sim=None, cap=None, seats=None)
+                              sim=None, cap=None, seats=None, deadline="5 августа")
     assert "до 2021" in out and "2019: 209" in out
     assert "ориентир" not in out               # диапазон по старым не даём
     assert "2015" not in out                   # показываем 2 последних старых
 
 
 def test_format_history_only_no_live_still_gives_range():
-    out = P.format_prediction({"2024": 242, "2025": 244})
+    out = P.format_prediction({"2024": 242, "2025": 244}, deadline="5 августа")
     assert "ориентир ~242–244" in out
     assert "по согласиям" not in out           # живых сигналов нет — не выдумываем
 
 
 def test_format_nothing_returns_none():
-    assert P.format_prediction(None, None, None, None) is None
-    assert P.format_prediction({}, None, None, None) is None
+    assert P.format_prediction(None, None, None, None, deadline="5 августа") is None
+    assert P.format_prediction({}, None, None, None, deadline="5 августа") is None

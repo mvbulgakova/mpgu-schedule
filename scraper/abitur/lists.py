@@ -372,10 +372,18 @@ def _history_for(m: dict) -> Optional[dict]:
 
 
 def _prediction_line(m: dict) -> Optional[str]:
-    """Однострочный (многострочный) блок прогноза проходного для списка."""
+    """Однострочный (многострочный) блок прогноза проходного для списка.
+
+    Дедлайн согласий передаём по ступени и только пока он в будущем: обещать
+    «конкурс ужесточится к 5 августа» магистрантке 17 августа — назвать чужую
+    дату, да ещё в прошлом.
+    """
     from scraper.abitur import prediction
+    st = budget_stage(m.get("level"))
+    deadline = st["consent_txt"] if _now_msk() < st["consent"] else None
     return prediction.format_prediction(
-        _history_for(m), m.get("sim_cutoff"), m.get("cap"), m.get("general_seats"))
+        _history_for(m), m.get("sim_cutoff"), m.get("cap"), m.get("general_seats"),
+        deadline=deadline)
 
 
 _MSK = dt.timezone(dt.timedelta(hours=3))
@@ -589,7 +597,8 @@ def format_positions_short(meta: Optional[dict], shard: Optional[dict],
         if m.get("kind") == "платное":
             pp = _places_for(m)
             pp_s = f" · мест {pp}" if pp else ""
-            lines.append(f"💳 {pri} · {e['position']}/{m.get('count', '?')}{pp_s} · {name}")
+            lines.append(f"💳 {pri} · {e['position']} из {m.get('count', '?')}"
+                         f"{pp_s} · {name}")
         elif m.get("general") and enrollment_done(m):
             # Конкурс закончился: показываем факт, а не симуляцию.
             done_lists.append(m)
@@ -614,8 +623,9 @@ def format_positions_short(meta: Optional[dict], shard: Optional[dict],
             # Иначе человек видит на epk25 одно, у нас другое и не понимает,
             # которое правда — реальный вопрос от абитуриентки («почему здесь
             # я 60»). Разница ровно в тех, кто выше без поданного согласия.
-            lines.append(f"{'✅' if ok else '⏳'} {pri} · {e['position']}-е в списке "
-                         f"→ ~{shown_place}-е из {seats} с согласием{vpp_tag} · {name}")
+            lines.append(f"{'✅' if ok else '⏳'} {pri} · {e['position']} из "
+                         f"{m.get('count', '?')} → ~{shown_place}-е из {seats} "
+                         f"по согласиям{vpp_tag} · {name}")
             if ok:
                 passing.append((e.get("priority_pz") or 99, name, shown_place, seats))
         elif not m.get("general") and m.get("kind") == "бюджет" and "general" in m:
@@ -757,18 +767,22 @@ def format_positions(meta: Optional[dict], shard: Optional[dict], code: str) -> 
              for e in entries) and _now_msk() >= _MAIN_ORDERS_PUBLISHED:
         lines.append(paid_stage_note(level=_level_of(entries, lists_meta_all)))
     elif any_places:
-        lines.append("⏳ Пока вы ниже черты во всех бюджетных списках. Но согласий подано "
-                     "мало — расклад ещё сильно поменяется; и после приоритетного этапа "
-                     "в конкурс вернутся незанятые квотные места.")
+        # Про возврат квотных мест — только пока приоритетный этап впереди.
+        # 17 августа магистрантке доставалось «после приоритетного этапа
+        # вернутся квотные места» и «приказы 3 августа»: и не её этап, и
+        # двухнедельной давности.
+        st = budget_stage(_level_of(entries, lists_meta_all))
+        tail = (" И после приоритетного этапа в конкурс вернутся незанятые "
+                "квотные места." if _now_msk() < st["consent"] else "")
+        lines.append("⏳ Пока вы ниже черты во всех бюджетных списках. Но "
+                     "согласий подано мало — расклад ещё сильно поменяется." + tail)
     if any_sim and not done_lists:
         lines.append("ℹ️ Как считается: учитываются только подавшие согласие, и кто "
-                     "проходит на свой более высокий приоритет — из конкурса убираются. "
-                     "«Мест» — в общем конкурсе сейчас (КЦП минус квоты); незанятые "
-                     "квотные вернутся после приоритетного этапа (приказы 3 августа). "
+                     "проходит на свой более высокий приоритет — из конкурса "
+                     "убираются. «Мест» — в общем конкурсе сейчас (КЦП минус квоты). "
                      "На Госуслугах видно текущее число мест общего конкурса.")
     elif any_places and not done_lists:
-        lines.append("ℹ️ «Мест» — в общем конкурсе (КЦП минус квоты). Незанятые квотные "
-                     "места вернутся в общий конкурс после приоритетного этапа (3 августа).")
+        lines.append("ℹ️ «Мест» — в общем конкурсе сейчас (КЦП минус квоты).")
     # Напоминание про согласие: главная причина «пролететь» на зачислении.
     # Показываем, если есть бюджетные позиции и ни в одной согласие не отмечено.
     lists_meta = (meta or {}).get("lists") or {}
@@ -785,7 +799,7 @@ def format_positions(meta: Optional[dict], shard: Optional[dict], code: str) -> 
     if updated:
         if not src_full:
             lines.append("")
-        lines.append(f"Мы сверялись: {updated}")
+        lines.append(f"Мы сверялись: {_hhmm_dd_mm(updated)}")
     lines.append(f"Официальные списки: {_OFFICIAL}")
     lines.append("⚠️ Данные предварительные — ориентируйтесь на официальные списки и ЛК на Госуслугах.")
     return "\n".join(lines)

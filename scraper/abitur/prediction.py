@@ -39,8 +39,15 @@ def predict_range(hist: Optional[dict], sim: Optional[int]) -> Optional[Tuple[in
 
 def format_prediction(hist: Optional[dict], sim: Optional[int] = None,
                       cap: Optional[int] = None,
-                      seats: Optional[int] = None) -> Optional[str]:
+                      seats: Optional[int] = None,
+                      deadline: Optional[str] = None) -> Optional[str]:
     """Единый блок «проходной» для абитуриента (plain text, годится и в HTML).
+
+    deadline — подпись дедлайна согласий («24 августа 12:00»), к которому
+    конкурс ужесточится. Даты тут раньше были захардкожены бакалаврские, и
+    магистрантке 17 августа доставалось «к 5 августа конкурс ужесточится» —
+    дата и чужая, и в прошлом. None означает «дедлайн уже прошёл, обещать
+    ужесточение нечего».
 
     Свежая история (2021+) есть → диапазон-ориентир + годы + живые сигналы.
     Только допандемийная история → показываем её приглушённо (без диапазона).
@@ -65,12 +72,15 @@ def format_prediction(hist: Optional[dict], sim: Optional[int] = None,
         return None
     if sim:
         floor = (rng[0] if rng else 150) - 30
+        tail = f" (↑ вырастет к {deadline})" if deadline else ""
         if sim >= floor:                          # балл правдоподобен — показываем
-            lines.append(f"   • сейчас по согласиям проходят от ~{sim} "
-                         "(↑ вырастет к 5 августа)")
-        else:                                     # рано: согласий мало, балл-шум
-            lines.append("   • согласий пока подано мало — проходят почти все "
-                         "подавшие; к 5 августа конкурс ужесточится")
+            lines.append(f"   • сейчас по согласиям проходят от ~{sim}{tail}")
+        elif deadline:                            # рано: согласий мало, балл-шум
+            lines.append(f"   • согласий пока подано мало — проходят почти все "
+                         f"подавшие; к {deadline} конкурс ужесточится")
+        else:
+            lines.append("   • согласий подано мало относительно мест — "
+                         "проходят почти все подавшие")
     if cap and seats:
         lines.append(f"   • топ-{seats} баллов среди подавших — от ~{cap} "
                      "(если сильнейшие останутся; часть уйдёт в другие вузы)")

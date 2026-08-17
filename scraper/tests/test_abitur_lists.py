@@ -34,7 +34,7 @@ def test_format_positions_found():
     assert "История" in out
     assert "заочная" in out and "бюджет" in out   # форма и вид мест в названии
     assert "290" in out
-    assert "2026-07-02" in out
+    assert "02.07" in out          # время сверки человеческим видом, не ISO
     assert "epk25.mpgu.su" in out
 
 
@@ -140,7 +140,6 @@ def test_passing_marks_and_priority_summary(monkeypatch):
     assert "прошли на" in out and "География" in out
     # честная оговорка про долю согласий и дедлайн
     assert "предварительно" in out.lower() and "5 августа" in out
-    assert "приоритетного этапа" in out
 
 
 def test_general_seats_subtract_quota(monkeypatch):
@@ -775,8 +774,8 @@ def test_short_card_shows_both_the_list_place_and_the_consent_estimate():
          "priority_pz": 1, "bvi": False, "status": "", "vpp": False,
          "cons_above": 32, "sim_above": 32, "vpp_above": None}]}}
     txt = format_positions_short(meta, shard, "777")
-    assert "60-е в списке" in txt
-    assert "~33-е из 39 с согласием" in txt
+    assert "60 из 900" in txt        # место в списке — как у платных строк
+    assert "~33-е из 39 по согласиям" in txt
 
 
 # ── У магистратуры свой бюджетный этап, на три недели позже ───────────────────
