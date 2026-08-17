@@ -775,3 +775,61 @@ def test_short_card_shows_both_the_list_place_and_the_consent_estimate():
     txt = format_positions_short(meta, shard, "777")
     assert "60-е в списке" in txt
     assert "~33-е из 39 с согласием" in txt
+
+
+# ── У магистратуры свой бюджетный этап, на три недели позже ───────────────────
+
+def _mag_meta():
+    return {"updated_at": "2026-08-17T11:43:00+03:00", "lists": {"M": {
+        "direction": "44.04.02 Психолого-педагогическое образование. Возр-псих конс",
+        "form": "очная", "kind": "бюджет", "level": "specialized_higher_education",
+        "general": True, "count": 608, "consented": 289, "kcp_epk": 100,
+        "places": 100}}}
+
+
+def _mag_shard(consent=True, vpp=True):
+    return {"updated_at": "t", "codes": {"1973903": [
+        {"list": "M", "position": 106, "score_total": 94, "consent": consent,
+         "priority_pz": 1, "bvi": False, "status": "", "vpp": vpp,
+         "cons_above": 76, "vpp_above": 59, "sim_above": 57}]}}
+
+
+def test_magistracy_card_does_not_announce_the_bachelor_orders(monkeypatch):
+    """2026-08-17: магистрантке с живым конкурсом и отметкой ВПП бот написал
+    «приказы на бюджет опубликованы (7 августа), официальный ответ только в
+    нём» — то есть отправил сдаваться за неделю до её дедлайна согласия.
+    """
+    from scraper.abitur.lists import format_positions_short
+    _at(monkeypatch, 17)
+    txt = format_positions_short(_mag_meta(), _mag_shard(), "1973903")
+    assert "7 августа" not in txt
+    assert "опубликованы" not in txt
+    assert "24 августа 12:00" in txt
+
+
+def test_bachelor_card_still_says_the_orders_are_out(monkeypatch):
+    """Проверка, что даты не съехали в другую сторону."""
+    from scraper.abitur.lists import _consent_caveat
+    _at(monkeypatch, 17)
+    bak = {"B": {"general": True, "count": 100, "consented": 50,
+                 "level": "basic_higher_education"}}
+    txt = _consent_caveat([{"list": "B"}], bak)
+    assert "7 августа" in txt and "опубликованы" in txt
+
+
+def test_magistracy_consent_reminder_names_its_own_deadline(monkeypatch):
+    """Звать магистранта «подайте до 5 августа» — звать в прошлое."""
+    from scraper.abitur.lists import format_positions
+    _at(monkeypatch, 17)
+    txt = format_positions(_mag_meta(), _mag_shard(consent=False, vpp=False),
+                           "1973903")
+    assert "24 августа 12:00" in txt
+    assert "5 августа" not in txt
+
+
+def test_magistracy_extra_stage_after_its_own_deadline(monkeypatch):
+    """После 24 августа зовём на дополнительный этап магистратуры, 26-го."""
+    from scraper.abitur.lists import _no_consent_warning
+    _at(monkeypatch, 25)
+    txt = _no_consent_warning(short=False, level="magistracy")
+    assert "26 августа 12:00" in txt and "25 августа" in txt
