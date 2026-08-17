@@ -583,7 +583,13 @@ def format_positions_short(meta: Optional[dict], shard: Optional[dict],
             shown_place = vpp_above + 1 if vpp and vpp_above is not None else sim_place
             ok = bool(vpp) or sim_place <= seats
             vpp_tag = " ✓ВПП" if vpp else ""
-            lines.append(f"{'✅' if ok else '⏳'} {pri} · ~{shown_place}-е из {seats}{vpp_tag} · {name}")
+            # Показываем ОБА числа: место в списке и оценку с согласием.
+            # Иначе человек видит на epk25 «60», у нас «~33-е» и не понимает,
+            # которое из них правда (реальный вопрос от абитуриентки). Разница
+            # ровно в тех, кто выше без согласия: она их пересчитала руками —
+            # 27 — и сошлось с нашим cons_above.
+            lines.append(f"{'✅' if ok else '⏳'} {pri} · {e['position']}-е в списке "
+                         f"→ ~{shown_place}-е из {seats} с согласием{vpp_tag} · {name}")
             if ok:
                 passing.append((e.get("priority_pz") or 99, name, shown_place, seats))
         elif not m.get("general") and m.get("kind") == "бюджет" and "general" in m:

@@ -754,3 +754,24 @@ def test_masters_paid_stage_is_still_open_when_bachelors_closed(monkeypatch):
     _at(monkeypatch, 28, hour=9)
     assert "закрыт" in paid_stage_note()
     assert "Договор и оплата" in paid_stage_note(level="magistracy")
+
+
+def test_short_card_shows_both_the_list_place_and_the_consent_estimate():
+    """Одно число без другого вызывает вопрос «почему здесь я 60».
+
+    Реальный случай: человек видит на epk25 место 60, у нас — «~33-е», и не
+    понимает, которое правда. Разница ровно в тех, кто выше без согласия;
+    абитуриентка пересчитала их руками (27) и сошлось с нашим счётом.
+    """
+    from scraper.abitur.lists import format_positions_short
+    meta = {"updated_at": "2026-08-20T12:00:00+03:00", "lists": {"G": {
+        "direction": "44.03.01 Педагогическое образование. История",
+        "form": "очная", "kind": "бюджет", "general": True, "count": 900,
+        "places": 39, "kcp_epk": 39, "enrolled": 5, "consented": 300}}}
+    shard = {"updated_at": "t", "codes": {"777": [
+        {"list": "G", "position": 60, "score_total": 250, "consent": True,
+         "priority_pz": 1, "bvi": False, "status": "", "vpp": False,
+         "cons_above": 32, "sim_above": 32, "vpp_above": None}]}}
+    txt = format_positions_short(meta, shard, "777")
+    assert "60-е в списке" in txt
+    assert "~33-е из 39 с согласием" in txt
