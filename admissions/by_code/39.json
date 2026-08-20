@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-08-20T08:01:56+03:00",
+  "updated_at": "2026-08-20T08:15:17+03:00",
   "codes": {
     "392096": [
       {
@@ -182,6 +182,18 @@
         "priority_pz": null,
         "bvi": false,
         "status": "Принято к рассмотрению",
+        "vpp": false
+      }
+    ],
+    "396267": [
+      {
+        "list": "000001059",
+        "position": 6,
+        "score_total": null,
+        "consent": false,
+        "priority_pz": null,
+        "bvi": false,
+        "status": "Специальность зарегистрирована",
         "vpp": false
       }
     ],
@@ -471,18 +483,6 @@
         "vpp": false
       }
     ],
-    "396267": [
-      {
-        "list": "000001059",
-        "position": 6,
-        "score_total": null,
-        "consent": false,
-        "priority_pz": null,
-        "bvi": false,
-        "status": "Специальность зарегистрирована",
-        "vpp": false
-      }
-    ],
     "395772": [
       {
         "list": "000001049",
@@ -711,92 +711,6 @@
         "vpp": false
       }
     ],
-    "392110": [
-      {
-        "list": "000001042",
-        "position": 9,
-        "score_total": null,
-        "consent": true,
-        "priority_pz": null,
-        "bvi": false,
-        "status": "Соответствует правилам приема",
-        "vpp": false
-      },
-      {
-        "list": "000001043",
-        "position": 72,
-        "score_total": null,
-        "consent": true,
-        "priority_pz": null,
-        "bvi": false,
-        "status": "Соответствует правилам приема",
-        "vpp": false
-      }
-    ],
-    "391684": [
-      {
-        "list": "000001042",
-        "position": 58,
-        "score_total": null,
-        "consent": false,
-        "priority_pz": null,
-        "bvi": false,
-        "status": "Соответствует правилам приема",
-        "vpp": false
-      },
-      {
-        "list": "000001036",
-        "position": 88,
-        "score_total": null,
-        "consent": false,
-        "priority_pz": null,
-        "bvi": false,
-        "status": "Соответствует правилам приема",
-        "vpp": false
-      }
-    ],
-    "392102": [
-      {
-        "list": "000001042",
-        "position": 105,
-        "score_total": null,
-        "consent": true,
-        "priority_pz": null,
-        "bvi": false,
-        "status": "Соответствует правилам приема",
-        "vpp": false
-      },
-      {
-        "list": "000001032",
-        "position": 106,
-        "score_total": null,
-        "consent": true,
-        "priority_pz": null,
-        "bvi": false,
-        "status": "Соответствует правилам приема",
-        "vpp": false
-      },
-      {
-        "list": "000001043",
-        "position": 68,
-        "score_total": null,
-        "consent": true,
-        "priority_pz": null,
-        "bvi": false,
-        "status": "Соответствует правилам приема",
-        "vpp": false
-      },
-      {
-        "list": "000001027",
-        "position": 83,
-        "score_total": null,
-        "consent": true,
-        "priority_pz": null,
-        "bvi": false,
-        "status": "Соответствует правилам приема",
-        "vpp": false
-      }
-    ],
     "392097": [
       {
         "list": "000001032",
@@ -872,6 +786,48 @@
         "priority_pz": null,
         "bvi": false,
         "status": "Принято к рассмотрению",
+        "vpp": false
+      }
+    ],
+    "392102": [
+      {
+        "list": "000001032",
+        "position": 106,
+        "score_total": null,
+        "consent": true,
+        "priority_pz": null,
+        "bvi": false,
+        "status": "Соответствует правилам приема",
+        "vpp": false
+      },
+      {
+        "list": "000001042",
+        "position": 105,
+        "score_total": null,
+        "consent": true,
+        "priority_pz": null,
+        "bvi": false,
+        "status": "Соответствует правилам приема",
+        "vpp": false
+      },
+      {
+        "list": "000001043",
+        "position": 68,
+        "score_total": null,
+        "consent": true,
+        "priority_pz": null,
+        "bvi": false,
+        "status": "Соответствует правилам приема",
+        "vpp": false
+      },
+      {
+        "list": "000001027",
+        "position": 83,
+        "score_total": null,
+        "consent": true,
+        "priority_pz": null,
+        "bvi": false,
+        "status": "Соответствует правилам приема",
         "vpp": false
       }
     ],
@@ -1185,6 +1141,50 @@
         "vpp": false
       }
     ],
+    "392110": [
+      {
+        "list": "000001042",
+        "position": 9,
+        "score_total": null,
+        "consent": true,
+        "priority_pz": null,
+        "bvi": false,
+        "status": "Соответствует правилам приема",
+        "vpp": false
+      },
+      {
+        "list": "000001043",
+        "position": 72,
+        "score_total": null,
+        "consent": true,
+        "priority_pz": null,
+        "bvi": false,
+        "status": "Соответствует правилам приема",
+        "vpp": false
+      }
+    ],
+    "391684": [
+      {
+        "list": "000001042",
+        "position": 58,
+        "score_total": null,
+        "consent": false,
+        "priority_pz": null,
+        "bvi": false,
+        "status": "Соответствует правилам приема",
+        "vpp": false
+      },
+      {
+        "list": "000001036",
+        "position": 88,
+        "score_total": null,
+        "consent": false,
+        "priority_pz": null,
+        "bvi": false,
+        "status": "Соответствует правилам приема",
+        "vpp": false
+      }
+    ],
     "392116": [
       {
         "list": "000001033",
@@ -1230,30 +1230,6 @@
         "priority_pz": null,
         "bvi": false,
         "status": "Специальность зарегистрирована",
-        "vpp": false
-      }
-    ],
-    "392098": [
-      {
-        "list": "000001034",
-        "position": 19,
-        "score_total": null,
-        "consent": false,
-        "priority_pz": null,
-        "bvi": false,
-        "status": "Соответствует правилам приема",
-        "vpp": false
-      }
-    ],
-    "392095": [
-      {
-        "list": "000001034",
-        "position": 33,
-        "score_total": null,
-        "consent": false,
-        "priority_pz": null,
-        "bvi": false,
-        "status": "Соответствует правилам приема",
         "vpp": false
       }
     ],
@@ -1329,6 +1305,30 @@
       {
         "list": "000001064",
         "position": 67,
+        "score_total": null,
+        "consent": false,
+        "priority_pz": null,
+        "bvi": false,
+        "status": "Соответствует правилам приема",
+        "vpp": false
+      }
+    ],
+    "392098": [
+      {
+        "list": "000001034",
+        "position": 19,
+        "score_total": null,
+        "consent": false,
+        "priority_pz": null,
+        "bvi": false,
+        "status": "Соответствует правилам приема",
+        "vpp": false
+      }
+    ],
+    "392095": [
+      {
+        "list": "000001034",
+        "position": 33,
         "score_total": null,
         "consent": false,
         "priority_pz": null,
