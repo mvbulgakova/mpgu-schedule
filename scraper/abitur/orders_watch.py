@@ -32,6 +32,13 @@ _SECTION = "svedenija-zachislenii-2026"
 # Служебные ссылки WordPress внутри того же раздела — не приказы.
 _JUNK = ("/wp-json/", "/feed", "?", "#")
 
+# Какие приказы уже реально видны на mpgu.su — {"paid": "31.08.2026", ...}.
+# Заполняется ботом из вахты; читается lists.py, чтобы не писать «приказы
+# опубликованы», когда их на сайте ещё нет. Модуль-уровневый, потому что
+# бот и рендер живут в одном процессе; переживает круг getUpdates, но не
+# перезапуск бота — на холодном старте _load_seen_orders() кормит заново.
+_PUBLISHED_KINDS: Dict[str, str] = {}
+
 
 def order_pages(index_html: str) -> List[str]:
     """Ссылки на приказы с индексной страницы раздела.
@@ -81,6 +88,62 @@ def _kind(pdf_url: str) -> str:
     if "budget" in name or "byudzhet" in name or "osnov" in name:
         return "на бюджет, основные места"
     return ""
+
+
+def order_kind(url: str) -> Optional[str]:
+    """Тип приказа по слагу: 'paid' | 'budget-mag' | 'budget-spo' | 'budget-bachelor'.
+
+    Нужен, чтобы отличить, ЧЕЙ приказ вышел. У магистратуры и платников
+    свои сроки, и «приказы опубликованы» надо говорить только тому, чей
+    приказ реально на сайте. 2026-08-30 на mpgu.su стояла страница
+    31-08-2026-dogovor (платка ещё впереди), а бот при этом писал
+    магистрантам и платникам «приказ опубликован» — по календарю, а не по
+    факту. Порядок проверок жёсткий: «spvo» ловим до «spo», иначе СПВО
+    попадёт в СПО.
+    """
+    name = (url or "").lower()
+    if "dogovor" in name or "platn" in name:
+        return "paid"
+    if "spvo" in name:
+        return "budget-mag"
+    if "spo" in name:
+        return "budget-spo"
+    if "budget" in name or "byudzhet" in name:
+        return "budget-bachelor"
+    return None
+
+
+def _date_key(ddmmyyyy: str) -> tuple:
+    """Ключ сортировки дат «DD.MM.YYYY» → (Y, M, D)."""
+    return (ddmmyyyy[6:10], ddmmyyyy[3:5], ddmmyyyy[0:2])
+
+
+def register_pages(pages) -> None:
+    """Отметить фактически видимые на mpgu.su страницы/файлы приказов.
+
+    Бот вызывает это на каждом обходе индекса: снимок «что реально стоит
+    на сайте прямо сейчас». Читает потом lists.py, чтобы не соврать
+    людям «приказ опубликован», если его там нет. Если по одному типу
+    несколько дат (основной + доп. этап), берём самую свежую.
+    """
+    for u in pages or []:
+        k = order_kind(u)
+        d = order_date(u)
+        if not k or not d:
+            continue
+        prev = _PUBLISHED_KINDS.get(k)
+        if prev is None or _date_key(d) > _date_key(prev):
+            _PUBLISHED_KINDS[k] = d
+
+
+def published(kind: str) -> Optional[str]:
+    """Дата фактически опубликованного приказа этого типа (DD.MM.YYYY) или None."""
+    return _PUBLISHED_KINDS.get(kind)
+
+
+def clear_published() -> None:
+    """Сбросить состояние. Для тестов."""
+    _PUBLISHED_KINDS.clear()
 
 
 def format_notice(page_url: str, pdf_urls: List[str]) -> str:

@@ -178,3 +178,55 @@ def test_the_live_page_still_yields_exactly_the_known_order():
             'zachislenie-03-08-2026-budget/">Зачисление 03.08.2026</a>')
     assert OW.order_pages(html) == [_OLD]
     assert OW.new_orders(OW.order_pages(html), set(OW.ALREADY_PUBLISHED)) == []
+
+
+# ── Кому какой приказ: тип по слагу и «фактически видимые» приказы ────────────
+
+def test_order_kind_by_slug():
+    """Плюс двойная ловушка: «spo» — часть «spvo», но это разные типы."""
+    def k(u): return OW.order_kind(u)
+    assert k("https://mpgu.su/.../zachislenie-07-08-2026-budget/") == "budget-bachelor"
+    assert k("https://mpgu.su/.../zachislenie-25-08-2026-budget-spvo/") == "budget-mag"
+    assert k("https://mpgu.su/.../zachislenie-25-08-2026-budget-spo/") == "budget-spo"
+    assert k("https://mpgu.su/.../zachislenie-31-08-2026-dogovor/") == "paid"
+    assert k("https://mpgu.su/.../pk26_platnye_v1.pdf") == "paid"
+    assert k("https://mpgu.su/что-то-другое/") is None
+
+
+def test_register_pages_remembers_the_latest_date_per_kind():
+    """Основной этап 7 августа, дополнительный 11-го — оба «budget-bachelor».
+    В карточку «опубликован от…» показываем последнюю дату из виденных."""
+    OW.clear_published()
+    OW.register_pages([
+        "https://mpgu.su/.../zachislenie-07-08-2026-budget/",
+        "https://mpgu.su/.../zachislenie-11-08-2026-budget/",
+        "https://mpgu.su/.../zachislenie-25-08-2026-budget-spvo/",
+        "https://mpgu.su/что-то-другое/",       # не приказ — пропускаем
+    ])
+    assert OW.published("budget-bachelor") == "11.08.2026"
+    assert OW.published("budget-mag") == "25.08.2026"
+    assert OW.published("paid") is None
+    OW.clear_published()
+
+
+def test_register_pages_is_idempotent_and_survives_reordering():
+    OW.clear_published()
+    urls = ["https://mpgu.su/.../zachislenie-11-08-2026-budget/",
+            "https://mpgu.su/.../zachislenie-07-08-2026-budget/"]
+    OW.register_pages(urls)
+    OW.register_pages(reversed(urls))          # тот же снимок, другой порядок
+    assert OW.published("budget-bachelor") == "11.08.2026"
+    OW.clear_published()
+
+
+def test_bot_feeds_orders_watch_from_the_index_and_from_seen(monkeypatch):
+    """Вахта заполняет orders_watch каждый обход — иначе lists.py на
+    холодном старте будет 3 минуты писать «приказы не опубликованы»."""
+    OW.clear_published()
+    sent, docs = _wire(monkeypatch, [_OLD, _NEW])
+    bot._load_seen_orders()             # приходит с диска: только 03.08 в SEEN
+    assert OW.published("budget-bachelor") == "03.08.2026"
+    bot._check_orders("token")
+    # После обхода индекса orders_watch знает и про 07.08.
+    assert OW.published("budget-bachelor") == "07.08.2026"
+    OW.clear_published()

@@ -239,10 +239,16 @@ def _load_seen_orders():
     Отдельного хранилища не заводим: подписки и так переживают рестарты через
     actions/cache, а второй такой механизм — второй способ его потерять.
     Ключ служебный и заведомо не совпадает с chat_id (те — цифры).
+
+    Заодно кормим orders_watch тем, что уже видели: после рестарта в
+    _PUBLISHED_KINDS пусто, а lists.py должен знать, какие приказы уже
+    висят на mpgu.su — иначе первые 3 минуты до вахты бот будет писать
+    «приказы ещё не опубликованы» тем, чей приказ вышел неделю назад.
     """
     rec = SUBS.get(_ORDERS_KEY) or {}
     SEEN_ORDERS.update(rec.get("sent") or [])
     SEEN_ORDERS.update(orders_watch.ALREADY_PUBLISHED)
+    orders_watch.register_pages(SEEN_ORDERS)
 
 
 def _save_seen_orders():
@@ -265,6 +271,9 @@ def _check_orders(token: str):
     """
     html = _fetch(orders_watch.INDEX_PAGE, timeout=30).decode("utf-8", "replace")
     pages = orders_watch.order_pages(html)
+    # На КАЖДОМ обходе освежаем «что реально стоит на mpgu.su»: lists.py
+    # опирается на это, а не на календарь, когда пишет «приказ опубликован».
+    orders_watch.register_pages(pages)
     fresh = orders_watch.new_orders(pages, SEEN_ORDERS)
     if not fresh:
         return
