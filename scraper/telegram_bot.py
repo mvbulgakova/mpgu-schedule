@@ -1,13 +1,12 @@
-"""Telegram-бот расписания МПГУ на long-polling (для запуска в GitHub Actions).
+"""Telegram-бот абитуриента МПГУ на long-polling (GitHub Actions).
 
-Без внешнего хостинга и вебхуков: воркфлоу периодически запускает этот скрипт,
-он опрашивает getUpdates ~55 минут и отвечает почти мгновенно, затем выходит;
-крон перезапускает. Нужен только секрет BOT_TOKEN.
-
-Данные берёт с публичного CDN jsDelivr (data-ветка) — ничего деплоить не надо.
+Без хостинга/вебхуков: воркфлоу периодически запускает скрипт, он опрашивает getUpdates
+~55 минут и отвечает почти мгновенно, затем выходит; крон перезапускает.
+Нужны секреты: BOT_TOKEN (Telegram) и ANTHROPIC_API_KEY (для AI-ответов; без него
+кнопки и калькулятор работают, AI-ветка деградирует).
 
 Локальный прогон логики (без Telegram):
-    python -m scraper.telegram_bot --selftest ВОП40-ПФК2501
+    python -m scraper.telegram_bot --selftest "/bally"
 """
 import json
 import os
@@ -16,86 +15,751 @@ import sys
 import time
 import urllib.parse
 import urllib.request
-import datetime as dt
+from dataclasses import dataclass, field
+from typing import Dict, List, Optional, Tuple
 
-DATA_BASE = os.environ.get(
-    "DATA_BASE", "https://cdn.jsdelivr.net/gh/mvbulgakova/mpgu-schedule@data")
-RUN_SECONDS = int(os.environ.get("RUN_SECONDS", "3300"))  # ~55 минут
+from scraper.abitur import (campaign, cutoffs, dialog, faq, feedback, follow,
+                            llm, lists, orders_watch, shansy, study_plans)
 
-DAYS = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
-DAY_RU = {"monday": "Понедельник", "tuesday": "Вторник", "wednesday": "Среда",
-          "thursday": "Четверг", "friday": "Пятница", "saturday": "Суббота",
-          "sunday": "Воскресенье"}
-TYPE_RU = {"lecture": "ЛК", "practice": "ПЗ", "lab": "ЛР", "seminar": "СЕМ", "other": ""}
-_HOMO = str.maketrans({
-    "A": "А", "B": "В", "C": "С", "E": "Е", "H": "Н", "K": "К", "M": "М",
-    "O": "О", "P": "Р", "T": "Т", "X": "Х", "Y": "У"})
+RUN_SECONDS = int(os.environ.get("RUN_SECONDS", "3300"))
+MAX_MSG_LEN = 1000
+# Файл подписок «следи за кодом» (переживает рестарты через actions/cache).
+SUBS_PATH = os.environ.get("SUBS_PATH", "")
+SUBS_CHECK_SECONDS = 600
+# Приказ о зачислении — единственный официальный ответ «зачислен ли я», и
+# ждут его буквально ночами. Проверяем чаще, чем позиции: страница лёгкая,
+# а опоздать здесь дороже всего.
+ORDERS_CHECK_SECONDS = int(os.environ.get("ORDERS_CHECK_SECONDS", "180"))
+# Разосланные приказы (в том же файле, что подписки — переживает рестарты).
+SEEN_ORDERS: set = set()
+# Обратная связь: файл-хранилище и chat_id администратора (для /export, /fb_stats).
+FEEDBACK_PATH = os.environ.get("FEEDBACK_PATH", "")
+ADMIN_CHAT_ID = int(os.environ.get("ADMIN_CHAT_ID", "0") or "0")
 
-
-def search_key(s: str) -> str:
-    return re.sub(r"[\s\-_]", "", s.strip().upper().translate(_HOMO))
-
-
-def _get_json(path: str):
-    url = f"{DATA_BASE}/{path}"
-    req = urllib.request.Request(url, headers={"User-Agent": "MPGU-Schedule-Bot"})
-    with urllib.request.urlopen(req, timeout=30) as r:
-        return json.loads(r.read().decode("utf-8"))
-
-
-def _esc(s) -> str:
-    return (str("" if s is None else s)
-            .replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;"))
-
-
-def _iso_week_even(d: dt.date) -> bool:
-    return d.isocalendar()[1] % 2 == 0
-
-
-def _format_today(group: dict, meta: dict) -> str:
-    now = dt.datetime.now(dt.timezone(dt.timedelta(hours=3)))  # Москва
-    day = DAYS[now.weekday()]
-    even = _iso_week_even(now.date())
-    wk = "even_week" if even else "odd_week"
-    lessons = ((group.get("schedule") or {}).get(wk) or {}).get(day) or []
-    head = (f"📅 <b>{_esc(group.get('name') or meta['code'])}</b> · "
-            f"{DAY_RU[day]} · {'чётная' if even else 'нечётная'} неделя")
-    if not lessons:
-        return f"{head}\n\nЗанятий нет 🎉"
-    lessons = sorted(lessons, key=lambda l: l.get("time_start") or "")
-    parts = []
-    for l in lessons:
-        t = f" ({TYPE_RU[l['type']]})" if TYPE_RU.get(l.get("type")) else ""
-        tm = f"{l.get('time_start') or ''}{'–' + l['time_end'] if l.get('time_end') else ''}"
-        extra = ", ".join(_esc(x) for x in (l.get("teacher"), l.get("room")) if x)
-        parts.append(f"🕐 <b>{tm}</b> {_esc(l.get('subject') or '')}{t}"
-                     + (f"\n   {extra}" if extra else ""))
-    return head + "\n\n" + "\n\n".join(parts)
+# In-memory состояние калькулятора по chat_id (эфемерно, теряется при рестарте).
+SESSIONS: Dict[int, dialog.CalcSession] = {}
+# Ожидание уникального кода после /spisok (отдельно от калькулятора).
+AWAITING_CODE: Dict[int, bool] = {}
+# Ожидание сообщения с баллами ЕГЭ после /shansy.
+AWAITING_SCORES: Dict[int, bool] = {}
+# Подписки: chat_id(str) -> {"code", "last": {list: pos}, "updated_at"}.
+SUBS: Dict[str, dict] = {}
+# Память свободного диалога (консультация по выбору): chat_id -> реплики.
+HISTORY: Dict[int, List[dict]] = {}
+_HISTORY_MAX = 8  # последних реплик (4 обмена)
+# Обратная связь: накопленные записи и режим «жду отзыв».
+FEEDBACK: List[dict] = []
+AWAITING_FEEDBACK: Dict[int, bool] = {}
+# Ожидание названия направления после /plan (учебные планы).
+AWAITING_PLAN: Dict[int, bool] = {}
+# Ожидание названия направления после «Проходные 2026».
+AWAITING_CUTOFF: Dict[int, bool] = {}
 
 
-def handle(text: str) -> str:
-    text = text.strip()
-    if text.startswith("/start") or text.startswith("/help"):
-        return ("👋 Бот расписания МПГУ.\n\nПришлите код группы — например "
-                "<b>ВОП40-ПФК2501</b> (можно часть) — покажу пары на сегодня.")
-    q = search_key(re.sub(r"^/\S+\s*", "", text))
-    if len(q) < 3:
-        return "Пришлите код группы (минимум 3 символа), например ВОП40-ПФК2501."
-    groups = (_get_json("meta/groups.json") or {}).get("groups", [])
-    exact = [g for g in groups if g["key"] == q]
-    matches = exact or [g for g in groups if q in g["key"]]
-    if not matches:
-        return f"Группа «{_esc(text)}» не найдена. Проверьте код."
-    if len(matches) > 1 and len(exact) != 1:
-        lst = "\n".join(f"• <b>{_esc(g['code'])}</b> — {_esc(g['institute_short'])}"
-                        for g in matches[:12])
-        more = f"\n…и ещё {len(matches) - 12}" if len(matches) > 12 else ""
-        return f"Нашёл несколько групп — уточните код:\n{lst}{more}"
-    g = matches[0]
-    grp = _get_json(f"institutes/{g['institute']}/groups/"
-                    f"{urllib.parse.quote(g['file'])}.json")
-    return _format_today(grp, g)
+@dataclass
+class Reply:
+    text: str
+    keyboard: List[List[Tuple[str, str]]] = field(default_factory=list)
+    is_menu: bool = False   # сам экран меню — к нему кнопку «Меню» не добавляем
+    document: Optional[Tuple[bytes, str]] = None   # (содержимое, имя файла) для sendDocument
 
+
+_MENU_ROW = [("🏠 Меню", "open:menu")]
+
+
+def _finalize(r: Reply) -> Reply:
+    """Дописывает кнопку возврата в меню ко всем ответам, кроме самого меню.
+
+    Пустой ответ (тихий игнор админ-команд от посторонних) не трогаем.
+    """
+    if r.is_menu or (not r.text and not r.document):
+        return r
+    return Reply(r.text, list(r.keyboard) + [_MENU_ROW], r.is_menu, r.document)
+
+
+def _menu_keyboard() -> List[List[Tuple[str, str]]]:
+    rows, row = [[("📅 Сроки поступления", "d:")]], []
+    for tid, (label, _) in faq.TOPICS.items():
+        row.append((label, f"t:{tid}"))
+        if len(row) == 2:
+            rows.append(row); row = []
+    if row:
+        rows.append(row)
+    rows.append([("🧭 Помочь выбрать направление", "open:vybor")])
+    rows.append([("➕ Калькулятор баллов", "open:calc")])
+    rows.append([("🧮 Подбор по ЕГЭ", "open:shansy"), ("🔎 Мои списки", "open:spisok")])
+    rows.append([("📄 Учебный план", "open:plan"),
+                 ("📊 Проходные 2026", "open:cutoff")])
+    rows.append([("🔔 Обновление списков", "u:1")])
+    return rows
+
+
+_GREETING = ("👋 Привет! Я помощник абитуриента МПГУ.\n\n"
+             "Задайте вопрос своими словами — или выберите тему кнопкой ниже.\n\n"
+             "<b>Самое нужное:</b>\n"
+             "🔎 /spisok — прохожу ли я и на что (🔔 можно следить)\n"
+             "🧮 /shansy — подбор программ по баллам ЕГЭ\n"
+             "🧭 /vybor — помочь выбрать направление\n"
+             "➕ /bally — калькулятор доп. баллов\n"
+             "📅 /sroki — сроки и дедлайны\n\n"
+             "<i>Вопросы о работе бота: @soldat_olovyanniy</i>")
+
+
+def _answer_free(chat_id: int, question: str) -> str:
+    hist = HISTORY.get(chat_id, [])
+    ans = llm.answer(question, history=hist)
+    if not ans.startswith("Не удалось ответить"):
+        hist = hist + [{"role": "user", "content": question},
+                       {"role": "assistant", "content": ans}]
+        HISTORY[chat_id] = hist[-_HISTORY_MAX:]
+    return ans
+
+
+_VYBOR_START = (
+    "🧭 <b>Давайте подберём направление!</b> Расскажите о себе одним сообщением:\n"
+    "1️⃣ какие предметы ЕГЭ сдаёте (или уже сдали) и что из школьного нравится;\n"
+    "2️⃣ с кем хотите работать: малыши, школьники, подростки, взрослые — или вообще "
+    "не с людьми;\n"
+    "3️⃣ что вам интересно: языки, IT, наука, спорт, искусство, психология, история…\n"
+    "4️⃣ кем видите себя после вуза (если пока не знаете — так и напишите).\n\n"
+    "Я предложу подходящие направления МПГУ, а точные шансы посчитаем через /shansy.")
+
+
+_SHANSY_PROMPT = ("Пришлите ваши предметы ЕГЭ и баллы одним сообщением, например:\n"
+                  "<b>русский 78, обществознание 84, история 90</b>\n"
+                  "(математика учитывается только ПРОФИЛЬНАЯ — базовая для конкурса "
+                  "не подходит)")
+
+
+def _shansy_answer(text: str) -> str:
+    return shansy.answer(text, lists_meta=lists.fetch_meta(),
+                         history=shansy.fetch_history())
+
+
+_PLAN_PROMPT = ("Напишите <b>направление или профиль</b> (можно с кодом), например:\n"
+                "<b>начальное образование</b> · <b>44.03.05 история и обществознание</b> · "
+                "<b>лингвистика перевод</b>\n"
+                "Пришлю официальный перечень дисциплин по программе (файлом).")
+
+
+def _plan_label(p: dict) -> str:
+    """Подпись кнопки выбора программы.
+
+    Год показываем, только если план НЕ текущего набора: иначе человек не
+    отличает свежую программу от снятой с набора — в выборе стояли две
+    одинаковые с виду строки «Математика и Экономика (очная)», а вели они
+    на планы 2026 и 2023 годов.
+    """
+    prof = (p.get("profile") or p.get("napr") or "")[:44]
+    year = p.get("year") or ""
+    tail = f", {year}" if year and year != study_plans.latest_year() else ""
+    return f"📄 {p['code']} {prof} ({p.get('form', '')}{tail})"
+
+
+def _plan_search(query: str) -> Reply:
+    cands = study_plans.find_by_text(query)
+    if not cands:
+        return Reply("Не нашёл такого направления. Попробуйте иначе — по коду "
+                     "(<b>44.03.01</b>) или короче (<b>биология</b>, "
+                     "<b>лингвистика</b>). Полный список: "
+                     "https://mpgu.su/sveden/education/", [])
+    if len(cands) == 1:
+        return _plan_menu(study_plans.share_id(cands[0]))
+    kb = [[(_plan_label(p), f"plan:{study_plans.share_id(p)}")] for p in cands]
+    return Reply("Нашлось несколько — выберите программу:", kb)
+
+
+def _plan_menu(sid: str) -> Reply:
+    """Выбор программы → что показать: файл плана или разбивку по семестрам."""
+    p = study_plans.by_share_id(sid)
+    if not p:
+        return Reply("Не удалось найти этот план. Откройте меню и попробуйте снова.", [])
+    kb = [[("📄 Скачать план (PDF)", f"dl:{sid}")]]
+    if study_plans.semesters_for(sid):
+        kb.append([("📅 Что по семестрам", f"sem:{sid}")])
+    return Reply(f"📄 <b>{p['code']} {p.get('profile', '')}</b> ({p.get('form', '')}, "
+                 f"год приёма {p.get('year', '')}). Что показать?", kb)
+
+
+def _plan_semesters(sid: str) -> Reply:
+    txt = study_plans.format_semesters(sid)
+    if not txt:
+        return Reply("По этой программе разбивка по семестрам пока недоступна — "
+                     "но сам файл плана можно скачать (📄).",
+                     [[("📄 Скачать план (PDF)", f"dl:{sid}")]])
+    return Reply(txt, [[("📄 Скачать план (PDF)", f"dl:{sid}")]])
+
+
+def _plan_send(sid: str) -> Reply:
+    p = study_plans.by_share_id(sid)
+    if not p:
+        return Reply("Не удалось найти этот план. Откройте меню и попробуйте снова.", [])
+    got = study_plans.fetch_plan_pdf(p)
+    link = study_plans.share_url(p)
+    if not got:
+        return Reply(f"📄 <b>{p['code']} {p.get('profile', '')}</b> ({p.get('form', '')})\n"
+                     f"Файл сейчас не скачался. Открыть на сайте МПГУ: {link}", [])
+    data, filename = got
+    caption = (f"📄 <b>{p['code']} {p.get('profile', '')}</b> ({p.get('form', '')})\n"
+               f"Официальный учебный план (год приёма {p.get('year', '')}). "
+               f"Источник: {link}")
+    return Reply(caption, [], document=(data, filename))
+
+
+def _lookup_code(code: str, detailed: bool = False) -> Reply:
+    meta = lists.fetch_meta()
+    if meta is None:  # реально недоступен индекс, а не просто редкий код
+        return Reply("Индекс списков сейчас недоступен. Официальные списки: "
+                     "https://epk25.mpgu.su/competitive-list", [])
+    # shard может быть None, если кодов с таким префиксом нет — это «не найден»
+    shard = lists.fetch_shard(code)
+    fmt = lists.format_positions if detailed else lists.format_positions_short
+    text = fmt(meta, shard, code)
+    kb: List[List[Tuple[str, str]]] = []
+    if lists.lookup(shard, code):
+        norm = lists._norm(code)
+        row = [("🔔 Следить", f"f:{norm}")]
+        if not detailed:
+            row.insert(0, ("📋 Подробнее", f"x:{norm}"))
+        kb = [row, [("🔔 Обновление списков", "u:1")]]
+    return Reply(text, kb)
+
+
+def _save_subs():
+    if SUBS_PATH:
+        follow.save(SUBS_PATH, SUBS)
+
+
+_ORDERS_KEY = "__orders__"   # служебная запись в файле подписок, не чат
+
+
+def _load_seen_orders():
+    """Какие приказы уже разосланы. Хранится рядом с подписками.
+
+    Отдельного хранилища не заводим: подписки и так переживают рестарты через
+    actions/cache, а второй такой механизм — второй способ его потерять.
+    Ключ служебный и заведомо не совпадает с chat_id (те — цифры).
+
+    Заодно кормим orders_watch тем, что уже видели: после рестарта в
+    _PUBLISHED_KINDS пусто, а lists.py должен знать, какие приказы уже
+    висят на mpgu.su — иначе первые 3 минуты до вахты бот будет писать
+    «приказы ещё не опубликованы» тем, чей приказ вышел неделю назад.
+    """
+    rec = SUBS.get(_ORDERS_KEY) or {}
+    SEEN_ORDERS.update(rec.get("sent") or [])
+    SEEN_ORDERS.update(orders_watch.ALREADY_PUBLISHED)
+    orders_watch.register_pages(SEEN_ORDERS)
+
+
+def _save_seen_orders():
+    SUBS[_ORDERS_KEY] = {"sent": sorted(SEEN_ORDERS)}
+    _save_subs()
+
+
+def _fetch(url: str, timeout: int = 60) -> bytes:
+    req = urllib.request.Request(url, headers={"User-Agent": "MPGU-Abitur-Bot"})
+    with urllib.request.urlopen(req, timeout=timeout) as r:
+        return r.read()
+
+
+def _check_orders(token: str):
+    """Появился приказ о зачислении — разослать всем подписчикам с файлами.
+
+    Приказ ждут ночами, поэтому рассылаем сразу и всем, не разбирая, кто на
+    что подписан. Защита от повтора — список уже разосланных страниц: сюда
+    нельзя ошибиться дважды, второе такое же сообщение обесценивает первое.
+    """
+    html = _fetch(orders_watch.INDEX_PAGE, timeout=30).decode("utf-8", "replace")
+    pages = orders_watch.order_pages(html)
+    # На КАЖДОМ обходе освежаем «что реально стоит на mpgu.su»: lists.py
+    # опирается на это, а не на календарь, когда пишет «приказ опубликован».
+    orders_watch.register_pages(pages)
+    fresh = orders_watch.new_orders(pages, SEEN_ORDERS)
+    if not fresh:
+        return
+    print(f"check_orders: новых приказов {len(fresh)}: {fresh}", flush=True)
+    for page in fresh:
+        try:
+            if page.lower().endswith(".pdf"):
+                pdfs = [page]           # приказ выложили файлом, без страницы
+            else:
+                sub_html = _fetch(page, timeout=30).decode("utf-8", "replace")
+                pdfs = list(dict.fromkeys(
+                    re.findall(r'href="([^"]+\.pdf)"', sub_html, re.I)))
+            files = []
+            for u in pdfs[:4]:      # больше четырёх приложений — уже свалка
+                try:
+                    files.append((_fetch(u), orders_watch.pdf_filename(u)))
+                except Exception as e:  # noqa: BLE001
+                    print(f"  не скачался {u}: {e}", flush=True)
+        except Exception as e:  # noqa: BLE001
+            print(f"check_orders: страница {page} не открылась: {e}", flush=True)
+            continue                # отметку НЕ ставим — повторим на следующем круге
+        text = orders_watch.format_notice(page, pdfs)
+        sent = 0
+        for chat in orders_watch.recipients(SUBS):
+            if chat == _ORDERS_KEY:
+                continue
+            try:
+                _send(token, int(chat), Reply(text, []))
+                for data, name in files:
+                    _send_document(token, int(chat), data, name)
+                sent += 1
+                time.sleep(0.15)    # вежливый интервал: лимиты Telegram
+            except Exception as e:  # noqa: BLE001
+                print(f"order notify error {chat}: {e}", flush=True)
+                if "403" in str(e):
+                    SUBS.pop(str(chat), None)
+        # Отмечаем ПОСЛЕ рассылки: упади мы посередине, следующий круг дошлёт
+        # остальным. Повтор части людям лучше, чем молчание для всех.
+        SEEN_ORDERS.add(page)
+        _save_seen_orders()
+        print(f"check_orders: приказ {page} разослан {sent} подписчикам, "
+              f"файлов {len(files)}", flush=True)
+
+
+def _follow_code(chat_id: int, code: str) -> Reply:
+    meta = lists.fetch_meta()
+    shard = lists.fetch_shard(code)
+    entries = lists.lookup(shard, code)
+    if not entries:
+        return Reply("Код не найден в списках — подписка не оформлена. "
+                     "Проверьте номер через /spisok.", [])
+    SUBS[str(chat_id)] = {"code": lists._norm(code),
+                          "last": follow.positions_of(entries),
+                          "updated_at": (meta or {}).get("updated_at", "")}
+    _save_subs()
+    return Reply(f"🔔 Слежу за кодом <b>{lists._norm(code)}</b>. Пришлю сообщение, когда "
+                 "ваши позиции в списках изменятся (проверяю несколько раз в час; "
+                 "в начале каждого часа возможна пауза ~5 минут). Отписаться: /unfollow", [])
+
+
+def _unfollow(chat_id: int) -> Reply:
+    if SUBS.pop(str(chat_id), None) is not None:
+        _save_subs()
+        return Reply("🔕 Подписка отключена.", [])
+    return Reply("Активной подписки нет. Оформить: /spisok → кнопка «Следить».", [])
+
+
+def _follow_updates(chat_id: int, on: bool) -> Reply:
+    """Подписка на сам факт обновления списков на epk25 — без кода заявления.
+
+    Отдельная от «следить за кодом»: обновление списков касается всех, и знать
+    о нём хотят и те, кто свой код не вводил. Живёт в той же записи подписчика,
+    поэтому включение/выключение не должно задевать слежку за кодом.
+    """
+    sub = SUBS.setdefault(str(chat_id), {})
+    if not on:
+        sub.pop("lists_updates", None)
+        sub.pop("src", None)
+        if not sub.get("code"):
+            SUBS.pop(str(chat_id), None)
+        _save_subs()
+        return Reply("🔕 Больше не сообщаю об обновлении списков.", [])
+    meta = lists.fetch_meta()
+    sub["lists_updates"] = True
+    # Запоминаем текущую отметку, иначе первое же уведомление придёт про
+    # обновление, которое случилось ДО подписки.
+    sub["src"] = lists.source_updated_at(meta)
+    _save_subs()
+    src = sub["src"]
+    when = f" (последнее — {lists._hhmm_dd_mm(src)})" if src else ""
+    return Reply("🔔 Сообщу, когда МПГУ обновит конкурсные списки на epk25"
+                 f"{when}.\nОтключить: кнопка «Не сообщать об обновлении списков».",
+                 [[("🔕 Не сообщать об обновлении списков", "u:0")]])
+
+
+_OTZYV_THANKS = ("Спасибо! 🙏 Записал анонимно — это поможет отвечать абитуриентам "
+                 "честнее. Есть ещё впечатления — просто отправьте /otzyv снова.")
+
+
+def _save_feedback(chat_id: int, kind: str, text: str):
+    global FEEDBACK
+    FEEDBACK = feedback.add(FEEDBACK_PATH or None, FEEDBACK, chat_id, kind, text)
+
+
+def _otzyv(chat_id: int, payload: str) -> Reply:
+    if payload:
+        _save_feedback(chat_id, "otzyv", payload)
+        return Reply(_OTZYV_THANKS, [])
+    AWAITING_FEEDBACK[chat_id] = True
+    return Reply("✍️ Поделитесь впечатлениями одним сообщением: общежития, учёба, "
+                 "преподаватели, быт — что угодно. Сохраню анонимно (кто вы — "
+                 "не записывается).", [])
+
+
+def handle_message(chat_id: int, text: str) -> Reply:
+    return _finalize(_handle_message(chat_id, text))
+
+
+def _handle_message(chat_id: int, text: str) -> Reply:
+    text = (text or "")[:MAX_MSG_LEN].strip()
+    # 1) ввод часов волонтёрства во время калькулятора — высший приоритет для числа
+    sess = SESSIONS.get(chat_id)
+    if sess is not None and sess.step == dialog.STEP_ACHIEVE and text.isdigit():
+        dialog.set_volunteer_hours(sess, int(text))
+        v = dialog.render(sess)
+        return Reply(f"Часы волонтёрства: {sess.volunteer_hours}.\n\n{v.text}", v.keyboard)
+
+    # 2) ожидаем уникальный код после /spisok
+    if AWAITING_CODE.get(chat_id) and any(ch.isdigit() for ch in text) and not text.startswith("/"):
+        AWAITING_CODE.pop(chat_id, None)
+        return _lookup_code(text)
+
+    # 3) ожидаем баллы ЕГЭ после /shansy
+    if AWAITING_SCORES.get(chat_id) and any(ch.isdigit() for ch in text) and not text.startswith("/"):
+        AWAITING_SCORES.pop(chat_id, None)
+        return Reply(_shansy_answer(text), [])
+
+    # 4) ожидаем отзыв после /otzyv
+    if AWAITING_FEEDBACK.get(chat_id) and text and not text.startswith("/"):
+        AWAITING_FEEDBACK.pop(chat_id, None)
+        _save_feedback(chat_id, "otzyv", text)
+        return Reply(_OTZYV_THANKS, [])
+
+    # 5) ожидаем название направления после /plan
+    if AWAITING_PLAN.get(chat_id) and text and not text.startswith("/"):
+        AWAITING_PLAN.pop(chat_id, None)
+        return _plan_search(text)
+
+    # 6) ожидаем название направления после «Проходные 2026»
+    if AWAITING_CUTOFF.get(chat_id) and text and not text.startswith("/"):
+        AWAITING_CUTOFF.pop(chat_id, None)
+        return Reply(cutoffs.format_results(cutoffs.find(text), text), [])
+
+    intent, payload = faq.route(text)
+    if intent in ("start", "help"):
+        return Reply(_GREETING, _menu_keyboard(), is_menu=True)
+    if intent == "menu":
+        return Reply("Выберите тему:", _menu_keyboard(), is_menu=True)
+    if intent == "calc":
+        s = dialog.start()
+        SESSIONS[chat_id] = s
+        v = dialog.render(s)
+        return Reply(v.text, v.keyboard)
+    if intent == "spisok":
+        if payload:  # /spisok 12345
+            return _lookup_code(payload)
+        AWAITING_CODE[chat_id] = True
+        return Reply("Пришлите ваш <b>уникальный код</b> (номер заявления) одним сообщением.", [])
+    if intent == "dates":
+        text_d, kb = faq.dates_step("")
+        return Reply(text_d, kb)
+    if intent == "shansy":
+        if payload:  # /shansy русский 78 ...
+            return Reply(_shansy_answer(payload), [])
+        AWAITING_SCORES[chat_id] = True
+        return Reply(_SHANSY_PROMPT, [])
+    if intent == "follow":
+        if payload:
+            return _follow_code(chat_id, payload)
+        return Reply("Пришлите команду с кодом: <b>/follow 1234567</b> — или найдите свой "
+                     "код через /spisok и нажмите «🔔 Следить».", [])
+    if intent == "unfollow":
+        return _unfollow(chat_id)
+    if intent == "vybor":
+        HISTORY[chat_id] = [{"role": "assistant", "content": _VYBOR_START}]
+        return Reply(_VYBOR_START, [])
+    if intent == "plan":
+        if payload:
+            return _plan_search(payload)
+        AWAITING_PLAN[chat_id] = True
+        return Reply(_PLAN_PROMPT, [])
+    if intent == "prohodnye":
+        if payload:
+            return Reply(cutoffs.format_results(cutoffs.find(payload), payload), [])
+        AWAITING_CUTOFF[chat_id] = True
+        return Reply(cutoffs.format_extremes(), [])
+    if intent == "otzyv":
+        return _otzyv(chat_id, payload)
+    if intent == "myid":
+        return Reply(f"Ваш chat id: <b>{chat_id}</b>", [])
+    if intent == "export":
+        if chat_id != ADMIN_CHAT_ID:
+            return Reply("", [])   # молча
+        items = FEEDBACK
+        if not items:
+            return Reply("База обратной связи пуста.", [])
+        name = f"feedback_{len(items)}.csv"
+        return Reply(f"Выгрузка: {len(items)} записей.", [],
+                     document=(feedback.to_csv(items), name))
+    if intent == "fb_stats":
+        if chat_id != ADMIN_CHAT_ID:
+            return Reply("", [])   # молча
+        return Reply(feedback.stats_text(FEEDBACK), [])
+    if intent == "broadcast":
+        if chat_id != ADMIN_CHAT_ID:
+            return Reply("", [])   # молча
+        return _broadcast(payload)
+    # Голый уникальный код без команды — самый частый ввод (треть сообщений).
+    # Раньше он уходил в ИИ, тот отвечал «воспользуйтесь /spisok», и человек
+    # слал код снова и снова. Ищем позицию сразу.
+    digits = re.sub(r"[\s\-]", "", text)
+    if digits.isdigit() and not text.startswith("/"):
+        if 5 <= len(digits) <= 8:
+            return _lookup_code(digits)
+        if len(digits) >= 9:
+            return Reply("Это похоже на ID Telegram или телефон, а нужен "
+                         "<b>уникальный код</b> заявления (6–7 цифр). Он есть в "
+                         "личном кабинете на Госуслугах и в конкурсных списках "
+                         f"{lists._OFFICIAL}", [])
+
+    # свободный вопрос — сохраняем для аналитики (хеш вместо личности) и в логи
+    _save_feedback(chat_id, "question", payload)
+    print(f"Q: {re.sub(r'[0-9]{5,}', '<код>', payload)[:120]}", flush=True)
+    return Reply(_answer_free(chat_id, payload), [])
+
+
+def handle_callback(chat_id: int, data: str) -> Reply:
+    return _finalize(_handle_callback(chat_id, data))
+
+
+def _handle_callback(chat_id: int, data: str) -> Reply:
+    if data == "open:menu":
+        # выход из любых режимов ожидания — «спасательная» кнопка
+        AWAITING_CODE.pop(chat_id, None)
+        AWAITING_SCORES.pop(chat_id, None)
+        AWAITING_PLAN.pop(chat_id, None)
+        AWAITING_CUTOFF.pop(chat_id, None)
+        return Reply("Выберите тему:", _menu_keyboard(), is_menu=True)
+    if data == "open:cutoff":
+        AWAITING_CUTOFF[chat_id] = True
+        return Reply(cutoffs.format_extremes(), [])
+    if data == "open:plan":
+        AWAITING_PLAN[chat_id] = True
+        return Reply(_PLAN_PROMPT, [])
+    if data.startswith("plan:"):
+        return _plan_menu(data[5:])
+    if data.startswith("dl:"):
+        return _plan_send(data[3:])
+    if data.startswith("sem:"):
+        return _plan_semesters(data[4:])
+    if data.startswith("d:"):
+        text_d, kb = faq.dates_step(data[2:])
+        return Reply(text_d, kb)
+    if data.startswith("u:"):
+        return _follow_updates(chat_id, data[2:] == "1")
+    if data.startswith("f:"):
+        arg = data[2:]
+        if arg == "off":
+            return _unfollow(chat_id)
+        return _follow_code(chat_id, arg)
+    if data.startswith("x:"):   # развернуть подробности по коду
+        return _lookup_code(data[2:], detailed=True)
+    if data.startswith("t:"):
+        ans = faq.topic_answer(data[2:])
+        return Reply(ans or "Тема не найдена.", [])
+    if data == "open:calc":
+        s = dialog.start()
+        SESSIONS[chat_id] = s
+        v = dialog.render(s)
+        return Reply(v.text, v.keyboard)
+    if data == "open:spisok":
+        AWAITING_CODE[chat_id] = True
+        return Reply("Пришлите ваш <b>уникальный код</b> (номер заявления) одним сообщением.", [])
+    if data == "open:vybor":
+        HISTORY[chat_id] = [{"role": "assistant", "content": _VYBOR_START}]
+        return Reply(_VYBOR_START, [])
+    if data == "open:shansy":
+        AWAITING_SCORES[chat_id] = True
+        return Reply(_SHANSY_PROMPT, [])
+    if data.startswith("c:"):
+        s = SESSIONS.get(chat_id) or dialog.start()
+        SESSIONS[chat_id] = s
+        s, done = dialog.handle(s, data)
+        if done:
+            result = dialog.compute(s)
+            SESSIONS.pop(chat_id, None)
+            return Reply(dialog.result_text(result), [])
+        v = dialog.render(s)
+        return Reply(v.text, v.keyboard)
+    return Reply("Неизвестная команда.", [])
+
+
+def _broadcast(text: str) -> Reply:
+    """Рассылка админа всем подписчикам /follow (одноразово, вручную).
+
+    Появилась после инцидента 29.07: epk25 под нагрузкой отдал урезанные
+    страницы, и подписчики получили ложное «вас больше нет в списке» (см.
+    build_lists_index._guard_incomplete). У нас нет лога, КОМУ конкретно ушло
+    ложное уведомление (sub["last"] перезаписывается на каждой сверке), поэтому
+    рассылка идёт всем текущим подписчикам — это надёжный надмножество
+    затронутых, а не точный список.
+    """
+    if not text:
+        return Reply(f"Использование: <b>/broadcast текст</b>\n"
+                     f"Уйдёт всем подписчикам /follow (сейчас: {len(SUBS)}).", [])
+    token = os.environ.get("BOT_TOKEN")
+    if not token:
+        return Reply("BOT_TOKEN не задан — не могу отправить.", [])
+    ok, fail = 0, 0
+    for chat in list(SUBS):
+        try:
+            _send(token, int(chat), Reply(text, []))
+            ok += 1
+        except Exception as e:
+            fail += 1
+            print(f"broadcast error {chat}: {e}")
+        time.sleep(0.1)   # вежливый интервал — не упереться в лимиты Telegram
+    return Reply(f"Разослано: {ok} успешно, {fail} с ошибкой (из {len(SUBS)}).", [])
+
+
+def _check_subs(token: str):
+    """Сверяет позиции подписчиков со свежими данными; шлёт диффы."""
+    if not SUBS:
+        # Пустой список подписок и «всё тихо, уведомлять некого» выглядят
+        # снаружи одинаково. Отличить их без этой строки нельзя: логи
+        # работающего прогона GitHub не отдаёт, а идёт он часами.
+        print("check_subs: подписок нет — уведомлять некого", flush=True)
+        return
+    meta = lists.fetch_meta(force=True)
+    if not meta:
+        print("check_subs: индекс недоступен — пропускаю проход", flush=True)
+        return
+    upd = meta.get("updated_at", "")
+    src = lists.source_updated_at(meta)
+    seen_srcs = {s.get("src") for s in SUBS.values()}
+    print(f"check_subs: подписок {len(SUBS)}, обход {upd[11:16]}, "
+          f"вуз {src[11:16] if src else '—'}, у подписчиков запомнено "
+          f"{sorted(x[11:16] if x else '—' for x in seen_srcs)}", flush=True)
+    sent_count = [0]
+    changed = False
+    for chat, sub in list(SUBS.items()):
+        if chat == _ORDERS_KEY:
+            continue            # служебная запись про разосланные приказы
+        # Ориентир — отметка САМОГО epk25, а не время нашего обхода: обход идёт
+        # каждые несколько минут и сдвигает updated_at постоянно, а списки вуз
+        # пересчитывает куда реже. Людям важно именно это событие.
+        seen = sub.get("src")
+        if seen is None and src:
+            # Подписка оформлена до появления этого поля: запоминаем текущую
+            # отметку молча. Иначе первый же прогон после выкатки разошлёт
+            # уведомление про обновление, которое случилось ДО подписки.
+            sub["src"] = seen = src
+            changed = True
+        # Отметку «видел» двигаем ТОЛЬКО после доставки. Иначе любой сбой
+        # между отметкой и отправкой (моргнул CDN за шардом, Telegram отдал
+        # 500) съедает обновление навсегда: на следующем проходе движения
+        # источника уже «нет», и человек не узнает о пересчёте вовсе.
+        if not sub.get("code"):
+            # Подписан только на «обновление списков»: своих списков нет,
+            # ориентир может быть только глобальным.
+            if sub.get("lists_updates") and src and seen and src > seen:
+                try:
+                    _send(token, int(chat), Reply(
+                        f"🔔 МПГУ обновил конкурсные списки на epk25 "
+                        f"({lists._hhmm_dd_mm(src)}).\n"
+                        f"Посмотреть свои позиции: /spisok", []))
+                    sent_count[0] += 1
+                    sub["src"] = src
+                    changed = True
+                except Exception as e:
+                    print(f"notify error {chat}: {e}")
+                    if "403" in str(e):
+                        SUBS.pop(str(chat), None)
+                        changed = True
+                        print(f"подписка {chat} снята (бот заблокирован)")
+            continue
+        if sub.get("updated_at") == upd:
+            # Индекс не сдвинулся с прошлой сверки ЭТОГО подписчика, а отметка
+            # двигается только вместе с доставкой — значит и показать нечего.
+            continue
+        shard = lists.fetch_shard(sub["code"])
+        if shard is None:
+            continue  # сеть/CDN моргнули — src не трогаем, повторим в следующий проход
+        entries = lists.lookup(shard, sub["code"])
+        # Считаем по спискам ЭТОГО человека: epk25 переписывает списки волнами,
+        # и глобальная отметка означала «где-то что-то пересчитали». Строгое «>»,
+        # а не «!=»: посреди волны максимум по чужим спискам мог уйти вперёд
+        # нашего, и равенство сравнивать нечестно — назад время не идёт.
+        own_src = lists.source_updated_for(meta, [e.get("list") for e in entries])
+        src_for_sub = own_src or src
+        source_moved = bool(own_src) and bool(seen) and own_src > seen
+        txt = follow.diff_text(sub["code"], sub.get("last") or {}, entries, meta)
+        lists_meta = (meta or {}).get("lists") or {}
+        live = [e for e in entries
+                if not lists.enrollment_done(lists_meta.get(e["list"]) or {})]
+        if txt is None and source_moved and live:
+            # Списки пересчитали, а у человека ничего не сдвинулось. Это тоже
+            # новость: молчание он читает как «данные не обновлялись». Дифф,
+            # если он есть, сам начинается со слов «Списки обновились» —
+            # поэтому второе сообщение сверху не шлём.
+            # Но только если хоть где-то ещё идёт конкурс: там, где зачисление
+            # проведено, «списки обновились» — уже не новость, а шум.
+            txt = (f"🔔 МПГУ обновил списки ({lists._hhmm_dd_mm(src_for_sub)}) — "
+                   f"у вас по коду <b>{sub['code']}</b> без изменений.\n"
+                   f"Подробнее: /spisok {sub['code']}")
+        if not txt:
+            # Сообщать нечего — отметку можно двигать сразу.
+            sub["last"] = follow.positions_of(entries)
+            sub["updated_at"] = upd
+            if source_moved:
+                sub["src"] = own_src
+            changed = True
+        if txt:
+            try:
+                _send(token, int(chat), Reply(txt, []))
+                sent_count[0] += 1
+                sub["last"] = follow.positions_of(entries)
+                sub["updated_at"] = upd
+                if source_moved:
+                    sub["src"] = own_src
+                changed = True
+            except Exception as e:
+                print(f"notify error {chat}: {e}")
+                # 403 = человек заблокировал бота или удалил чат. Подписка иначе
+                # висит вечно и на каждой проверке тратит запрос — снимаем её.
+                if "403" in str(e):
+                    SUBS.pop(str(chat), None)
+                    changed = True
+                    print(f"подписка {chat} снята (бот заблокирован)")
+    print(f"check_subs: отправлено уведомлений {sent_count[0]}", flush=True)
+    if changed:
+        _save_subs()
+
+
+# Оформление бота: команды и описания регистрируются самим ботом при старте
+# (Bot API setMyCommands/setMyDescription) — BotFather не нужен, кроме аватарки.
+_BOT_COMMANDS = [
+    {"command": "start", "description": "главное меню"},
+    {"command": "spisok", "description": "моя позиция: прохожу ли я и на что"},
+    {"command": "follow", "description": "следить за изменением позиции"},
+    {"command": "unfollow", "description": "отключить слежение"},
+    {"command": "shansy", "description": "подбор программ по баллам ЕГЭ"},
+    {"command": "vybor", "description": "консультация по выбору направления"},
+    {"command": "plan", "description": "учебный план (дисциплины) по направлению"},
+    {"command": "prohodnye", "description": "проходные баллы 2026 по направлениям"},
+    {"command": "bally", "description": "калькулятор доп. баллов"},
+    {"command": "sroki", "description": "сроки и ближайшие дедлайны"},
+    {"command": "help", "description": "помощь"},
+]
+_BOT_DESCRIPTION = (
+    "Помогаю поступающим в МПГУ:\n"
+    "🔎 /spisok — позиция в списках: прохожу ли я и на что\n"
+    "🔔 слежение — сообщу, когда позиция изменится\n"
+    "🧮 /shansy — подбор программ по баллам ЕГЭ\n"
+    "🧭 /vybor — консультация по выбору направления\n"
+    "➕ /bally — калькулятор доп. баллов\n"
+    "📅 /sroki — дедлайны кампании 2026\n"
+    "И отвечаю на свободные вопросы по Правилам приёма.\n"
+    "Вопросы о работе бота: @soldat_olovyanniy")
+_BOT_SHORT_DESCRIPTION = ("Помощник абитуриента МПГУ: списки и «прохожу ли я», "
+                          "подбор по ЕГЭ, доп. баллы, сроки-2026.")
+
+
+def _setup_profile(token: str):
+    """Идемпотентная регистрация команд и описаний (раз в запуск, ~раз в час)."""
+    try:
+        _api(token, "setMyCommands", commands=json.dumps(_BOT_COMMANDS))
+        _api(token, "setMyDescription", description=_BOT_DESCRIPTION)
+        _api(token, "setMyShortDescription",
+             short_description=_BOT_SHORT_DESCRIPTION)
+        print("Профиль бота обновлён (команды/описания)")
+    except Exception as e:
+        print(f"setup profile error (не критично): {e}")
+
+
+# ── Telegram I/O ──────────────────────────────────────────────────────────────
 
 def _api(token: str, method: str, **params):
     data = urllib.parse.urlencode(params).encode()
@@ -105,40 +769,164 @@ def _api(token: str, method: str, **params):
         return json.loads(r.read().decode("utf-8"))
 
 
+def _markup(keyboard: List[List[Tuple[str, str]]]) -> Optional[str]:
+    if not keyboard:
+        return None
+    return json.dumps({"inline_keyboard": [
+        [{"text": t, "callback_data": cb} for (t, cb) in row] for row in keyboard]})
+
+
+def _content_type(filename: str) -> str:
+    fn = filename.lower()
+    if fn.endswith(".pdf"):
+        return "application/pdf"
+    if fn.endswith((".xlsx", ".xls")):
+        return "application/vnd.ms-excel"
+    return "text/csv"
+
+
+def _send_document(token: str, chat_id: int, data: bytes, filename: str,
+                   caption: str = ""):
+    """sendDocument через multipart/form-data (стандартной библиотекой)."""
+    boundary = "----mpguBotBoundary7351"
+    parts = []
+    for k, v in (("chat_id", str(chat_id)),
+                 ("caption", caption), ("parse_mode", "HTML")):
+        parts.append(f"--{boundary}\r\nContent-Disposition: form-data; "
+                     f"name=\"{k}\"\r\n\r\n{v}\r\n".encode())
+    parts.append((f"--{boundary}\r\nContent-Disposition: form-data; "
+                  f"name=\"document\"; filename=\"{filename}\"\r\n"
+                  f"Content-Type: {_content_type(filename)}\r\n\r\n").encode())
+    parts.append(data)
+    parts.append(f"\r\n--{boundary}--\r\n".encode())
+    body = b"".join(parts)
+    req = urllib.request.Request(
+        f"https://api.telegram.org/bot{token}/sendDocument", data=body,
+        headers={"Content-Type": f"multipart/form-data; boundary={boundary}"})
+    with urllib.request.urlopen(req, timeout=60) as r:
+        return json.loads(r.read().decode("utf-8"))
+
+
+_TG_LIMIT = 4000  # лимит Telegram 4096; берём с запасом на entity/эмодзи
+
+
+def _split_text(text: str, limit: int = _TG_LIMIT) -> List[str]:
+    """Режем длинный текст на части ≤limit по границам строк (наши <b>…</b>
+    инлайновые и не пересекают перенос строки, поэтому разметка не рвётся)."""
+    if len(text) <= limit:
+        return [text]
+    chunks, cur = [], ""
+    for line in text.split("\n"):
+        while len(line) > limit:                 # одна строка длиннее лимита — рубим жёстко
+            if cur:
+                chunks.append(cur); cur = ""
+            chunks.append(line[:limit]); line = line[limit:]
+        if cur and len(cur) + 1 + len(line) > limit:
+            chunks.append(cur); cur = ""
+        cur = f"{cur}\n{line}" if cur else line
+    if cur:
+        chunks.append(cur)
+    return chunks
+
+
+def _send(token: str, chat_id: int, reply: Reply):
+    if reply.document is not None:
+        data, filename = reply.document
+        _send_document(token, chat_id, data, filename, caption=reply.text)
+        return
+    if not reply.text:
+        return  # тихий игнор (админ-команды от посторонних)
+    chunks = _split_text(reply.text)
+    mk = _markup(reply.keyboard)
+    for i, chunk in enumerate(chunks):
+        params = {"chat_id": chat_id, "text": chunk, "parse_mode": "HTML",
+                  "disable_web_page_preview": "true"}
+        if mk and i == len(chunks) - 1:          # клавиатуру — только к последней части
+            params["reply_markup"] = mk
+        try:
+            _api(token, "sendMessage", **params)
+        except Exception:
+            # Telegram отверг HTML-разметку (нередко в свободном AI-ответе) —
+            # лучше доставить без форматирования, чем не доставить вовсе.
+            params.pop("parse_mode", None)
+            _api(token, "sendMessage", **params)
+
+
 def main() -> int:
     if len(sys.argv) > 2 and sys.argv[1] == "--selftest":
-        print(handle(sys.argv[2]))
+        print(handle_message(0, sys.argv[2]).text)
         return 0
     token = os.environ.get("BOT_TOKEN")
     if not token:
-        print("BOT_TOKEN не задан — пропускаю (добавь секрет репозитория). Выход.")
+        print("BOT_TOKEN не задан — пропускаю. Выход.")
         return 0
+    warn = campaign.staleness_warning()
+    if warn:
+        print(warn, flush=True)
+    else:
+        print(f"Кампания: {campaign.CAMPAIGN}", flush=True)
+    # Гарантируем доставку через getUpdates: снимаем возможный вебхук от старого
+    # бота расписания (webhook и long-polling на одном токене несовместимы — иначе
+    # getUpdates отдаёт 409 Conflict и бот молчит). drop_pending_updates не ставим,
+    # чтобы не потерять сообщения, накопившиеся между запусками воркфлоу.
+    try:
+        info = _api(token, "deleteWebhook")
+        print(f"deleteWebhook: {info.get('ok')}")
+    except Exception as e:
+        print(f"deleteWebhook error (продолжаю): {e}")
+    _setup_profile(token)
+    if SUBS_PATH:
+        SUBS.update(follow.load(SUBS_PATH))
+        print(f"Подписок загружено: {len(SUBS) - (1 if _ORDERS_KEY in SUBS else 0)}")
+    _load_seen_orders()
+    print(f"Приказов уже разослано: {len(SEEN_ORDERS)}", flush=True)
+    if FEEDBACK_PATH:
+        FEEDBACK.extend(feedback.load(FEEDBACK_PATH))
+        print(f"Записей обратной связи: {len(FEEDBACK)}")
     deadline = time.time() + RUN_SECONDS
     offset = None
+    last_subs_check = 0.0
+    last_orders_check = 0.0
     print(f"Бот запущен на {RUN_SECONDS}s")
     while time.time() < deadline:
+        if time.time() - last_subs_check > SUBS_CHECK_SECONDS:
+            last_subs_check = time.time()
+            try:
+                _check_subs(token)
+            except Exception as e:
+                print(f"subs check error: {e}")
+        if time.time() - last_orders_check > ORDERS_CHECK_SECONDS:
+            last_orders_check = time.time()
+            try:
+                _check_orders(token)
+            except Exception as e:
+                print(f"orders check error: {e}")
         try:
-            resp = _api(token, "getUpdates",
-                        offset=offset or "", timeout=30, allowed_updates='["message"]')
+            resp = _api(token, "getUpdates", offset=offset or "", timeout=30,
+                        allowed_updates='["message","callback_query"]')
         except Exception as e:
             print(f"getUpdates error: {e}"); time.sleep(3); continue
         for upd in resp.get("result", []):
             offset = upd["update_id"] + 1
-            msg = upd.get("message") or {}
-            text = (msg.get("text") or "").strip()
-            chat = (msg.get("chat") or {}).get("id")
-            if not chat or not text:
-                continue
             try:
-                reply = handle(text)
+                if "message" in upd:
+                    msg = upd["message"]
+                    chat = (msg.get("chat") or {}).get("id")
+                    text = msg.get("text") or ""
+                    if chat and text:
+                        _send(token, chat, handle_message(chat, text))
+                elif "callback_query" in upd:
+                    cq = upd["callback_query"]
+                    chat = (((cq.get("message") or {}).get("chat")) or {}).get("id")
+                    data = cq.get("data") or ""
+                    try:
+                        _api(token, "answerCallbackQuery", callback_query_id=cq["id"])
+                    except Exception:
+                        pass
+                    if chat and data:
+                        _send(token, chat, handle_callback(chat, data))
             except Exception as e:
-                reply = "Что-то пошло не так, попробуйте позже."
                 print(f"handle error: {e}")
-            try:
-                _api(token, "sendMessage", chat_id=chat, text=reply,
-                     parse_mode="HTML", disable_web_page_preview="true")
-            except Exception as e:
-                print(f"sendMessage error: {e}")
     print("Время вышло, выход")
     return 0
 

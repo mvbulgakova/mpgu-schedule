@@ -79,6 +79,31 @@ class GitStorage:
     def write_hashes(self, hashes: dict):
         _write_json(self.root / "meta" / "hashes.json", hashes)
 
+    def write_lists_index(self, index: dict):
+        _write_json(self.root / "admissions" / "lists_index.json", index)
+
+    def write_lists_data(self, meta_doc: dict, shards: dict):
+        """Шардированный индекс списков: meta + by_code/<XX>.json.
+
+        Старые шарды и монолитный lists_index.json удаляются.
+        """
+        _write_json(self.root / "admissions" / "lists_meta.json", meta_doc)
+        shard_dir = self.root / "admissions" / "by_code"
+        shard_dir.mkdir(parents=True, exist_ok=True)
+        current = set()
+        for key, doc in shards.items():
+            current.add(f"{key}.json")
+            _write_json(shard_dir / f"{key}.json", doc)
+        for f in shard_dir.glob("*.json"):
+            if f.name not in current:
+                f.unlink()
+        legacy = self.root / "admissions" / "lists_index.json"
+        if legacy.exists():
+            legacy.unlink()
+
+    def write_admissions_history(self, doc: dict):
+        _write_json(self.root / "admissions" / "history.json", doc)
+
     def write_exams(self, institute_id: str, doc: dict):
         path = self.root / "institutes" / institute_id / "exams.json"
         path.parent.mkdir(parents=True, exist_ok=True)
@@ -124,13 +149,62 @@ def _git(cwd: Path, args: list[str], check=True) -> subprocess.CompletedProcess:
 
 
 def _retry_push(cwd: Path):
+    """Публикация в data целым снимком: наш прогон либо весь, либо никак.
+
+    НИКАКОГО rebase и merge. Индекс списков — согласованный снимок: файл
+    lists_meta.json и шарды by_code/*.json описывают одно и то же состояние
+    и осмысленны только вместе. Git этого не знает и сливает JSON построчно,
+    а -X ours/-X theirs правят лишь КОНФЛИКТУЮЩИЕ куски — непересекающиеся
+    правки чужого прогона въезжают молча.
+
+    Чем это кончилось (2026-08-06, коммит f79827a6): обход 03:14 лёг rebase'ом
+    на обход 03:12, и получился гибрид — lists_meta.json от одного прогона,
+    шарды наполовину от другого. В метаданных у списка 000000320 стояло 608
+    человек, а в шардах лежало 594; у списка 000000644 наоборот — 585 против
+    2631. Абитуриент 1914288 исчез из шардов ЦЕЛИКОМ, и бот в 3:23 разослал
+    ему «вас больше нет в этом списке» по всем 13 спискам сразу, а через
+    минуту — «вы появились». Ровно тот же класс поломки, что 2026-08-05 с
+    -X ours: чинить выбором стороны бессмысленно, склейку надо запретить.
+
+    Поэтому при отказе push мы не сливаем, а переставляем свой коммит на
+    вершину: reset --soft сохраняет НАШЕ дерево целиком и просто меняет
+    родителя. Чужой снимок при этом теряется — и это правильно: оба описывают
+    один источник, наш свежее. Если чужой оказался новее нашего, публикацию
+    отменяем совсем, чтобы не откатывать данные назад.
+    """
+    import json
     import time
     delays = [2, 4, 8, 16]
+    msg = _git(cwd, ["log", "-1", "--format=%s"]).stdout.strip()
     for i, delay in enumerate(delays):
         result = _git(cwd, ["push", "-u", "origin", "data"], check=False)
         if result.returncode == 0:
             return
+        err = (result.stderr or "").strip().splitlines()[-1:] or [""]
+        print(f"Push не удался ({err[0][:80]}), переставляю коммит на вершину...")
+        if _git(cwd, ["fetch", "origin", "data"], check=False).returncode != 0:
+            time.sleep(delay)
+            continue
+        if _is_remote_newer(cwd):
+            print("На ветке data уже более свежий снимок — публикацию отменяю.")
+            return
+        # --soft: HEAD уезжает на вершину, индекс и рабочее дерево остаются
+        # нашими. Следующий commit получает дерево ровно нашего обхода.
+        _git(cwd, ["reset", "--soft", "FETCH_HEAD"], check=False)
+        _git(cwd, ["commit", "-m", msg], check=False)
         if i < len(delays) - 1:
-            print(f"Push не удался, повтор через {delay}с...")
             time.sleep(delay)
     raise RuntimeError("git push провалился после 4 попыток")
+
+
+def _is_remote_newer(cwd: Path) -> bool:
+    """Снимок на ветке новее нашего? Тогда наш публиковать нельзя."""
+    import json
+    try:
+        ours = json.loads(_git(
+            cwd, ["show", "HEAD:admissions/lists_meta.json"]).stdout)
+        theirs = json.loads(_git(
+            cwd, ["show", "FETCH_HEAD:admissions/lists_meta.json"]).stdout)
+    except Exception:  # noqa: BLE001
+        return False   # нечего сравнивать — публикуем как обычно
+    return bool(theirs.get("updated_at", "") > ours.get("updated_at", ""))
