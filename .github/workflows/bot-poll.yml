@@ -30,7 +30,7 @@ on:
   workflow_dispatch:
     inputs:
       mode:
-        description: "poll (обычный запуск бота) | seats_increased | seats_increased_from_order | quota | correction"
+        description: "poll (обычный запуск бота) | seats_increased | seats_increased_from_order | quota | correction | missing_pdf"
         required: false
         default: "poll"
       baseline_ref:
@@ -41,6 +41,9 @@ on:
         required: false
       message:
         description: "текст рассылки — только для mode=correction"
+        required: false
+      pdf_url:
+        description: "URL одного или нескольких PDF (через пробел) — только для mode=missing_pdf"
         required: false
 
 # НЕ отменяем работающий ран: новый ждёт в очереди и подхватывает сразу после.
@@ -170,6 +173,20 @@ jobs:
             exit 1
           fi
           python -m scraper.notify_correction --list-code "$LIST_CODE"
+
+      - name: Missing PDF notify
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.mode == 'missing_pdf'
+        env:
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+          SUBS_PATH: subs.json
+          PDF_URL: ${{ github.event.inputs.pdf_url }}
+        run: |
+          if [ -z "$PDF_URL" ]; then
+            echo "::error::pdf_url обязателен для mode=missing_pdf"
+            exit 1
+          fi
+          # Разделитель — пробел; для двух-трёх файлов одного приказа хватит.
+          python -m scraper.notify_missing_pdf $PDF_URL
 
       - name: Save state (subscriptions + feedback)
         if: always()

@@ -163,6 +163,27 @@ def format_notice(page_url: str, pdf_urls: List[str]) -> str:
     return "\n".join(lines)
 
 
+def format_addition(page_url: str, filenames: List[str]) -> str:
+    """Текст доследующей рассылки: файл добавили на уже разосланную страницу.
+
+    2026-08-31 приказ на платку (dogovor) вышел двумя pdf-ками; part-1 бот
+    забрал сразу, part-2 либо появился на mpgu.su позже, либо не докачался
+    вахтой, но страница уже была помечена разосланной. Отправлять «Опубликован
+    приказ» повторно нельзя (это ложь), поэтому — отдельный короткий текст.
+    """
+    date = order_date(page_url)
+    n = max(len(filenames), 1)
+    if n == 1:
+        head = (f"📎 <b>Приказ о зачислении{f' от {date}' if date else ''}: "
+                f"добавлен файл на mpgu.su.</b>")
+        tail = "Файл был выложен позже основной рассылки — ищите в нём свой уникальный код."
+    else:
+        head = (f"📎 <b>Приказ о зачислении{f' от {date}' if date else ''}: "
+                f"добавлены файлы ({n}) на mpgu.su.</b>")
+        tail = "Файлы были выложены позже основной рассылки — ищите в них свой уникальный код."
+    return f"{head}\n\n{tail}\n\nСтраница приказа: {page_url}"
+
+
 def pdf_filename(url: str, date: Optional[str] = None) -> str:
     """Имя файла для Telegram: понятное человеку, а не хеш из адреса."""
     tail = (url or "").rstrip("/").split("/")[-1] or "prikaz.pdf"
