@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-09-14T05:25:17+03:00",
+  "updated_at": "2026-09-14T05:40:54+03:00",
   "codes": {
     "830947": [
       {
@@ -127,14 +127,17 @@
         "sim_above": 14
       },
       {
-        "list": "000000715",
-        "position": 241,
+        "list": "000000658",
+        "position": 652,
         "score_total": 193,
         "consent": false,
-        "priority_pz": 4,
+        "priority_pz": 8,
         "bvi": false,
         "status": "",
-        "vpp": false
+        "vpp": false,
+        "cons_above": 190,
+        "vpp_above": 0,
+        "sim_above": 2
       },
       {
         "list": "000000687",
@@ -147,17 +150,14 @@
         "vpp": false
       },
       {
-        "list": "000000658",
-        "position": 652,
+        "list": "000000715",
+        "position": 241,
         "score_total": 193,
         "consent": false,
-        "priority_pz": 8,
+        "priority_pz": 4,
         "bvi": false,
         "status": "",
-        "vpp": false,
-        "cons_above": 190,
-        "vpp_above": 0,
-        "sim_above": 2
+        "vpp": false
       },
       {
         "list": "000000462",
@@ -216,19 +216,6 @@
         "vpp": false
       },
       {
-        "list": "000000690",
-        "position": 1050,
-        "score_total": 193,
-        "consent": false,
-        "priority_pz": 4,
-        "bvi": false,
-        "status": "",
-        "vpp": false,
-        "cons_above": 257,
-        "vpp_above": 0,
-        "sim_above": 5
-      },
-      {
         "list": "000000703",
         "position": 725,
         "score_total": 193,
@@ -250,6 +237,19 @@
         "cons_above": 258,
         "vpp_above": 0,
         "sim_above": 1
+      },
+      {
+        "list": "000000690",
+        "position": 1050,
+        "score_total": 193,
+        "consent": false,
+        "priority_pz": 4,
+        "bvi": false,
+        "status": "",
+        "vpp": false,
+        "cons_above": 257,
+        "vpp_above": 0,
+        "sim_above": 5
       },
       {
         "list": "000000465",
@@ -438,6 +438,21 @@
         "bvi": false,
         "status": "",
         "vpp": false
+      }
+    ],
+    "831713": [
+      {
+        "list": "000000590",
+        "position": 867,
+        "score_total": 192,
+        "consent": false,
+        "priority_pz": 1,
+        "bvi": false,
+        "status": "",
+        "vpp": false,
+        "cons_above": 179,
+        "vpp_above": 0,
+        "sim_above": 6
       }
     ],
     "831550": [
@@ -675,21 +690,6 @@
         "vpp": false
       }
     ],
-    "831713": [
-      {
-        "list": "000000590",
-        "position": 867,
-        "score_total": 192,
-        "consent": false,
-        "priority_pz": 1,
-        "bvi": false,
-        "status": "",
-        "vpp": false,
-        "cons_above": 179,
-        "vpp_above": 0,
-        "sim_above": 6
-      }
-    ],
     "831630": [
       {
         "list": "000000637",
@@ -840,6 +840,16 @@
     ],
     "831549": [
       {
+        "list": "000000816",
+        "position": 14,
+        "score_total": 221,
+        "consent": false,
+        "priority_pz": 4,
+        "bvi": false,
+        "status": "",
+        "vpp": false
+      },
+      {
         "list": "000000800",
         "position": 54,
         "score_total": 221,
@@ -853,11 +863,11 @@
         "sim_above": 1
       },
       {
-        "list": "000000816",
-        "position": 14,
+        "list": "000000818",
+        "position": 27,
         "score_total": 221,
         "consent": false,
-        "priority_pz": 4,
+        "priority_pz": 1,
         "bvi": false,
         "status": "",
         "vpp": false
@@ -874,16 +884,6 @@
         "cons_above": 20,
         "vpp_above": 0,
         "sim_above": 0
-      },
-      {
-        "list": "000000818",
-        "position": 27,
-        "score_total": 221,
-        "consent": false,
-        "priority_pz": 1,
-        "bvi": false,
-        "status": "",
-        "vpp": false
       },
       {
         "list": "000000814",
@@ -990,6 +990,31 @@
         "sim_above": 1
       }
     ],
+    "831212": [
+      {
+        "list": "000000879",
+        "position": 38,
+        "score_total": 183,
+        "consent": false,
+        "priority_pz": 1,
+        "bvi": false,
+        "status": "",
+        "vpp": false
+      },
+      {
+        "list": "000000876",
+        "position": 53,
+        "score_total": 183,
+        "consent": false,
+        "priority_pz": 1,
+        "bvi": false,
+        "status": "",
+        "vpp": false,
+        "cons_above": 34,
+        "vpp_above": 0,
+        "sim_above": 0
+      }
+    ],
     "831667": [
       {
         "list": "000000712",
@@ -1040,31 +1065,6 @@
         "status": "",
         "vpp": false,
         "cons_above": 22,
-        "vpp_above": 0,
-        "sim_above": 0
-      }
-    ],
-    "831212": [
-      {
-        "list": "000000879",
-        "position": 38,
-        "score_total": 183,
-        "consent": false,
-        "priority_pz": 1,
-        "bvi": false,
-        "status": "",
-        "vpp": false
-      },
-      {
-        "list": "000000876",
-        "position": 53,
-        "score_total": 183,
-        "consent": false,
-        "priority_pz": 1,
-        "bvi": false,
-        "status": "",
-        "vpp": false,
-        "cons_above": 34,
         "vpp_above": 0,
         "sim_above": 0
       }
