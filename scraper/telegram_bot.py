@@ -175,15 +175,26 @@ def _plan_search(query: str) -> Reply:
 
 
 def _plan_menu(sid: str) -> Reply:
-    """Выбор программы → что показать: файл плана или разбивку по семестрам."""
+    """Выбор программы → что показать: файл плана, семестры, другой год приёма."""
     p = study_plans.by_share_id(sid)
     if not p:
         return Reply("Не удалось найти этот план. Откройте меню и попробуйте снова.", [])
     kb = [[("📄 Скачать план (PDF)", f"dl:{sid}")]]
     if study_plans.semesters_for(sid):
         kb.append([("📅 Что по семестрам", f"sem:{sid}")])
+    # Годы приёма: план меняется от набора к набору, и студенту нужен план
+    # ИМЕННО его года, а не только нового. Текущий помечаем галочкой; клик по
+    # другому году открывает это же меню уже для него (свой PDF, свои семестры).
+    sibs = study_plans.sibling_years(p)
+    cur = p.get("year") or ""
+    note = ""
+    if len(sibs) > 1:
+        row = [(f"✓ {s['year']}" if (s.get("year") or "") == cur else s.get("year") or "—",
+                f"plan:{study_plans.share_id(s)}") for s in sibs]
+        kb.append(row)
+        note = "\n\n📅 Доступны планы и других годов приёма — кнопки ниже."
     return Reply(f"📄 <b>{p['code']} {p.get('profile', '')}</b> ({p.get('form', '')}, "
-                 f"год приёма {p.get('year', '')}). Что показать?", kb)
+                 f"год приёма {p.get('year', '')}). Что показать?{note}", kb)
 
 
 def _plan_semesters(sid: str) -> Reply:

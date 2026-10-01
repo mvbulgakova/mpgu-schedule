@@ -106,3 +106,80 @@ def test_stale_year_is_shown_in_the_button(monkeypatch):
     by_prof = {p["profile"]: bot._plan_label(p) for p in plans}
     assert "2026" not in by_prof["Свежая"]
     assert by_prof["Старая"].endswith("(очная, 2024)")
+
+
+# ── Планы прошлых годов приёма доступны по кнопке ─────────────────────────────
+
+def _program_over_years():
+    """Одна программа (профиль+форма+ступень) с планами за 4 года приёма."""
+    return [
+        {"code": "44.03.01", "napr": "Педобразование", "profile": "Физика и Информатика",
+         "level": "базовое высшее образование", "form": "очная", "year": y,
+         "plan": f"https://oc.mpgu.su/s/{y}"}
+        for y in ("2024", "2026", "2023", "2025")   # нарочно вперемешку
+    ]
+
+
+def test_sibling_years_lists_all_years_newest_first(monkeypatch):
+    monkeypatch.setattr(SP, "_PLANS", _program_over_years())
+    any_plan = SP.by_share_id("2024")
+    sibs = SP.sibling_years(any_plan)
+    assert [p["year"] for p in sibs] == ["2026", "2025", "2024", "2023"]
+
+
+def test_sibling_years_isolates_the_program(monkeypatch):
+    """Чужой профиль/форма/ступень не подмешиваются в годы этой программы."""
+    plans = _program_over_years() + [
+        # другая форма
+        {"code": "44.03.01", "napr": "X", "profile": "Физика и Информатика",
+         "level": "базовое высшее образование", "form": "заочная", "year": "2025",
+         "plan": "https://oc.mpgu.su/s/ZAOCH"},
+        # другой профиль
+        {"code": "44.03.01", "napr": "X", "profile": "История",
+         "level": "базовое высшее образование", "form": "очная", "year": "2025",
+         "plan": "https://oc.mpgu.su/s/HIST"},
+        # другая ступень (СПО), совпадает имя
+        {"code": "44.02.01", "napr": "X", "profile": "Физика и Информатика",
+         "level": "СПО", "form": "очная", "year": "2025",
+         "plan": "https://oc.mpgu.su/s/SPO"},
+    ]
+    monkeypatch.setattr(SP, "_PLANS", plans)
+    sibs = SP.sibling_years(SP.by_share_id("2026"))
+    assert {SP.share_id(p) for p in sibs} == {"2026", "2025", "2024", "2023"}
+
+
+def test_single_year_program_has_only_itself(monkeypatch):
+    monkeypatch.setattr(SP, "_PLANS", [
+        {"code": "44.03.01", "napr": "X", "profile": "Одинокая", "form": "очная",
+         "level": "базовое высшее образование", "year": "2026",
+         "plan": "https://oc.mpgu.su/s/ONE"}])
+    sibs = SP.sibling_years(SP.by_share_id("ONE"))
+    assert [SP.share_id(p) for p in sibs] == ["ONE"]
+
+
+def test_plan_menu_offers_other_years(monkeypatch):
+    """Меню программы с несколькими годами даёт переключатель по годам."""
+    import scraper.telegram_bot as bot
+    monkeypatch.setattr(SP, "_PLANS", _program_over_years())
+    monkeypatch.setattr(SP, "semesters_for", lambda sid: [])
+    r = bot._plan_menu("2025")           # открыли год 2025
+    flat = [cb for row in r.keyboard for (_t, cb) in row]
+    # есть переходы на остальные годы
+    assert "plan:2026" in flat and "plan:2024" in flat and "plan:2023" in flat
+    # скачать — именно выбранный год
+    assert "dl:2025" in flat
+    # текущий год помечен галочкой в подписи
+    labels = [t for row in r.keyboard for (t, _cb) in row]
+    assert any("✓" in t and "2025" in t for t in labels)
+
+
+def test_plan_menu_single_year_has_no_year_switcher(monkeypatch):
+    import scraper.telegram_bot as bot
+    monkeypatch.setattr(SP, "_PLANS", [
+        {"code": "44.03.01", "napr": "X", "profile": "Одинокая", "form": "очная",
+         "level": "базовое высшее образование", "year": "2026",
+         "plan": "https://oc.mpgu.su/s/ONE"}])
+    monkeypatch.setattr(SP, "semesters_for", lambda sid: [])
+    r = bot._plan_menu("ONE")
+    flat = [cb for row in r.keyboard for (_t, cb) in row]
+    assert not any(cb.startswith("plan:") for cb in flat)
