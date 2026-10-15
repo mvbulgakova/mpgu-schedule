@@ -980,6 +980,26 @@ def _parse_timetable_cell(content: str, t_start: str, t_end: str,
     if not lines:
         return None
 
+    # Join hyphenated words split across PDF cell lines, e.g. "ЧЕЛО-" + "ВЕКА" → "ЧЕЛОВЕКА"
+    merged: list[str] = []
+    i = 0
+    while i < len(lines):
+        line = lines[i]
+        if line.endswith('-') and i + 1 < len(lines):
+            nxt = lines[i + 1]
+            # Only join if the next line is a word fragment, not a metadata line
+            is_meta = (re.match(r'^\([А-ЯЁA-Za-z.]{2,4}\)\s*$', nxt)
+                       or '//' in nxt
+                       or re.search(r'\d+\s+корп\.|ауд\.?\s*\d|спортзал', nxt, re.I)
+                       or re.search(r'\b(проф|доц|ст\.?\s*преп|асс|преп)\b', nxt, re.I))
+            if not is_meta:
+                merged.append(line[:-1] + nxt)
+                i += 2
+                continue
+        merged.append(line)
+        i += 1
+    lines = merged
+
     # Извлекаем подгруппу из любой строки
     if subgroup is None:
         for i, line in enumerate(lines):
