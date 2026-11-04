@@ -546,7 +546,15 @@ def _handle_message(chat_id: int, text: str) -> Reply:
     if intent == "fb_stats":
         if chat_id != ADMIN_CHAT_ID:
             return Reply("", [])   # молча
-        return Reply(feedback.stats_text(FEEDBACK), [])
+        from scraper.count_users import count as _count_users
+        uc = _count_users(SUBS, FEEDBACK)
+        users = (f"\n\n👥 <b>Уникальных пользователей (нижняя оценка): "
+                 f"{uc['union']}</b>\n"
+                 f"• писали текстом: {uc['feedback']}\n"
+                 f"• подписаны /follow: {uc['subscribers']}\n"
+                 f"• и то, и другое: {uc['overlap']}\n"
+                 f"<i>Работавшие только кнопками не учтены — их бот не сохранял.</i>")
+        return Reply(feedback.stats_text(FEEDBACK) + users, [])
     if intent == "broadcast":
         if chat_id != ADMIN_CHAT_ID:
             return Reply("", [])   # молча

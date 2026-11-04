@@ -30,7 +30,7 @@ on:
   workflow_dispatch:
     inputs:
       mode:
-        description: "poll (обычный запуск бота) | seats_increased | seats_increased_from_order | quota | correction | missing_pdf"
+        description: "poll (обычный запуск бота) | seats_increased | seats_increased_from_order | quota | correction | missing_pdf | usercount"
         required: false
         default: "poll"
       baseline_ref:
@@ -187,6 +187,13 @@ jobs:
           fi
           # Разделитель — пробел; для двух-трёх файлов одного приказа хватит.
           python -m scraper.notify_missing_pdf $PDF_URL
+
+      - name: Count unique users
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.mode == 'usercount'
+        env:
+          SUBS_PATH: subs.json
+          FEEDBACK_PATH: feedback.json
+        run: python -m scraper.count_users
 
       - name: Save state (subscriptions + feedback)
         if: always()
