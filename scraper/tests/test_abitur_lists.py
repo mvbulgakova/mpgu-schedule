@@ -710,9 +710,25 @@ def test_paid_stage_text_moves_on_after_the_contract_deadline(monkeypatch):
 
 
 def test_paid_stage_text_after_the_order(monkeypatch):
+    """«Опубликован» — только когда приказ реально висит на mpgu.su.
+
+    Раньше текст переключался по календарю (>= 29 августа), и 2026-08-30
+    бот писал платникам «приказ опубликован», хотя на сайте стоял слаг
+    31-08-2026-dogovor и никакого pdf ещё не выкладывали. Теперь дата
+    берётся из orders_watch — что реально видно на сайте.
+    """
+    from scraper.abitur import orders_watch
     from scraper.abitur.lists import paid_stage_note
     _at(monkeypatch, 30)
-    assert "опубликован" in paid_stage_note()
+    orders_watch.clear_published()
+    assert "опубликован" not in paid_stage_note()
+    orders_watch.register_pages([
+        "https://mpgu.su/postuplenie/svedenija-zachislenii-2026/"
+        "zachislenie-31-08-2026-dogovor/"])
+    txt = paid_stage_note()
+    assert "опубликован" in txt
+    assert "31.08.2026" in txt
+    orders_watch.clear_published()
 
 
 def test_finished_budget_card_points_at_the_paid_stage(monkeypatch):
@@ -724,11 +740,24 @@ def test_finished_budget_card_points_at_the_paid_stage(monkeypatch):
 
 
 def test_caveat_stops_promising_orders_that_already_happened(monkeypatch):
-    """«Приказы — 7 августа» в будущем времени после 7 августа дезинформирует."""
+    """«Приказы — 7 августа» в будущем времени после 7 августа дезинформирует.
+
+    Признак публикации — приказ, реально стоящий на mpgu.su (orders_watch),
+    а не факт «календарь показывает 8 августа»: 2026-08-30 календарь у
+    платников уже говорил «приказ опубликован», хотя на сайте лежала
+    только страница 31-08-2026-dogovor.
+    """
+    from scraper.abitur import orders_watch
     from scraper.abitur.lists import _consent_caveat
     _at(monkeypatch, 8)
+    orders_watch.clear_published()
+    orders_watch.register_pages([
+        "https://mpgu.su/postuplenie/svedenija-zachislenii-2026/"
+        "zachislenie-07-08-2026-budget/"])
     txt = _consent_caveat([], {})
     assert "опубликованы" in txt
+    assert "07.08.2026" in txt
+    orders_watch.clear_published()
 
 
 def test_masters_paid_dates_differ_from_bachelors(monkeypatch):
@@ -810,12 +839,18 @@ def test_magistracy_card_does_not_announce_the_bachelor_orders(monkeypatch):
 
 def test_bachelor_card_still_says_the_orders_are_out(monkeypatch):
     """Проверка, что даты не съехали в другую сторону."""
+    from scraper.abitur import orders_watch
     from scraper.abitur.lists import _consent_caveat
     _at(monkeypatch, 17)
+    orders_watch.clear_published()
+    orders_watch.register_pages([
+        "https://mpgu.su/postuplenie/svedenija-zachislenii-2026/"
+        "zachislenie-07-08-2026-budget/"])
     bak = {"B": {"general": True, "count": 100, "consented": 50,
                  "level": "basic_higher_education"}}
     txt = _consent_caveat([{"list": "B"}], bak)
-    assert "7 августа" in txt and "опубликованы" in txt
+    assert "07.08.2026" in txt and "опубликованы" in txt
+    orders_watch.clear_published()
 
 
 def test_magistracy_consent_reminder_names_its_own_deadline(monkeypatch):
@@ -873,3 +908,70 @@ def test_no_consent_rank_is_invented_for_paid_lists():
          "priority_pz": 1, "bvi": False, "status": "", "vpp": False}]}}
     txt = format_positions_short(meta, shard, "777")
     assert "по согласиям" not in txt
+
+
+# ── «Приказы уже опубликованы» — только если это правда ──────────────────────
+
+def test_paid_stage_does_not_lie_before_the_order_actually_appears(monkeypatch):
+    """Бот говорил «приказ 29 августа опубликован» — по календарю, не по факту.
+
+    2026-08-30 на mpgu.su стояла страница 31-08-2026-dogovor и никакого
+    pdf ещё не выложили, а бот платникам писал «Приказ (29 августа)
+    опубликован — смотрите на mpgu.su». Живое несоответствие: календарь
+    один, сайт другой; лгать про опубликованный приказ хуже, чем сдвинуть
+    подпись.
+    """
+    from scraper.abitur import orders_watch
+    from scraper.abitur.lists import paid_stage_note
+    _at(monkeypatch, 30)
+    orders_watch.clear_published()
+    txt = paid_stage_note()
+    assert "опубликован" not in txt
+    # После деда, но до фактической публикации — «приём закрыт», а не
+    # «приказ опубликован»: обещать публикацию, которой нет, — обман.
+    assert "закрыт" in txt
+
+
+def test_consent_caveat_waits_for_the_order_to_actually_appear(monkeypatch):
+    """Магистрантке 26 августа, если приказ ещё не выложили: не «опубликованы»."""
+    from scraper.abitur import orders_watch
+    from scraper.abitur.lists import _consent_caveat
+    _at(monkeypatch, 26)
+    orders_watch.clear_published()
+    mag = {"M": {"general": True, "count": 100, "consented": 50,
+                 "level": "magistracy"}}
+    txt = _consent_caveat([{"list": "M"}], mag)
+    assert "опубликованы" not in txt
+    assert "25 августа" in txt          # только как ожидаемая дата
+
+
+def test_enrollment_done_note_uses_the_real_order_date(monkeypatch):
+    """Отправить магистрантку смотреть «приказ от 7 августа» — соврать дату."""
+    from scraper.abitur import orders_watch
+    from scraper.abitur.lists import _enrollment_done_note
+    _at(monkeypatch, 26)
+    orders_watch.clear_published()
+    orders_watch.register_pages([
+        "https://mpgu.su/postuplenie/svedenija-zachislenii-2026/"
+        "zachislenie-25-08-2026-budget-spvo/"])
+    txt = _enrollment_done_note(
+        [{"list": "M"}], [{"level": "specialized_higher_education"}])
+    assert "25.08.2026" in txt
+    assert "7 августа" not in txt
+    orders_watch.clear_published()
+
+
+def test_paid_stage_note_reports_the_real_publication_date(monkeypatch):
+    """Календарь ждал «29 августа», а на сайте появилась страница 31.08 —
+    в тексте должна быть та, что реально видна на mpgu.su."""
+    from scraper.abitur import orders_watch
+    from scraper.abitur.lists import paid_stage_note
+    _at(monkeypatch, 30)
+    orders_watch.clear_published()
+    orders_watch.register_pages([
+        "https://mpgu.su/postuplenie/svedenija-zachislenii-2026/"
+        "zachislenie-31-08-2026-dogovor/"])
+    txt = paid_stage_note()
+    assert "31.08.2026" in txt
+    assert "29 августа" not in txt
+    orders_watch.clear_published()

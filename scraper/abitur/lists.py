@@ -12,6 +12,8 @@ import urllib.request
 from pathlib import Path
 from typing import Dict, List, Optional
 
+from scraper.abitur import orders_watch
+
 # Первичный источник — raw.githubusercontent (кэш ~5 мин: важно для уведомлений
 # об изменении позиций); jsDelivr — фолбэк (кэширует ветку до 12 часов).
 DATA_BASE = os.environ.get(
@@ -347,13 +349,19 @@ def _enrollment_done_note(entries: List[Dict], done_lists: List[dict]) -> str:
     Категоричного вердикта не выносим: приказ на mpgu.su — единственный
     официальный документ, а epk25 показал результат раньше него. Наше дело —
     честно назвать состояние страниц и не выдавать симуляцию за прогноз.
+
+    Дата приказа — из orders_watch (что реально висит на mpgu.su), а не
+    хардкод «7 августа»: магистрантке 2026-08-25, когда её конкурс тоже
+    закрылся, бот отправлял смотреть приказ бакалавров.
     """
     n = len(done_lists)
     level = (done_lists[0] or {}).get("level") if done_lists else None
+    st = budget_stage(level)
+    date_txt = orders_watch.published(st["orders_kind"]) or st["orders_txt"]
     return (
         f"🎓 <b>Бюджетное зачисление завершено</b> — по "
         f"{'вашему списку' if n == 1 else 'вашим спискам'} места заняты.\n"
-        f"<b>Проверьте себя в приказе</b> от 7 августа на mpgu.su: это "
+        f"<b>Проверьте себя в приказе</b> от {date_txt} на mpgu.su: это "
         f"единственный официальный ответ. Тем, кто в него попал, ночью пришло "
         f"уведомление на Госуслугах.\n"
         f"По конкурсным спискам сказать, кто зачислен, нельзя: отметки ВПП "
@@ -434,14 +442,22 @@ _MAG_LEVELS = {"specialized_higher_education", "magistracy"}
 
 def budget_stage(level=None) -> dict:
     """Сроки бюджетного этапа для ступени. Тексты рядом с датами намеренно:
-    разъехавшаяся дата и подпись к ней — самая дорогая ошибка в этом боте."""
+    разъехавшаяся дата и подпись к ней — самая дорогая ошибка в этом боте.
+
+    `orders_kind` — ключ orders_watch, по которому lists.py спрашивает,
+    вышел ли приказ реально; календарь врёт (2026-08-30 бот утверждал
+    магистрантам «приказы 25 августа опубликованы», хотя нужный слаг
+    появился, но платка ещё не выходила и путалась в тех же текстах).
+    """
     if level in _MAG_LEVELS:
         return {"consent": _MAG_CONSENT_DEADLINE, "consent_txt": "24 августа 12:00",
                 "extra": _MAG_EXTRA_CONSENT_DEADLINE, "extra_txt": "26 августа 12:00",
-                "orders": _MAG_ORDERS_PUBLISHED, "orders_txt": "25 августа"}
+                "orders": _MAG_ORDERS_PUBLISHED, "orders_txt": "25 августа",
+                "orders_kind": "budget-mag"}
     return {"consent": _MAIN_CONSENT_DEADLINE, "consent_txt": "5 августа 12:00",
             "extra": _EXTRA_CONSENT_DEADLINE, "extra_txt": "9 августа 12:00",
-            "orders": _MAIN_ORDERS_PUBLISHED, "orders_txt": "7 августа"}
+            "orders": _MAIN_ORDERS_PUBLISHED, "orders_txt": "7 августа",
+            "orders_kind": "budget-bachelor"}
 _PAID_CONTRACT_DEADLINE_MAG = dt.datetime(2026, 8, 28, 18, 0, tzinfo=_MSK)
 _PAID_ORDER_DATE_MAG = dt.datetime(2026, 8, 31, 0, 0, tzinfo=_MSK)
 
@@ -453,15 +469,22 @@ def paid_stage_note(short: bool = False, level: Optional[str] = None) -> str:
     прошёл, единственный живой путь — платное. Сроки там другие и позже, а из
     бюджетных текстов этого не видно: человек читает «приказы 7 августа» и
     решает, что всё.
+
+    Дата приказа берётся из orders_watch, а не из календаря: 2026-08-29 бот
+    уже писал «приказ 29 августа опубликован», хотя на mpgu.su ещё висел
+    слаг «31-08-2026-dogovor» и никакой pdf не выкладывался. Календарь —
+    план, а не факт; лгать про опубликованный приказ хуже, чем сдвинуть
+    подпись.
     """
     mag = level in _MAG_LEVELS
     deadline = _PAID_CONTRACT_DEADLINE_MAG if mag else _PAID_CONTRACT_DEADLINE
-    order = _PAID_ORDER_DATE_MAG if mag else _PAID_ORDER_DATE
     d_txt = "28 августа 18:00" if mag else "27 августа 18:00"
-    o_txt = "31 августа" if mag else "29 августа"
+    o_txt_default = "31 августа" if mag else "29 августа"
+    published_date = orders_watch.published("paid")
+    o_txt = published_date or o_txt_default
     now = _now_msk()
-    if now >= order:
-        return (f"💳 Приказ о зачислении на платные места ({o_txt}) "
+    if published_date:
+        return (f"💳 Приказ о зачислении на платные места ({published_date}) "
                 f"опубликован — смотрите его на mpgu.su.")
     if now >= deadline:
         return (f"💳 Приём договоров на платные места закрыт ({d_txt}). "
@@ -530,12 +553,16 @@ def _consent_caveat(entries: List[Dict], lists_meta_all: dict) -> str:
             break
     st = budget_stage(_level_of(entries, lists_meta_all))
     now = _now_msk()
-    if now >= st["orders"]:
+    published_date = orders_watch.published(st["orders_kind"])
+    if published_date:
         return (f"⚠️ <b>Приказы о зачислении на бюджет опубликованы</b> "
-                f"({st['orders_txt']})." + share + f" Оценка ниже — "
+                f"({published_date})." + share + f" Оценка ниже — "
                 f"предварительная и к приказу отношения не имеет: официальный "
                 f"ответ только в нём.")
     if now >= st["consent"]:
+        # Приём согласий закрыт, но приказа ещё нет — обещанной даты
+        # может не хватить (вуз опаздывает), поэтому даём подпись из
+        # правил, но без слова «опубликованы».
         return (f"⚠️ <b>Приём согласий на основном этапе закрыт</b> "
                 f"({st['consent_txt']})." + share + f" Списки ещё "
                 f"пересчитываются, пока вуз обрабатывает поданные согласия, так "

@@ -149,6 +149,14 @@ def _family(plan: dict) -> str:
     return parts[1] if len(parts) > 1 else ""
 
 
+def _program_key(plan: dict) -> tuple:
+    """Что считать «одной и той же программой» для сравнения по годам.
+
+    Профиль + форма + ступень (средний сегмент кода). Код целиком не берём:
+    при перенумерации 44.03.05→44.03.01 он меняется, а программа та же."""
+    return (_prof_key(plan.get("profile") or ""), plan.get("form"), _family(plan))
+
+
 def current_plans() -> List[dict]:
     """Планы без устаревших: по каждому профилю оставляем самый свежий год.
 
@@ -163,16 +171,29 @@ def current_plans() -> List[dict]:
     plans = load_plans()
     newest: Dict[tuple, str] = {}
     for p in plans:
-        key = (_prof_key(p.get("profile") or ""), p.get("form"), _family(p))
+        key = _program_key(p)
         year = p.get("year") or ""
         if year > newest.get(key, ""):
             newest[key] = year
     out = []
     for p in plans:
-        key = (_prof_key(p.get("profile") or ""), p.get("form"), _family(p))
-        if (p.get("year") or "") >= newest[key]:
+        if (p.get("year") or "") >= newest[_program_key(p)]:
             out.append(p)
     return out
+
+
+def sibling_years(plan: dict) -> List[dict]:
+    """Все годы приёма этой программы (профиль+форма+ступень), свежие сверху.
+
+    Планы прошлых лет лежат в каталоге отдельными строками со своими URL;
+    current_plans() прячет их, чтобы в поиске не двоилось. Но по прямому
+    запросу они нужны: студент смотрит план своего года набора, а не только
+    нового, или сравнивает, как программа менялась. На один год — одна строка
+    (в каталоге дублей года внутри программы нет), поэтому дедуп не нужен."""
+    key = _program_key(plan)
+    sibs = [p for p in load_plans() if _program_key(p) == key]
+    sibs.sort(key=lambda p: p.get("year") or "", reverse=True)
+    return sibs
 
 
 def latest_year() -> str:

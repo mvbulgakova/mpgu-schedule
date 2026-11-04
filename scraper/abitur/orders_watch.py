@@ -32,6 +32,13 @@ _SECTION = "svedenija-zachislenii-2026"
 # Служебные ссылки WordPress внутри того же раздела — не приказы.
 _JUNK = ("/wp-json/", "/feed", "?", "#")
 
+# Какие приказы уже реально видны на mpgu.su — {"paid": "31.08.2026", ...}.
+# Заполняется ботом из вахты; читается lists.py, чтобы не писать «приказы
+# опубликованы», когда их на сайте ещё нет. Модуль-уровневый, потому что
+# бот и рендер живут в одном процессе; переживает круг getUpdates, но не
+# перезапуск бота — на холодном старте _load_seen_orders() кормит заново.
+_PUBLISHED_KINDS: Dict[str, str] = {}
+
 
 def order_pages(index_html: str) -> List[str]:
     """Ссылки на приказы с индексной страницы раздела.
@@ -83,6 +90,62 @@ def _kind(pdf_url: str) -> str:
     return ""
 
 
+def order_kind(url: str) -> Optional[str]:
+    """Тип приказа по слагу: 'paid' | 'budget-mag' | 'budget-spo' | 'budget-bachelor'.
+
+    Нужен, чтобы отличить, ЧЕЙ приказ вышел. У магистратуры и платников
+    свои сроки, и «приказы опубликованы» надо говорить только тому, чей
+    приказ реально на сайте. 2026-08-30 на mpgu.su стояла страница
+    31-08-2026-dogovor (платка ещё впереди), а бот при этом писал
+    магистрантам и платникам «приказ опубликован» — по календарю, а не по
+    факту. Порядок проверок жёсткий: «spvo» ловим до «spo», иначе СПВО
+    попадёт в СПО.
+    """
+    name = (url or "").lower()
+    if "dogovor" in name or "platn" in name:
+        return "paid"
+    if "spvo" in name:
+        return "budget-mag"
+    if "spo" in name:
+        return "budget-spo"
+    if "budget" in name or "byudzhet" in name:
+        return "budget-bachelor"
+    return None
+
+
+def _date_key(ddmmyyyy: str) -> tuple:
+    """Ключ сортировки дат «DD.MM.YYYY» → (Y, M, D)."""
+    return (ddmmyyyy[6:10], ddmmyyyy[3:5], ddmmyyyy[0:2])
+
+
+def register_pages(pages) -> None:
+    """Отметить фактически видимые на mpgu.su страницы/файлы приказов.
+
+    Бот вызывает это на каждом обходе индекса: снимок «что реально стоит
+    на сайте прямо сейчас». Читает потом lists.py, чтобы не соврать
+    людям «приказ опубликован», если его там нет. Если по одному типу
+    несколько дат (основной + доп. этап), берём самую свежую.
+    """
+    for u in pages or []:
+        k = order_kind(u)
+        d = order_date(u)
+        if not k or not d:
+            continue
+        prev = _PUBLISHED_KINDS.get(k)
+        if prev is None or _date_key(d) > _date_key(prev):
+            _PUBLISHED_KINDS[k] = d
+
+
+def published(kind: str) -> Optional[str]:
+    """Дата фактически опубликованного приказа этого типа (DD.MM.YYYY) или None."""
+    return _PUBLISHED_KINDS.get(kind)
+
+
+def clear_published() -> None:
+    """Сбросить состояние. Для тестов."""
+    _PUBLISHED_KINDS.clear()
+
+
 def format_notice(page_url: str, pdf_urls: List[str]) -> str:
     """Текст рассылки о новом приказе."""
     date = order_date(page_url)
@@ -98,6 +161,27 @@ def format_notice(page_url: str, pdf_urls: List[str]) -> str:
     lines.append("Приказ — официальный документ; конкурсные списки на epk25 "
                  "зачисленных не помечают.")
     return "\n".join(lines)
+
+
+def format_addition(page_url: str, filenames: List[str]) -> str:
+    """Текст доследующей рассылки: файл добавили на уже разосланную страницу.
+
+    2026-08-31 приказ на платку (dogovor) вышел двумя pdf-ками; part-1 бот
+    забрал сразу, part-2 либо появился на mpgu.su позже, либо не докачался
+    вахтой, но страница уже была помечена разосланной. Отправлять «Опубликован
+    приказ» повторно нельзя (это ложь), поэтому — отдельный короткий текст.
+    """
+    date = order_date(page_url)
+    n = max(len(filenames), 1)
+    if n == 1:
+        head = (f"📎 <b>Приказ о зачислении{f' от {date}' if date else ''}: "
+                f"добавлен файл на mpgu.su.</b>")
+        tail = "Файл был выложен позже основной рассылки — ищите в нём свой уникальный код."
+    else:
+        head = (f"📎 <b>Приказ о зачислении{f' от {date}' if date else ''}: "
+                f"добавлены файлы ({n}) на mpgu.su.</b>")
+        tail = "Файлы были выложены позже основной рассылки — ищите в них свой уникальный код."
+    return f"{head}\n\n{tail}\n\nСтраница приказа: {page_url}"
 
 
 def pdf_filename(url: str, date: Optional[str] = None) -> str:

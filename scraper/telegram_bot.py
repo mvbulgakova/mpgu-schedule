@@ -32,6 +32,11 @@ SUBS_CHECK_SECONDS = 600
 ORDERS_CHECK_SECONDS = int(os.environ.get("ORDERS_CHECK_SECONDS", "180"))
 # Разосланные приказы (в том же файле, что подписки — переживает рестарты).
 SEEN_ORDERS: set = set()
+# Разосланные PDF-файлы — трекаются пофайлово, а не по странице. Иначе
+# частичная доставка (страница помечена, но один pdf не докачался или был
+# добавлен позже) остаётся навсегда: 2026-08-31 у приказа на dogovor part-2
+# так и не дошёл. Пофайловая пометка + переобход страниц ловят это.
+SEEN_PDFS: set = set()
 # Обратная связь: файл-хранилище и chat_id администратора (для /export, /fb_stats).
 FEEDBACK_PATH = os.environ.get("FEEDBACK_PATH", "")
 ADMIN_CHAT_ID = int(os.environ.get("ADMIN_CHAT_ID", "0") or "0")
@@ -170,15 +175,26 @@ def _plan_search(query: str) -> Reply:
 
 
 def _plan_menu(sid: str) -> Reply:
-    """Выбор программы → что показать: файл плана или разбивку по семестрам."""
+    """Выбор программы → что показать: файл плана, семестры, другой год приёма."""
     p = study_plans.by_share_id(sid)
     if not p:
         return Reply("Не удалось найти этот план. Откройте меню и попробуйте снова.", [])
     kb = [[("📄 Скачать план (PDF)", f"dl:{sid}")]]
     if study_plans.semesters_for(sid):
         kb.append([("📅 Что по семестрам", f"sem:{sid}")])
+    # Годы приёма: план меняется от набора к набору, и студенту нужен план
+    # ИМЕННО его года, а не только нового. Текущий помечаем галочкой; клик по
+    # другому году открывает это же меню уже для него (свой PDF, свои семестры).
+    sibs = study_plans.sibling_years(p)
+    cur = p.get("year") or ""
+    note = ""
+    if len(sibs) > 1:
+        row = [(f"✓ {s['year']}" if (s.get("year") or "") == cur else s.get("year") or "—",
+                f"plan:{study_plans.share_id(s)}") for s in sibs]
+        kb.append(row)
+        note = "\n\n📅 Доступны планы и других годов приёма — кнопки ниже."
     return Reply(f"📄 <b>{p['code']} {p.get('profile', '')}</b> ({p.get('form', '')}, "
-                 f"год приёма {p.get('year', '')}). Что показать?", kb)
+                 f"год приёма {p.get('year', '')}). Что показать?{note}", kb)
 
 
 def _plan_semesters(sid: str) -> Reply:
@@ -234,19 +250,54 @@ _ORDERS_KEY = "__orders__"   # служебная запись в файле п�
 
 
 def _load_seen_orders():
-    """Какие приказы уже разосланы. Хранится рядом с подписками.
+    """Какие приказы (страницы и pdf'ки) уже разосланы. Хранится рядом с подписками.
 
     Отдельного хранилища не заводим: подписки и так переживают рестарты через
     actions/cache, а второй такой механизм — второй способ его потерять.
     Ключ служебный и заведомо не совпадает с chat_id (те — цифры).
+
+    Заодно кормим orders_watch тем, что уже видели: после рестарта в
+    _PUBLISHED_KINDS пусто, а lists.py должен знать, какие приказы уже
+    висят на mpgu.su — иначе первые 3 минуты до вахты бот будет писать
+    «приказы ещё не опубликованы» тем, чей приказ вышел неделю назад.
+
+    Миграция: если в состоянии только страницы, но не pdf'ки (старая
+    схема), считаем, что вчерашняя вахта разослала всё, что сейчас на
+    сайте, — HEAD-сканируем страницы и заполняем SEEN_PDFS. Иначе на
+    первом же тике новой схемы бот пришлёт всем 19 файлов заново.
     """
     rec = SUBS.get(_ORDERS_KEY) or {}
     SEEN_ORDERS.update(rec.get("sent") or [])
     SEEN_ORDERS.update(orders_watch.ALREADY_PUBLISHED)
+    stored_pdfs = rec.get("sent_pdfs")
+    if stored_pdfs is not None:
+        SEEN_PDFS.update(stored_pdfs)
+    else:
+        _seed_seen_pdfs_from(SEEN_ORDERS)
+    orders_watch.register_pages(SEEN_ORDERS)
+
+
+def _seed_seen_pdfs_from(pages) -> None:
+    """Одноразовая миграция: заполнить SEEN_PDFS текущими pdf на страницах.
+
+    Считаем, что до апгрейда бот эти файлы уже разослал. Новые pdf'ки,
+    добавленные mpgu.su ПОСЛЕ этой пометки, вахта поймает штатно.
+    """
+    for page in pages:
+        low = page.lower()
+        if low.endswith(".pdf"):
+            SEEN_PDFS.add(page); continue
+        try:
+            html = _fetch(page, timeout=30).decode("utf-8", "replace")
+            for u in re.findall(r'href="([^"]+\.pdf)"', html, re.I):
+                SEEN_PDFS.add(u)
+        except Exception as e:  # noqa: BLE001
+            print(f"миграция SEEN_PDFS: {page}: {e}", flush=True)
 
 
 def _save_seen_orders():
-    SUBS[_ORDERS_KEY] = {"sent": sorted(SEEN_ORDERS)}
+    SUBS[_ORDERS_KEY] = {"sent": sorted(SEEN_ORDERS),
+                         "sent_pdfs": sorted(SEEN_PDFS)}
     _save_subs()
 
 
@@ -257,19 +308,22 @@ def _fetch(url: str, timeout: int = 60) -> bytes:
 
 
 def _check_orders(token: str):
-    """Появился приказ о зачислении — разослать всем подписчикам с файлами.
+    """Появился приказ (или новый файл к уже разосланному) — разослать всем.
 
     Приказ ждут ночами, поэтому рассылаем сразу и всем, не разбирая, кто на
-    что подписан. Защита от повтора — список уже разосланных страниц: сюда
-    нельзя ошибиться дважды, второе такое же сообщение обесценивает первое.
+    что подписан. Защита от повтора — трек РАЗОСЛАННЫХ pdf'ок пофайлово,
+    а не страниц: у dogovor 2 файла (part-1, part-2), у dogovor-spo — 6;
+    страница помеченная разосланной, но с недошедшим файлом — прежний
+    сценарий, из-за которого part-2 приказа 31.08 никто не получил.
+    Поэтому ходим по ВСЕМ страницам каждый тик и добираем только новое.
     """
     html = _fetch(orders_watch.INDEX_PAGE, timeout=30).decode("utf-8", "replace")
     pages = orders_watch.order_pages(html)
-    fresh = orders_watch.new_orders(pages, SEEN_ORDERS)
-    if not fresh:
-        return
-    print(f"check_orders: новых приказов {len(fresh)}: {fresh}", flush=True)
-    for page in fresh:
+    # На КАЖДОМ обходе освежаем «что реально стоит на mpgu.su»: lists.py
+    # опирается на это, а не на календарь, когда пишет «приказ опубликован».
+    orders_watch.register_pages(pages)
+    for page in pages:
+        first_time = page not in SEEN_ORDERS
         try:
             if page.lower().endswith(".pdf"):
                 pdfs = [page]           # приказ выложили файлом, без страницы
@@ -277,23 +331,35 @@ def _check_orders(token: str):
                 sub_html = _fetch(page, timeout=30).decode("utf-8", "replace")
                 pdfs = list(dict.fromkeys(
                     re.findall(r'href="([^"]+\.pdf)"', sub_html, re.I)))
-            files = []
-            for u in pdfs[:4]:      # больше четырёх приложений — уже свалка
-                try:
-                    files.append((_fetch(u), orders_watch.pdf_filename(u)))
-                except Exception as e:  # noqa: BLE001
-                    print(f"  не скачался {u}: {e}", flush=True)
         except Exception as e:  # noqa: BLE001
             print(f"check_orders: страница {page} не открылась: {e}", flush=True)
             continue                # отметку НЕ ставим — повторим на следующем круге
-        text = orders_watch.format_notice(page, pdfs)
+        missing = [u for u in pdfs if u not in SEEN_PDFS]
+        if not missing and not first_time:
+            continue                # знаем страницу, всё разослано
+        files = []
+        # Cap лишь для защиты от несусветного случая: реальные приказы бывают
+        # до 6 файлов (dogovor-spo). Прежние [:4] теряли последние 2.
+        for u in missing[:20]:
+            try:
+                files.append((_fetch(u), orders_watch.pdf_filename(u), u))
+            except Exception as e:  # noqa: BLE001
+                print(f"  не скачался {u}: {e}", flush=True)
+        if not files:
+            # ничего не скачалось — пометку не ставим, попробуем в следующий круг
+            print(f"check_orders: {page}: {len(missing)} новых pdf, "
+                  f"но ни один не скачался", flush=True)
+            continue
+        text = (orders_watch.format_notice(page, pdfs) if first_time
+                else orders_watch.format_addition(
+                    page, [name for _, name, _ in files]))
         sent = 0
         for chat in orders_watch.recipients(SUBS):
             if chat == _ORDERS_KEY:
                 continue
             try:
                 _send(token, int(chat), Reply(text, []))
-                for data, name in files:
+                for data, name, _ in files:
                     _send_document(token, int(chat), data, name)
                 sent += 1
                 time.sleep(0.15)    # вежливый интервал: лимиты Telegram
@@ -304,9 +370,12 @@ def _check_orders(token: str):
         # Отмечаем ПОСЛЕ рассылки: упади мы посередине, следующий круг дошлёт
         # остальным. Повтор части людям лучше, чем молчание для всех.
         SEEN_ORDERS.add(page)
+        for _, _, u in files:
+            SEEN_PDFS.add(u)
         _save_seen_orders()
-        print(f"check_orders: приказ {page} разослан {sent} подписчикам, "
-              f"файлов {len(files)}", flush=True)
+        kind = "новый приказ" if first_time else "добор файлов"
+        print(f"check_orders: {kind} {page} — файлов {len(files)}, "
+              f"подписчикам {sent}", flush=True)
 
 
 def _follow_code(chat_id: int, code: str) -> Reply:
@@ -477,7 +546,15 @@ def _handle_message(chat_id: int, text: str) -> Reply:
     if intent == "fb_stats":
         if chat_id != ADMIN_CHAT_ID:
             return Reply("", [])   # молча
-        return Reply(feedback.stats_text(FEEDBACK), [])
+        from scraper.count_users import count as _count_users
+        uc = _count_users(SUBS, FEEDBACK)
+        users = (f"\n\n👥 <b>Уникальных пользователей (нижняя оценка): "
+                 f"{uc['union']}</b>\n"
+                 f"• писали текстом: {uc['feedback']}\n"
+                 f"• подписаны /follow: {uc['subscribers']}\n"
+                 f"• и то, и другое: {uc['overlap']}\n"
+                 f"<i>Работавшие только кнопками не учтены — их бот не сохранял.</i>")
+        return Reply(feedback.stats_text(FEEDBACK) + users, [])
     if intent == "broadcast":
         if chat_id != ADMIN_CHAT_ID:
             return Reply("", [])   # молча
